@@ -35,7 +35,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "BloomBird"
+                "BloomBirb"
             ],
             "problemMatcher": "$msCompile",
             "group": "build"
