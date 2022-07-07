@@ -1,0 +1,35 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "BloomBirb (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build (Debug)",
+            "program": "${workspaceFolder}/BloomBirb/bin/Debug/net6.0/BloomBirb.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/BloomBirb",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": "BloomBirb (Release)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build (Release)",
+            "program": "${workspaceFolder}/BloomBirb/bin/Release/net6.0/BloomBirb.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/BloomBirb",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach"
+        },
+    ]
+}

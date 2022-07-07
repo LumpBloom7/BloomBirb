@@ -1,0 +1,57 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build (Debug)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "BloomBirb",
+                "/p:Configuration=Debug",
+                "/m",
+                "/verbosity:m"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "Build (Release)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "BloomBirb",
+                "/p:Configuration=Release",
+                "/m",
+                "/verbosity:m"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "BloomBird"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/BloomBirb/BloomBirb.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "test"
+        }
+    ]
+}
