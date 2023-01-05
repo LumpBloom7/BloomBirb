@@ -1,8 +1,12 @@
+﻿using System.Drawing;
+using BloomBirb.Audio;
 using BloomBirb.Extensions;
+using BloomBirb.Graphics;
 using BloomBirb.Renderers.OpenGL;
 using BloomBirb.ResourceStores;
 using Silk.NET.Input;
 using Silk.NET.Maths;
+using Silk.NET.OpenAL;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using Shader = BloomBirb.Renderers.OpenGL.Shader;
@@ -41,6 +45,7 @@ namespace BloomBirb
         private static EmbeddedResourceStore? resources = new();
 
         private static DrawableSprite sprite = null!;
+
         private static void Main(string[] args)
         {
             var options = WindowOptions.Default;
@@ -54,8 +59,8 @@ namespace BloomBirb
 
             window.Run();
         }
-
-        private static Texture? texture;
+        private static AudioSource audioSource;
+        private static AudioSource audioSource2;
         private static void onLoad()
         {
             IInputContext input = window?.CreateInput()!;
@@ -79,10 +84,23 @@ namespace BloomBirb
 
             sprite = new DrawableSprite(resources?.Textures.Get("sticky")!, resources?.Shaders.Get("Texture", "Texture")!);
 
+            OpenAL.CreateContext();
 
-            texture = resources?.Textures.Get("sticky");
+            audioSource = new AudioSource(Audio.Audio.LoadFromWAV(resources?.Get("Audio.cara.wav")!))
+            {
+                Volume = 0.2f,
+                Elapsed = 2.5f,
+            };
+
+            audioSource.Play();
+
+            audioSource2 = new AudioSource(Audio.Audio.LoadFromWAV(resources?.Get("Audio.cara.wav")!))
+            {
+                Volume = 0.2f
+            };
+            audioSource2.Play();
         }
-
+        private static float speed = 1.0f;
         private static unsafe void onRender(double obj)
         {
             gl?.Clear((uint)ClearBufferMask.ColorBufferBit);
