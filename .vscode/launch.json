@@ -9,10 +9,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "Build (Debug)",
-            "program": "${workspaceFolder}/BloomBirb/bin/Debug/net6.0/BloomBirb.dll",
+            "program": "${workspaceFolder}/BloomBirb/bin/Debug/net7.0/BloomBirb.dll",
             "args": [],
             "cwd": "${workspaceFolder}/BloomBirb",
-            "console": "integratedTerminal",
             "stopAtEntry": false
         },
         {
@@ -20,10 +19,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "Build (Release)",
-            "program": "${workspaceFolder}/BloomBirb/bin/Release/net6.0/BloomBirb.dll",
+            "program": "${workspaceFolder}/BloomBirb/bin/Release/net7.0/BloomBirb.dll",
             "args": [],
             "cwd": "${workspaceFolder}/BloomBirb",
-            "console": "integratedTerminal",
             "stopAtEntry": false
         },
         {
