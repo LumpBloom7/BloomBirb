@@ -63,7 +63,6 @@ public static class Matrix4Extensions
         return result;
     }
 
-    // Something is not working here
     public static Matrix4X4<float> Translate(this Matrix4X4<float> matrix, float x, float y)
     {
         var tmp = Matrix4X4<float>.Identity;
