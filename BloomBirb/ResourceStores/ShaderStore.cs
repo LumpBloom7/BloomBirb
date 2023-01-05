@@ -1,7 +1,8 @@
 using System.Reflection;
 using System.Text;
-using BloomBirb.Graphics;
+using BloomBirb.Renderers.OpenGL;
 using Silk.NET.OpenGL;
+using Shader = BloomBirb.Renderers.OpenGL.Shader;
 
 namespace BloomBirb.ResourceStores;
 
@@ -14,7 +15,7 @@ public class ShaderStore
 
     private readonly string prefix;
 
-    private readonly Dictionary<shaderParts, Graphics.Shader> shaderCache = new();
+    private readonly Dictionary<shaderParts, Shader> shaderCache = new();
 
     private readonly Dictionary<string, uint> vertexParts = new();
     private readonly Dictionary<string, uint> fragParts = new();
@@ -25,7 +26,7 @@ public class ShaderStore
         this.prefix = prefix;
     }
 
-    public Graphics.Shader Get(string vertexPart, string fragmentPart)
+    public Shader Get(string vertexPart, string fragmentPart)
     {
         uint vertHandle = getShaderPart(ShaderType.VertexShader, vertexPart);
         uint fragHandle = getShaderPart(ShaderType.FragmentShader, vertexPart);
@@ -34,7 +35,7 @@ public class ShaderStore
 
         if (!shaderCache.TryGetValue(parts, out var shader))
         {
-            shader = new Graphics.Shader(vertHandle, fragHandle);
+            shader = new Shader(vertHandle, fragHandle);
             shaderCache.Add(parts, shader);
         }
 

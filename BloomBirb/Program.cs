@@ -1,11 +1,12 @@
 ﻿using BloomBirb.Extensions;
-using BloomBirb.Graphics;
+using BloomBirb.Renderers.OpenGL;
 using BloomBirb.ResourceStores;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-using Texture = BloomBirb.Graphics.Texture;
+using Shader = BloomBirb.Renderers.OpenGL.Shader;
+using Texture = BloomBirb.Renderers.OpenGL.Texture;
 
 namespace BloomBirb
 {
@@ -18,7 +19,7 @@ namespace BloomBirb
         private static BufferObject<float>? vbo;
         private static BufferObject<uint>? ebo;
         private static VertexArrayObject<float, uint>? vao;
-        private static BloomBirb.Graphics.Shader? shader;
+        private static Shader? shader;
 
         // Note to self Screen origin is bottom left, (0,0) is centre
         // UV origin is topleft.

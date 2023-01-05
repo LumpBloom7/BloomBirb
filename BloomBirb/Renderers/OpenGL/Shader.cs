@@ -4,7 +4,7 @@ using System.Numerics;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 
-namespace BloomBirb.Graphics;
+namespace BloomBirb.Renderers.OpenGL;
 public class Shader : IDisposable
 {
     //Our handle and the GL instance this class will use, these are private because they have no reason to be public.

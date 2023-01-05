@@ -1,7 +1,7 @@
 using System;
 using Silk.NET.OpenGL;
 
-namespace BloomBirb.Graphics
+namespace BloomBirb.Renderers.OpenGL
 {
     //The vertex array object abstraction.
     public class VertexArrayObject<TVertexType, TIndexType> : IDisposable

@@ -1,6 +1,6 @@
 ﻿using Silk.NET.OpenGL;
 
-namespace BloomBirb.Graphics;
+namespace BloomBirb.Renderers.OpenGL;
 
 //Our buffer object abstraction.
 public class BufferObject<TDataType> : IDisposable

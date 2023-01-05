@@ -2,7 +2,7 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace BloomBirb.Graphics;
+namespace BloomBirb.Renderers.OpenGL;
 
 public class Texture : IDisposable
 {

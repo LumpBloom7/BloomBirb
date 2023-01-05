@@ -1,7 +1,7 @@
 ﻿using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
-namespace BloomBirb.Graphics;
+namespace BloomBirb.Renderers.OpenGL;
 
 public class OpenGLRenderer
 {

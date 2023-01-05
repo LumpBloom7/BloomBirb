@@ -27,7 +27,5 @@ public class EmbeddedResourceStore
     }
 
     public Stream? Get(string filename)
-    {
-        return assembly.GetManifestResourceStream($"{prefix}.{filename}");
-    }
+        => assembly.GetManifestResourceStream($"{prefix}.{filename}");
 }

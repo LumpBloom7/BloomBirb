@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using BloomBirb.Graphics;
+using BloomBirb.Renderers.OpenGL;
 
 namespace BloomBirb.ResourceStores;
 
