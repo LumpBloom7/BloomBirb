@@ -47,12 +47,15 @@ public class Shader : IDisposable
         //Load the individual shaders.
         uint vertex = loadShader(ShaderType.VertexShader, vertStream);
         uint fragment = loadShader(ShaderType.FragmentShader, fragStream);
+
         //Create the shader program.
         handle = gl.CreateProgram();
+
         //Attach the individual shaders.
         gl.AttachShader(handle, vertex);
         gl.AttachShader(handle, fragment);
         gl.LinkProgram(handle);
+
         //Check for linking errors.
         gl.GetProgram(handle, GLEnum.LinkStatus, out int status);
         if (status == 0)
@@ -135,6 +138,16 @@ public class Shader : IDisposable
     }
 
     public unsafe void SetUniform(string name, Matrix4X4<float> matrix)
+    {
+        int location = gl.GetUniformLocation(handle, name);
+        if (location == -1)
+        {
+            throw new Exception($"{name} uniform not found on shader.");
+        }
+        gl.UniformMatrix4(location, 1, false, (float*)&matrix);
+    }
+
+    public unsafe void SetUniform(string name, Matrix4x4 matrix)
     {
         int location = gl.GetUniformLocation(handle, name);
         if (location == -1)

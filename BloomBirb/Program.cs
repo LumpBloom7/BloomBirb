@@ -1,4 +1,4 @@
-﻿using BloomBirb.Extensions;
+using BloomBirb.Extensions;
 using BloomBirb.Renderers.OpenGL;
 using BloomBirb.ResourceStores;
 using Silk.NET.Input;
@@ -40,6 +40,7 @@ namespace BloomBirb
 
         private static EmbeddedResourceStore? resources = new();
 
+        private static DrawableSprite sprite = null!;
         private static void Main(string[] args)
         {
             var options = WindowOptions.Default;
@@ -74,7 +75,10 @@ namespace BloomBirb
             vao.VertexAttributePointer(0, 3, VertexAttribPointerType.Float, 5, 0);
             vao.VertexAttributePointer(1, 2, VertexAttribPointerType.Float, 5, 3);
 
-            shader = resources?.Shaders.Get("Texture", "Texture");
+            vao?.Bind();
+
+            sprite = new DrawableSprite(resources?.Textures.Get("sticky")!, resources?.Shaders.Get("Texture", "Texture")!);
+
 
             texture = resources?.Textures.Get("sticky");
         }
@@ -83,19 +87,11 @@ namespace BloomBirb
         {
             gl?.Clear((uint)ClearBufferMask.ColorBufferBit);
 
-            //Binding and using our VAO and shader.
-            vao?.Bind();
-            shader?.Use();
-            //Setting a uniform.
-            texture?.Bind();
-
-            gl?.Enable(GLEnum.Blend);
-            gl?.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
-
             float time = ((DateTime.Now.Second % 5) + DateTime.Now.Millisecond / 1000f) / 5f;
             float timeRot = (DateTime.Now.Second + DateTime.Now.Millisecond / 1000f) / 60f;
 
-            float rot = MathF.Sin(timeRot * 6.28f) * 360;
+            // Everything is a sinewave
+            sprite.Rotation = MathF.Sin(timeRot * 6.28f) * 360;
             float shear = MathF.Sin(time * 6.28f + 1) * 0.25f;
             float shearY = MathF.Sin(time * 6.28f + 2) * 0.25f;
             float sclX = MathF.Sin(time * 6.28f + 3) * 1;
@@ -103,14 +99,18 @@ namespace BloomBirb
             float trnsX = MathF.Sin(time * 6.28f + 5) * 0.5f;
             float trnsY = MathF.Sin(time * 6.28f + 6) * 0.5f;
 
-            var t = Matrix4X4.Transpose(Matrix4X4<float>.Identity.RotateDegrees(rot).Shear(shear, shearY).Scale(0.5f + sclX, 0.5f + sclY).Translate(trnsX, trnsY));
+            float r = MathF.Abs(MathF.Sin(time * 6.28f) * 1f);
+            float g = MathF.Abs(MathF.Sin(time * 6.28f + 2) * 1f);
+            float b = MathF.Abs(MathF.Sin(time * 6.28f + 4) * 1f);
 
-            shader?.SetUniform("u_TransMat", t);
-            shader?.SetUniform("u_Texture0", 0);
-            shader?.SetUniform("u_Circle", 0);
-            shader?.SetUniform("u_ScreenSpaceCentreX", 400f);
-            shader?.SetUniform("u_ScreenSpaceCentreY", 300f);
-            shader?.SetUniform("u_CircleRadius", 150f);
+            sprite.Scale = new System.Numerics.Vector2(sclX, sclY);
+            sprite.Position = new System.Numerics.Vector2(trnsX, trnsY);
+            sprite.Shear = new System.Numerics.Vector2(shear, shearY);
+            sprite.Colour = new System.Numerics.Vector4(r, g, b, 1f);
+
+
+            sprite.Invalidate();
+            sprite.Draw(gl!);
 
             gl?.DrawElements(PrimitiveType.Triangles, (uint)indices.Length, DrawElementsType.UnsignedInt, null);
         }

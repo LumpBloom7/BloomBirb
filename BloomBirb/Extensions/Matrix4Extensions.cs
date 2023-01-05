@@ -1,18 +1,18 @@
 using System;
-using Silk.NET.Maths;
+using System.Numerics;
 
 namespace BloomBirb.Extensions;
 
 public static class Matrix4Extensions
 {
-    public static Matrix4X4<float> RotateDegrees(this Matrix4X4<float> matrix, float degrees)
+    public static Matrix4x4 RotateDegrees(this Matrix4x4 matrix, float degrees)
         => matrix.RotateRadians(degrees * (float.Pi / 180));
 
-    public static Matrix4X4<float> RotateRadians(this Matrix4X4<float> matrix, float radians)
+    public static Matrix4x4 RotateRadians(this Matrix4x4 matrix, float radians)
     {
 
         (float sin, float cos) = MathF.SinCos(radians);
-        var result = new Matrix4X4<float>
+        var result = new Matrix4x4
         {
             M11 = (cos * matrix.M11) + (-sin * matrix.M21),
             M12 = (cos * matrix.M12) + (-sin * matrix.M22),
@@ -27,9 +27,13 @@ public static class Matrix4Extensions
 
         return result;
     }
-    public static Matrix4X4<float> Shear(this Matrix4X4<float> matrix, float x, float y)
+
+    public static Matrix4x4 Shear(this Matrix4x4 matrix, Vector2 vec)
+        => matrix.Shear(vec.X, vec.Y);
+
+    public static Matrix4x4 Shear(this Matrix4x4 matrix, float x, float y)
     {
-        var result = new Matrix4X4<float>
+        var result = new Matrix4x4
         {
             M11 = ((1 + x * y) * matrix.M11) + (y * matrix.M21),
             M12 = ((1 + x * y) * matrix.M12) + (y * matrix.M22),
@@ -45,9 +49,12 @@ public static class Matrix4Extensions
         return result;
     }
 
-    public static Matrix4X4<float> Scale(this Matrix4X4<float> matrix, float x, float y)
+    public static Matrix4x4 Scale(this Matrix4x4 matrix, Vector2 vec)
+        => matrix.Scale(vec.X, vec.Y);
+
+    public static Matrix4x4 Scale(this Matrix4x4 matrix, float x, float y)
     {
-        var result = new Matrix4X4<float>
+        var result = new Matrix4x4
         {
             M11 = x * matrix.M11,
             M12 = x * matrix.M12,
@@ -63,11 +70,14 @@ public static class Matrix4Extensions
         return result;
     }
 
-    public static Matrix4X4<float> Translate(this Matrix4X4<float> matrix, float x, float y)
+    public static Matrix4x4 Translate(this Matrix4x4 matrix, Vector2 vec)
+        => matrix.Translate(vec.X, vec.Y);
+
+    public static Matrix4x4 Translate(this Matrix4x4 matrix, float x, float y)
     {
-        var tmp = Matrix4X4<float>.Identity;
-        tmp.M13 = x;
-        tmp.M13 = y;
+        var tmp = Matrix4x4.Identity;
+        tmp.M14 = x;
+        tmp.M14 = y;
 
         return tmp * matrix;
     }

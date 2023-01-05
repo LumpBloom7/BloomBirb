@@ -5,6 +5,8 @@ in vec2 f_uv;
 
 uniform sampler2D u_Texture0;
 
+uniform vec4 u_Color = vec4(1.0, 1.0, 1.0, 1.0);
+
 out vec4 FragColor;
 
 uniform bool u_Circle;
@@ -19,10 +21,10 @@ void main()
     if(u_Circle){
         float dist = distance(gl_FragCoord.xy, vec2(u_ScreenSpaceCentreX, u_ScreenSpaceCentreY));
 
-        FragColor = vec4(texture(u_Texture0, f_uv).rgb, clamp( 1 - (dist - u_CircleRadius) / 1, 0, 1));
+        FragColor = vec4(texture(u_Texture0, f_uv).rgb, clamp( 1 - (dist - u_CircleRadius) / 1, 0, 1)) * u_Color;
         return;
     }
 
     //Here we are setting our output variable, for which the name is not important.
-    FragColor = texture(u_Texture0, f_uv);
+    FragColor = texture(u_Texture0, f_uv) * u_Color;
 }
