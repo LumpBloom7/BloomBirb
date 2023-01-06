@@ -47,7 +47,7 @@ public class Audio
 
         for (int i = 0; i < floatSamples.Length; ++i)
         {
-            short sampleValue = (short)(floatSamples[i] * short.MaxValue);
+            short sampleValue = (short)(Math.Clamp(floatSamples[i], -1, 1) * short.MaxValue);
 
             byte[] bytes = BitConverter.GetBytes(sampleValue);
             pcmSamples[i * sizeof(short)] = bytes[0];
