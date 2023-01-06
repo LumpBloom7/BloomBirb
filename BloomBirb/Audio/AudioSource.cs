@@ -2,11 +2,13 @@ using Silk.NET.OpenAL;
 
 namespace BloomBirb.Audio;
 
-public class AudioSource
+public class AudioSource : IDisposable
 {
-    private readonly Audio audio;
+    private readonly IAudio audio;
 
     private uint source;
+
+    private uint buffer;
 
     private float volume = 1;
     public float Volume
@@ -40,13 +42,30 @@ public class AudioSource
         set => OpenAL.AL.SetSourceProperty(source, SourceFloat.SecOffset, value);
     }
 
+    private bool looping = false;
 
-    public AudioSource(Audio audio)
+    public bool Looping
+    {
+        get => looping;
+        set
+        {
+            looping = value;
+            OpenAL.AL.SetSourceProperty(source, SourceBoolean.Looping, value);
+        }
+    }
+
+    public AudioSource(IAudio audio)
     {
         this.audio = audio;
 
         source = OpenAL.AL.GenSource();
-        OpenAL.AL.SetSourceProperty(source, SourceInteger.Buffer, audio.OpenALBuffer);
+        buffer = OpenAL.AL.GenBuffer();
+
+        // Buffer in audio data
+        byte[]? data = audio.FetchAllSamples();
+        OpenAL.AL.BufferData(buffer, audio.Format, data, audio.SampleRate);
+
+        OpenAL.AL.SetSourceProperty(source, SourceInteger.Buffer, buffer);
     }
 
     public void Play() => OpenAL.AL.SourcePlay(source);
@@ -54,4 +73,33 @@ public class AudioSource
     public void Stop() => OpenAL.AL.SourceStop(source);
 
     public void Pause() => OpenAL.AL.SourcePause(source);
+
+    private bool isDisposed;
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (isDisposed)
+            return;
+
+        // TODO: We may not want to eagerly dispose this
+        if (disposing)
+            audio.Dispose();
+
+
+        OpenAL.AL.DeleteSource(source);
+        OpenAL.AL.DeleteBuffer(buffer);
+
+        isDisposed = true;
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    ~AudioSource()
+    {
+        Dispose(disposing: false);
+    }
 }
