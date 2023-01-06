@@ -1,6 +1,5 @@
 using NAudio.Wave;
 using NLayer;
-using NLayer.NAudioSupport;
 using Silk.NET.OpenAL;
 
 namespace BloomBirb.Audio;
@@ -30,6 +29,34 @@ public class Audio
         }
     }
 
+    public static Audio LoadFromMP3(Stream mp3Stream)
+    {
+        var mpegFile = new MpegFile(mp3Stream);
+        int sampleNumber = (int)mpegFile.Length / sizeof(float);
+        float[] samples = new float[sampleNumber];
+        mpegFile.ReadSamples(samples, 0, sampleNumber);
+
+        byte[]? pcmSamples = floatToPCM16(samples);
+
+        return new Audio(pcmSamples, mpegFile.Channels, 16, mpegFile.SampleRate);
+    }
+
+    private static byte[] floatToPCM16(float[] floatSamples)
+    {
+        byte[] pcmSamples = new byte[floatSamples.Length * sizeof(short)];
+
+        for (int i = 0; i < floatSamples.Length; ++i)
+        {
+            short sampleValue = (short)(floatSamples[i] * short.MaxValue);
+
+            byte[] bytes = BitConverter.GetBytes(sampleValue);
+            pcmSamples[i * sizeof(short)] = bytes[0];
+            pcmSamples[i * sizeof(short) + 1] = bytes[1];
+        }
+
+        return pcmSamples;
+    }
+
     private static BufferFormat convertToBufferFormat(int bitsPerSample, int channels)
     {
         if (channels == 1)
@@ -44,8 +71,6 @@ public class Audio
             if (bitsPerSample == 8)
                 return BufferFormat.Stereo8;
             else if (bitsPerSample == 16)
-                return BufferFormat.Stereo16;
-            else if (bitsPerSample == 32)
                 return BufferFormat.Stereo16;
         }
 
