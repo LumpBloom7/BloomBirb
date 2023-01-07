@@ -23,7 +23,6 @@ namespace BloomBirb
         private static BufferObject<float>? vbo;
         private static BufferObject<uint>? ebo;
         private static VertexArrayObject<float, uint>? vao;
-        private static Shader? shader;
 
         // Note to self Screen origin is bottom left, (0,0) is centre
         // UV origin is topleft.
@@ -59,8 +58,7 @@ namespace BloomBirb
 
             window.Run();
         }
-        private static AudioSource audioSource;
-        private static AudioSource audioSource2;
+        private static AudioStreamSource audioSource;
         private static void onLoad()
         {
             IInputContext input = window?.CreateInput()!;
@@ -82,23 +80,17 @@ namespace BloomBirb
 
             vao?.Bind();
 
-            sprite = new DrawableSprite(resources?.Textures.Get("sticky")!, resources?.Shaders.Get("Texture", "Texture")!);
+            sprite = new DrawableSprite(resources?.Textures.Get("kitty")!, resources?.Shaders.Get("Texture", "Texture")!);
 
             OpenAL.CreateContext();
 
-            audioSource = new AudioSource(Audio.Audio.LoadFromWAV(resources?.Get("Audio.cara.wav")!))
+            audioSource = new AudioStreamSource(new MP3Audio(resources?.Get("Audio.blue.mp3")!))
             {
-                Volume = 0.2f,
                 Elapsed = 2.5f,
+                Looping = true,
             };
 
             audioSource.Play();
-
-            audioSource2 = new AudioSource(Audio.Audio.LoadFromWAV(resources?.Get("Audio.cara.wav")!))
-            {
-                Volume = 0.2f
-            };
-            audioSource2.Play();
         }
         private static float speed = 1.0f;
         private static unsafe void onRender(double obj)
@@ -139,7 +131,7 @@ namespace BloomBirb
             vbo?.Dispose();
             ebo?.Dispose();
             vao?.Dispose();
-            shader?.Dispose();
+            audioSource?.Dispose();
         }
 
         private static void onKeyDown(IKeyboard arg1, Key arg2, int arg3)
