@@ -17,40 +17,42 @@ public class MP3Audio : IAudio
         Format = IAudio.ConvertToBufferFormat(16, mpegReader.Channels);
     }
 
-    public byte[] FetchAllSamples() => FetchSamples(0, (int)(mpegReader.Length / sizeof(float)));
-
-    public byte[] FetchNext(int count)
+    public byte[] ReadAllSamples()
     {
-        float[] floatSamples = new float[count];
-        mpegReader.ReadSamples(floatSamples, 0, count);
+        byte[] buffer = new byte[mpegReader.Length / sizeof(float)];
+
+        ReadSamples(buffer, 0);
+
+        return buffer;
+    }
+
+    public void ReadNextSamples(byte[] destinationBuffer)
+    {
+        int numFloats = destinationBuffer.Length / 2;
+        float[] floatSamples = new float[numFloats];
+        mpegReader.ReadSamples(floatSamples, 0, numFloats);
 
         normalizeFloats(floatSamples);
 
-        byte[] byteBuffer = floatToPCM16(floatSamples);
-        return byteBuffer;
+        floatToPCM16(destinationBuffer, floatSamples);
     }
 
-    public byte[] FetchSamples(int begin, int count)
+    public void ReadSamples(byte[] destinationBuffer, int begin)
     {
         mpegReader.Position = begin;
-        return FetchNext(count);
+        ReadNextSamples(destinationBuffer);
     }
 
 
-    private static byte[] floatToPCM16(float[] floatSamples)
+    private static void floatToPCM16(byte[] destination, float[] floatSamples)
     {
-        byte[] pcmSamples = new byte[floatSamples.Length * sizeof(short)];
-
         for (int i = 0; i < floatSamples.Length; ++i)
         {
             short sampleValue = (short)(floatSamples[i] * short.MaxValue);
 
-            byte[] bytes = BitConverter.GetBytes(sampleValue);
-            pcmSamples[i * sizeof(short)] = bytes[0];
-            pcmSamples[i * sizeof(short) + 1] = bytes[1];
+            destination[i * sizeof(short)] = (byte)sampleValue;
+            destination[(i * sizeof(short)) + 1] = (byte)(sampleValue >> 8);
         }
-
-        return pcmSamples;
     }
 
     private float maxFloatRange = 1f;

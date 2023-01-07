@@ -62,7 +62,7 @@ public class AudioSource : IDisposable
         buffer = OpenAL.AL.GenBuffer();
 
         // Buffer in audio data
-        byte[]? data = audio.FetchAllSamples();
+        byte[]? data = audio.ReadAllSamples();
         OpenAL.AL.BufferData(buffer, audio.Format, data, audio.SampleRate);
 
         OpenAL.AL.SetSourceProperty(source, SourceInteger.Buffer, buffer);

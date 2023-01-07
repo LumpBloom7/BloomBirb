@@ -65,12 +65,12 @@ public class AudioStreamSource : IDisposable
         this.audio = audio;
 
         source = OpenAL.AL.GenSource();
-        buffers = OpenAL.AL.GenBuffers(5);
+        buffers = OpenAL.AL.GenBuffers(4);
 
-        unqueuedBuffers = new uint[5];
-        Array.Copy(buffers, unqueuedBuffers, 5);
+        unqueuedBuffers = new uint[4];
+        Array.Copy(buffers, unqueuedBuffers, 4);
 
-        numberOfFreeBuffers = 5;
+        numberOfFreeBuffers = 4;
 
         bufferData();
 
@@ -98,13 +98,20 @@ public class AudioStreamSource : IDisposable
         bufferThread.Start();
     }
 
+    // Reusable temporary buffer to buffer stuff in
+    // Reduces gc strain due to the large counts
+    private byte[] loadBuffer = new byte[8192];
+
     private void bufferData()
     {
         if (numberOfFreeBuffers == 0)
             return;
 
         for (int i = 0; i < numberOfFreeBuffers; ++i)
-            OpenAL.AL.BufferData(unqueuedBuffers[i], audio.Format, audio.FetchNext(audio.SampleRate), audio.SampleRate);
+        {
+            audio.ReadNextSamples(loadBuffer);
+            OpenAL.AL.BufferData(unqueuedBuffers[i], audio.Format, loadBuffer, audio.SampleRate);
+        }
 
         OpenAL.AL.SourceQueueBuffers(source, unqueuedBuffers);
         numberOfFreeBuffers = 0;

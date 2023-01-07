@@ -9,11 +9,28 @@ public interface IAudio : IDisposable
 
     BufferFormat Format { get; }
 
-    byte[] FetchNext(int count);
+    /// <summary>
+    /// Fills the destination buffer with sample data, starting from the current read position.
+    ///
+    /// The number of samples is determined by the length of the provided buffer.
+    /// </summary>
+    /// <param name="destinationBuffer">A byte array to buffer data into.</param>
+    void ReadNextSamples(byte[] destinationBuffer);
 
-    byte[] FetchSamples(int begin, int count);
+    /// <summary>
+    /// Fills the destination buffer with sample data, starting from a specified position.
+    ///
+    /// The number of samples is determined by the length of the provided buffer.
+    /// </summary>
+    /// <param name="destinationBuffer">A byte array to buffer data into.</param>
+    /// <param name="begin">The position to start the read from.</param>
+    void ReadSamples(byte[] destinationBuffer, int begin);
 
-    byte[] FetchAllSamples();
+    /// <summary>
+    /// Reads all sample data contained within the audio stream.
+    /// </summary>
+    /// <returns>A `byte[]` containing sample data </returns>
+    byte[] ReadAllSamples();
 
     protected static BufferFormat ConvertToBufferFormat(int bitsPerSample, int channels)
     {

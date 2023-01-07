@@ -17,22 +17,23 @@ public class WaveAudio : IAudio
         Format = IAudio.ConvertToBufferFormat(waveReader.WaveFormat.BitsPerSample, waveReader.WaveFormat.Channels);
     }
 
-    public byte[] FetchNext(int count)
-    {
-        byte[] buffer = new byte[count];
-        waveReader.Read(buffer, 0, count);
+    public void ReadNextSamples(byte[] destinationBuffer)
+        => waveReader.Read(destinationBuffer, 0, destinationBuffer.Length);
 
-        return buffer;
-    }
-
-    public byte[] FetchSamples(int begin, int count)
+    public void ReadSamples(byte[] destinationBuffer, int begin)
     {
         waveReader.Position = begin;
 
-        return FetchNext(count);
+        ReadNextSamples(destinationBuffer);
     }
 
-    public byte[] FetchAllSamples() => FetchSamples(0, (int)waveReader.Length);
+    public byte[] ReadAllSamples()
+    {
+        byte[] buffer = new byte[waveReader.Length];
+
+        ReadSamples(buffer, 0);
+        return buffer;
+    }
 
     private bool isDisposed;
 
