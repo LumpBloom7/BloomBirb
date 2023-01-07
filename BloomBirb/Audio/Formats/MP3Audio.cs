@@ -11,6 +11,12 @@ public class MP3Audio : IAudio
 
     private MpegFile mpegReader;
 
+    public TimeSpan Time
+    {
+        get => mpegReader.Time;
+        set => mpegReader.Time = value;
+    }
+
     public MP3Audio(Stream audioStream)
     {
         mpegReader = new MpegFile(audioStream);
@@ -30,6 +36,8 @@ public class MP3Audio : IAudio
     // This will be used as an intermediate buffer.
     private float[]? fetchBuffer;
 
+    public bool Looping { get; set; }
+
     public void ReadNextSamples(byte[] destinationBuffer)
     {
         int numFloats = destinationBuffer.Length / 2;
@@ -37,7 +45,14 @@ public class MP3Audio : IAudio
         if (fetchBuffer is null || fetchBuffer.Length < numFloats)
             fetchBuffer = new float[numFloats];
 
-        mpegReader.ReadSamples(fetchBuffer, 0, numFloats);
+        int count = mpegReader.ReadSamples(fetchBuffer, 0, numFloats);
+
+        // Implement loopback
+        if (Looping && count < numFloats)
+        {
+            Time = TimeSpan.Zero;
+            mpegReader.ReadSamples(fetchBuffer, count, numFloats - count);
+        }
 
         floatToPCM16(destinationBuffer, fetchBuffer.AsSpan(0, numFloats));
     }

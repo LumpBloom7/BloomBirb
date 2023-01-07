@@ -11,6 +11,14 @@ public class WaveAudio : IAudio
 
     private WaveFileReader waveReader;
 
+    public TimeSpan Time
+    {
+        get => waveReader.CurrentTime;
+        set => waveReader.CurrentTime = value;
+    }
+
+    public bool Looping { get; set; }
+
     public WaveAudio(Stream audioStream)
     {
         waveReader = new WaveFileReader(audioStream);
@@ -18,7 +26,15 @@ public class WaveAudio : IAudio
     }
 
     public void ReadNextSamples(byte[] destinationBuffer)
-        => waveReader.Read(destinationBuffer, 0, destinationBuffer.Length);
+    {
+        int count = waveReader.Read(destinationBuffer, 0, destinationBuffer.Length);
+
+        if (Looping && count < destinationBuffer.Length)
+        {
+            Time = TimeSpan.Zero;
+            waveReader.Read(destinationBuffer, count, destinationBuffer.Length - count);
+        }
+    }
 
     public void ReadSamples(byte[] destinationBuffer, int begin)
     {

@@ -9,6 +9,10 @@ public interface IAudio : IDisposable
 
     BufferFormat Format { get; }
 
+    TimeSpan Time { get; set; }
+
+    bool Looping { get; set; }
+
     /// <summary>
     /// Fills the destination buffer with sample data, starting from the current read position.
     ///

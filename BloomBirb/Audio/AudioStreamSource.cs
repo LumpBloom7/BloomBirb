@@ -26,26 +26,18 @@ public class AudioStreamSource : IDisposable
         }
     }
 
-    public float Elapsed
+    public TimeSpan Time
     {
-        get
-        {
-            OpenAL.AL.GetSourceProperty(source, SourceFloat.SecOffset, out float offset);
-            return offset;
-        }
-        set => OpenAL.AL.SetSourceProperty(source, SourceFloat.SecOffset, value);
+        get => audio.Time;
+        set => audio.Time = value;
     }
 
     private bool looping = false;
 
     public bool Looping
     {
-        get => looping;
-        set
-        {
-            looping = value;
-            OpenAL.AL.SetSourceProperty(source, SourceBoolean.Looping, false);
-        }
+        get => audio.Looping;
+        set => audio.Looping = value;
     }
 
     private readonly IAudio audio;
