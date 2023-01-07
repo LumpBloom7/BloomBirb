@@ -26,15 +26,20 @@ public class MP3Audio : IAudio
         return buffer;
     }
 
+    // Used because mpegFileRead provides a byte[] with Float32 data, while we need int16 data
+    // This will be used as an intermediate buffer.
+    private float[]? fetchBuffer;
+
     public void ReadNextSamples(byte[] destinationBuffer)
     {
         int numFloats = destinationBuffer.Length / 2;
-        float[] floatSamples = new float[numFloats];
-        mpegReader.ReadSamples(floatSamples, 0, numFloats);
 
-        normalizeFloats(floatSamples);
+        if (fetchBuffer is null || fetchBuffer.Length < numFloats)
+            fetchBuffer = new float[numFloats];
 
-        floatToPCM16(destinationBuffer, floatSamples);
+        mpegReader.ReadSamples(fetchBuffer, 0, numFloats);
+
+        floatToPCM16(destinationBuffer, fetchBuffer.AsSpan(0, numFloats));
     }
 
     public void ReadSamples(byte[] destinationBuffer, int begin)
@@ -43,30 +48,32 @@ public class MP3Audio : IAudio
         ReadNextSamples(destinationBuffer);
     }
 
-
-    private static void floatToPCM16(byte[] destination, float[] floatSamples)
+    private void floatToPCM16(byte[] destination, Span<float> floatSamples)
     {
         for (int i = 0; i < floatSamples.Length; ++i)
         {
-            short sampleValue = (short)(floatSamples[i] * short.MaxValue);
+            float floatValue = normalizeFloat(floatSamples[i]);
+            short sampleValue = (short)(floatValue * short.MaxValue);
 
             destination[i * sizeof(short)] = (byte)sampleValue;
             destination[(i * sizeof(short)) + 1] = (byte)(sampleValue >> 8);
         }
     }
 
-    private float maxFloatRange = 1f;
+    private float maxFloatDivisor = 1;
+    private float floatNormalizeFactor = 1f;
 
     // This is used to "fix" some MP3 files with out of range samples
-    private void normalizeFloats(float[] floatSamples)
+    private float normalizeFloat(float value)
     {
-        maxFloatRange = Math.Max(maxFloatRange, floatSamples.Max(Math.Abs));
+        float maxRange = Math.Abs(value);
+        if (maxFloatDivisor < maxRange)
+        {
+            maxFloatDivisor = maxRange;
+            floatNormalizeFactor = 1 / maxFloatDivisor;
+        }
 
-        if (maxFloatRange <= 1f)
-            return;
-
-        for (int i = 0; i < floatSamples.Length; ++i)
-            floatSamples[i] /= maxFloatRange;
+        return value * floatNormalizeFactor;
     }
 
     private bool isDisposed;

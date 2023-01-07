@@ -84,7 +84,7 @@ namespace BloomBirb
 
             OpenAL.CreateContext();
 
-            audioSource = new AudioStreamSource(new MP3Audio(resources?.Get("Audio.blue.mp3")!))
+            audioSource = new AudioStreamSource(new MP3Audio(resources?.Get("Audio.arrow.mp3")!))
             {
                 Elapsed = 2.5f,
                 Looping = true,
