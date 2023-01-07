@@ -4,6 +4,7 @@ using BloomBirb.Extensions;
 using BloomBirb.Graphics;
 using BloomBirb.Renderers.OpenGL;
 using BloomBirb.ResourceStores;
+using Silk.NET.Core.Native;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenAL;
@@ -58,7 +59,7 @@ namespace BloomBirb
 
             window.Run();
         }
-        private static AudioStreamSource audioSource;
+        private static StreamedSoundSource audioSource;
         private static void onLoad()
         {
             IInputContext input = window?.CreateInput()!;
@@ -84,14 +85,15 @@ namespace BloomBirb
 
             OpenAL.CreateContext();
 
-            audioSource = new AudioStreamSource(new MP3Audio(resources?.Get("Audio.arrow.mp3")!))
+            audioSource = new StreamedSoundSource(new MP3Audio(resources?.Get("Audio.arrow.mp3")!))
             {
-                Elapsed = 2.5f,
+                Volume = 0.25f,
                 Looping = true,
             };
 
             audioSource.Play();
         }
+
         private static float speed = 1.0f;
         private static unsafe void onRender(double obj)
         {

@@ -2,104 +2,66 @@ using Silk.NET.OpenAL;
 
 namespace BloomBirb.Audio;
 
-public class AudioSource : IDisposable
+public abstract class AudioSource : IDisposable
 {
-    private readonly IAudio audio;
+    protected readonly IAudio Audio;
 
-    private uint source;
-
-    private uint buffer;
+    protected readonly uint Source;
 
     private float volume = 1;
     public float Volume
     {
         get => volume;
-        set
-        {
-            volume = value;
-            OpenAL.AL.SetSourceProperty(source, SourceFloat.Gain, value);
-        }
+        set => OpenAL.AL.SetSourceProperty(Source, SourceFloat.Gain, volume = value);
     }
 
     private float pitch = 1;
     public float Pitch
     {
         get => pitch;
-        set
-        {
-            pitch = value;
-            OpenAL.AL.SetSourceProperty(source, SourceFloat.Pitch, value);
-        }
+        set => OpenAL.AL.SetSourceProperty(Source, SourceFloat.Pitch, pitch = value);
     }
 
-    public float Elapsed
-    {
-        get
-        {
-            OpenAL.AL.GetSourceProperty(source, SourceFloat.SecOffset, out float offset);
-            return offset;
-        }
-        set => OpenAL.AL.SetSourceProperty(source, SourceFloat.SecOffset, value);
-    }
+    public abstract TimeSpan Time { get; set; }
 
-    private bool looping = false;
-
-    public bool Looping
-    {
-        get => looping;
-        set
-        {
-            looping = value;
-            OpenAL.AL.SetSourceProperty(source, SourceBoolean.Looping, value);
-        }
-    }
+    public abstract bool Looping { get; set; }
 
     public AudioSource(IAudio audio)
     {
-        this.audio = audio;
-
-        source = OpenAL.AL.GenSource();
-        buffer = OpenAL.AL.GenBuffer();
-
-        // Buffer in audio data
-        byte[]? data = audio.ReadAllSamples();
-        OpenAL.AL.BufferData(buffer, audio.Format, data, audio.SampleRate);
-
-        OpenAL.AL.SetSourceProperty(source, SourceInteger.Buffer, buffer);
+        Audio = audio;
+        Source = OpenAL.AL.GenSource();
     }
 
-    public void Play() => OpenAL.AL.SourcePlay(source);
+    public virtual void Play() => OpenAL.AL.SourcePlay(Source);
 
-    public void Stop() => OpenAL.AL.SourceStop(source);
+    public virtual void Stop() => OpenAL.AL.SourceStop(Source);
 
-    public void Pause() => OpenAL.AL.SourcePause(source);
+    public virtual void Pause() => OpenAL.AL.SourcePause(Source);
 
-    private bool isDisposed;
+    protected bool IsDisposed;
 
     protected virtual void Dispose(bool disposing)
     {
-        if (isDisposed)
+        if (IsDisposed)
             return;
 
-        // TODO: We may not want to eagerly dispose this
         if (disposing)
-            audio.Dispose();
+        {
+            Audio.Dispose();
+        }
 
+        OpenAL.AL.DeleteSource(Source);
+        IsDisposed = true;
+    }
 
-        OpenAL.AL.DeleteSource(source);
-        OpenAL.AL.DeleteBuffer(buffer);
-
-        isDisposed = true;
+    ~AudioSource()
+    {
+        Dispose(disposing: false);
     }
 
     public void Dispose()
     {
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
-    }
-
-    ~AudioSource()
-    {
-        Dispose(disposing: false);
     }
 }
