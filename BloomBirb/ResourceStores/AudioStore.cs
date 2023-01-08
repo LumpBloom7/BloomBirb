@@ -24,25 +24,17 @@ public class AudioStore
     {
         foreach (string extension in lookup_extensions)
         {
-            Stream? stream = assembly.GetManifestResourceStream($"{prefix}.{path}{extension}");
+            string fullPath = $"{prefix}.{path}{extension}";
+            Stream? stream = assembly.GetManifestResourceStream(fullPath);
 
             if (stream is null)
                 continue;
 
-            try
-            {
+            if (fullPath.EndsWith(".wav"))
                 return new WaveAudio(stream);
-            }
-            catch (FormatException) { }
 
-            try
-            {
+            if (fullPath.EndsWith(".mp3"))
                 return new MP3Audio(stream);
-            }
-            catch (FormatException)
-            {
-                throw new FormatException($"{path} is not a WAV or an MP3 file");
-            }
         }
 
         throw new FileNotFoundException(path);
