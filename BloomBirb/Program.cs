@@ -89,7 +89,7 @@ namespace BloomBirb
             audioSource = new StreamedSoundSource(resources?.Audio.Get("arrow")!)
             {
                 Volume = 0.25f,
-                Speed = 1.5f,
+                Speed = 1,
                 Looping = true,
             };
 

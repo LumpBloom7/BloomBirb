@@ -35,21 +35,22 @@ public class MP3Audio : AudioBase
 
     public override void ReadNextSamples(byte[] destinationBuffer)
     {
-        int numFloats = destinationBuffer.Length / 2;
+        int numSamples = destinationBuffer.Length / 2;
+        int numBytes = numSamples * sizeof(float);
 
-        if (fetchBuffer is null || fetchBuffer.Length < numFloats * sizeof(float))
-            fetchBuffer = new byte[numFloats * sizeof(float)];
+        if (fetchBuffer is null || fetchBuffer.Length < numBytes)
+            fetchBuffer = new byte[numBytes];
 
-        int count = mpegReader.ReadSamples(fetchBuffer, 0, numFloats);
+        int count = mpegReader.ReadSamples(fetchBuffer, 0, numBytes);
 
         // Implement loopback
-        if (Looping && count < numFloats)
+        if (Looping && count < numBytes)
         {
             Time = TimeSpan.Zero;
-            mpegReader.ReadSamples(fetchBuffer, count * sizeof(float), numFloats - count);
+            mpegReader.ReadSamples(fetchBuffer, count, numBytes - count);
         }
 
-        FloatToPCM16(destinationBuffer, fetchBuffer.AsSpan(0, numFloats * sizeof(float)));
+        FloatToPCM16(destinationBuffer, fetchBuffer.AsSpan(0, numBytes));
     }
 
     public override void ReadSamples(byte[] destinationBuffer, int begin)
