@@ -1,3 +1,4 @@
+using BloomBirb.Audio.Format;
 using Silk.NET.OpenAL;
 
 namespace BloomBirb.Audio;
@@ -29,7 +30,7 @@ public class SoundSource : AudioSource
 
     private readonly uint buffer;
 
-    public SoundSource(IAudio audio) : base(audio)
+    public SoundSource(AudioBase audio) : base(audio)
     {
         buffer = OpenAL.AL.GenBuffer();
 

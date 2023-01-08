@@ -1,17 +1,14 @@
 using NLayer;
-using Silk.NET.OpenAL;
 
-namespace BloomBirb.Audio;
+namespace BloomBirb.Audio.Format;
 
-public class MP3Audio : IAudio
+public class MP3Audio : AudioBase
 {
-    public int SampleRate => mpegReader.SampleRate;
-
-    public BufferFormat Format { get; private set; }
+    public override int SampleRate => mpegReader.SampleRate;
 
     private MpegFile mpegReader;
 
-    public TimeSpan Time
+    public override TimeSpan Time
     {
         get => mpegReader.Time;
         set => mpegReader.Time = value;
@@ -20,10 +17,10 @@ public class MP3Audio : IAudio
     public MP3Audio(Stream audioStream)
     {
         mpegReader = new MpegFile(audioStream);
-        Format = IAudio.ConvertToBufferFormat(16, mpegReader.Channels);
+        Format = ConvertToBufferFormat(16, mpegReader.Channels);
     }
 
-    public byte[] ReadAllSamples()
+    public override byte[] ReadAllSamples()
     {
         byte[] buffer = new byte[mpegReader.Length / sizeof(float)];
 
@@ -34,16 +31,14 @@ public class MP3Audio : IAudio
 
     // Used because mpegFileRead provides a byte[] with Float32 data, while we need int16 data
     // This will be used as an intermediate buffer.
-    private float[]? fetchBuffer;
+    private byte[]? fetchBuffer;
 
-    public bool Looping { get; set; }
-
-    public void ReadNextSamples(byte[] destinationBuffer)
+    public override void ReadNextSamples(byte[] destinationBuffer)
     {
         int numFloats = destinationBuffer.Length / 2;
 
-        if (fetchBuffer is null || fetchBuffer.Length < numFloats)
-            fetchBuffer = new float[numFloats];
+        if (fetchBuffer is null || fetchBuffer.Length < numFloats * sizeof(float))
+            fetchBuffer = new byte[numFloats * sizeof(float)];
 
         int count = mpegReader.ReadSamples(fetchBuffer, 0, numFloats);
 
@@ -51,49 +46,21 @@ public class MP3Audio : IAudio
         if (Looping && count < numFloats)
         {
             Time = TimeSpan.Zero;
-            mpegReader.ReadSamples(fetchBuffer, count, numFloats - count);
+            mpegReader.ReadSamples(fetchBuffer, count * sizeof(float), numFloats - count);
         }
 
-        floatToPCM16(destinationBuffer, fetchBuffer.AsSpan(0, numFloats));
+        FloatToPCM16(destinationBuffer, fetchBuffer.AsSpan(0, numFloats * sizeof(float)));
     }
 
-    public void ReadSamples(byte[] destinationBuffer, int begin)
+    public override void ReadSamples(byte[] destinationBuffer, int begin)
     {
         mpegReader.Position = begin;
         ReadNextSamples(destinationBuffer);
     }
 
-    private void floatToPCM16(byte[] destination, Span<float> floatSamples)
-    {
-        for (int i = 0; i < floatSamples.Length; ++i)
-        {
-            float floatValue = normalizeFloat(floatSamples[i]);
-            short sampleValue = (short)(floatValue * short.MaxValue);
-
-            destination[i * sizeof(short)] = (byte)sampleValue;
-            destination[(i * sizeof(short)) + 1] = (byte)(sampleValue >> 8);
-        }
-    }
-
-    private float maxFloatDivisor = 1;
-    private float floatNormalizeFactor = 1f;
-
-    // This is used to "fix" some MP3 files with out of range samples
-    private float normalizeFloat(float value)
-    {
-        float maxRange = Math.Abs(value);
-        if (maxFloatDivisor < maxRange)
-        {
-            maxFloatDivisor = maxRange;
-            floatNormalizeFactor = 1 / maxFloatDivisor;
-        }
-
-        return value * floatNormalizeFactor;
-    }
-
     private bool isDisposed;
 
-    protected virtual void Dispose(bool disposing)
+    protected override void Dispose(bool disposing)
     {
         if (isDisposed)
             return;
@@ -102,12 +69,5 @@ public class MP3Audio : IAudio
             mpegReader.Dispose();
 
         isDisposed = true;
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
 }

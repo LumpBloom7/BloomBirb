@@ -1,10 +1,11 @@
+using BloomBirb.Audio.Format;
 using Silk.NET.OpenAL;
 
 namespace BloomBirb.Audio;
 
 public abstract class AudioSource : IDisposable
 {
-    protected readonly IAudio Audio;
+    protected readonly AudioBase Audio;
 
     protected readonly uint Source;
 
@@ -15,18 +16,18 @@ public abstract class AudioSource : IDisposable
         set => OpenAL.AL.SetSourceProperty(Source, SourceFloat.Gain, volume = value);
     }
 
-    private float pitch = 1;
-    public float Pitch
+    private float speed = 1;
+    public float Speed
     {
-        get => pitch;
-        set => OpenAL.AL.SetSourceProperty(Source, SourceFloat.Pitch, pitch = value);
+        get => speed;
+        set => OpenAL.AL.SetSourceProperty(Source, SourceFloat.Pitch, speed = value);
     }
 
     public abstract TimeSpan Time { get; set; }
 
     public abstract bool Looping { get; set; }
 
-    public AudioSource(IAudio audio)
+    public AudioSource(AudioBase audio)
     {
         Audio = audio;
         Source = OpenAL.AL.GenSource();

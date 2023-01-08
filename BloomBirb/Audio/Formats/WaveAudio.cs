@@ -1,49 +1,77 @@
 using NAudio.Wave;
-using Silk.NET.OpenAL;
 
-namespace BloomBirb.Audio;
+namespace BloomBirb.Audio.Format;
 
-public class WaveAudio : IAudio
+public class WaveAudio : AudioBase
 {
-    public int SampleRate => waveReader.WaveFormat.SampleRate;
+    public override int SampleRate => waveReader.WaveFormat.SampleRate;
 
-    public BufferFormat Format { get; private set; }
+    private readonly WaveFileReader waveReader;
 
-    private WaveFileReader waveReader;
-
-    public TimeSpan Time
+    public override TimeSpan Time
     {
         get => waveReader.CurrentTime;
         set => waveReader.CurrentTime = value;
     }
 
-    public bool Looping { get; set; }
+    private int sampleSize;
+
+    // Used to indicate that conversion is necessary for OpenAL use
+    private bool shouldConvert;
 
     public WaveAudio(Stream audioStream)
     {
         waveReader = new WaveFileReader(audioStream);
-        Format = IAudio.ConvertToBufferFormat(waveReader.WaveFormat.BitsPerSample, waveReader.WaveFormat.Channels);
+        sampleSize = waveReader.WaveFormat.BitsPerSample / 8;
+        shouldConvert = sampleSize > 2;
+        Format = ConvertToBufferFormat(shouldConvert ? 16 : waveReader.WaveFormat.BitsPerSample, waveReader.WaveFormat.Channels);
+
     }
 
-    public void ReadNextSamples(byte[] destinationBuffer)
-    {
-        int count = waveReader.Read(destinationBuffer, 0, destinationBuffer.Length);
+    // A wave file may contain 24 or 32 bit data, which needs to be converted to 16bits
+    // This will be used as an intermediate buffer if that is the case.
+    private byte[]? fetchBuffer;
 
-        if (Looping && count < destinationBuffer.Length)
+
+    public override void ReadNextSamples(byte[] destinationBuffer)
+    {
+        int numSamples = destinationBuffer.Length / 2;
+
+        byte[] targetBuffer = destinationBuffer;
+
+        if (shouldConvert)
+        {
+            if (fetchBuffer is null || fetchBuffer.Length < numSamples * sampleSize)
+                fetchBuffer = new byte[numSamples * sampleSize];
+
+            targetBuffer = fetchBuffer;
+        }
+
+        int count = waveReader.Read(targetBuffer, 0, targetBuffer.Length);
+
+        if (Looping && count < targetBuffer.Length)
         {
             Time = TimeSpan.Zero;
-            waveReader.Read(destinationBuffer, count, destinationBuffer.Length - count);
+            waveReader.Read(targetBuffer, count * sampleSize, targetBuffer.Length - count);
+        }
+
+        if (shouldConvert)
+        {
+            if (waveReader.WaveFormat.Encoding == WaveFormatEncoding.IeeeFloat)
+                FloatToPCM16(destinationBuffer, targetBuffer.AsSpan());
+            else
+                ToPCM16(destinationBuffer, targetBuffer.AsSpan(), sampleSize);
         }
     }
 
-    public void ReadSamples(byte[] destinationBuffer, int begin)
+    public override void ReadSamples(byte[] destinationBuffer, int begin)
     {
         waveReader.Position = begin;
 
         ReadNextSamples(destinationBuffer);
     }
 
-    public byte[] ReadAllSamples()
+    public override byte[] ReadAllSamples()
     {
         byte[] buffer = new byte[waveReader.Length];
 
@@ -53,7 +81,7 @@ public class WaveAudio : IAudio
 
     private bool isDisposed;
 
-    protected virtual void Dispose(bool disposing)
+    protected override void Dispose(bool disposing)
     {
         if (isDisposed)
             return;
@@ -62,11 +90,5 @@ public class WaveAudio : IAudio
             waveReader.Dispose();
 
         isDisposed = true;
-    }
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
 }

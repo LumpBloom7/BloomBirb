@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using BloomBirb.Audio;
+using BloomBirb.Audio.Format;
 using BloomBirb.Extensions;
 using BloomBirb.Graphics;
 using BloomBirb.Renderers.OpenGL;
@@ -59,7 +60,7 @@ namespace BloomBirb
 
             window.Run();
         }
-        private static StreamedSoundSource audioSource;
+        private static AudioSource audioSource = null!;
         private static void onLoad()
         {
             IInputContext input = window?.CreateInput()!;
@@ -85,16 +86,16 @@ namespace BloomBirb
 
             OpenAL.CreateContext();
 
-            audioSource = new StreamedSoundSource(new MP3Audio(resources?.Get("Audio.arrow.mp3")!))
+            audioSource = new StreamedSoundSource(new WaveAudio(resources?.Get("Audio.cara.wav")!))
             {
                 Volume = 0.25f,
+                Speed = 1.5f,
                 Looping = true,
             };
 
             audioSource.Play();
         }
 
-        private static float speed = 1.0f;
         private static unsafe void onRender(double obj)
         {
             gl?.Clear((uint)ClearBufferMask.ColorBufferBit);
@@ -119,7 +120,6 @@ namespace BloomBirb
             sprite.Position = new System.Numerics.Vector2(trnsX, trnsY);
             sprite.Shear = new System.Numerics.Vector2(shear, shearY);
             sprite.Colour = new System.Numerics.Vector4(r, g, b, 1f);
-
 
             sprite.Invalidate();
             sprite.Draw(gl!);

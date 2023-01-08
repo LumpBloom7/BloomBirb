@@ -1,3 +1,4 @@
+using BloomBirb.Audio.Format;
 using Silk.NET.OpenAL;
 
 namespace BloomBirb.Audio;
@@ -24,7 +25,7 @@ public class StreamedSoundSource : AudioSource
     private bool stopped = true;
     private bool paused;
 
-    public StreamedSoundSource(IAudio audio) : base(audio)
+    public StreamedSoundSource(AudioBase audio) : base(audio)
     {
         buffers = OpenAL.AL.GenBuffers(4);
         freeBuffers = new uint[4];
