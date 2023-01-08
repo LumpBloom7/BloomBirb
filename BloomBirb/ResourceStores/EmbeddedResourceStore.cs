@@ -10,6 +10,7 @@ public class EmbeddedResourceStore
 
     public TextureStore Textures { get; private set; }
     public ShaderStore Shaders { get; private set; }
+    public AudioStore Audio { get; private set; }
 
     public EmbeddedResourceStore() : this(typeof(EmbeddedResourceStore).GetTypeInfo().Assembly) { }
 
@@ -24,6 +25,7 @@ public class EmbeddedResourceStore
 
         Textures = new TextureStore(assembly, $"{prefix}.Textures");
         Shaders = new ShaderStore(assembly, $"{prefix}.Shaders");
+        Audio = new AudioStore(assembly, $"{prefix}.Audio");
     }
 
     public Stream? Get(string filename)

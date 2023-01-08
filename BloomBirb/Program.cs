@@ -86,7 +86,7 @@ namespace BloomBirb
 
             OpenAL.CreateContext();
 
-            audioSource = new StreamedSoundSource(new WaveAudio(resources?.Get("Audio.cara.wav")!))
+            audioSource = new StreamedSoundSource(resources?.Audio.Get("arrow")!)
             {
                 Volume = 0.25f,
                 Speed = 1.5f,
