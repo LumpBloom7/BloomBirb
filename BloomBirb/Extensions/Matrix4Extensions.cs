@@ -1,4 +1,3 @@
-using System;
 using System.Numerics;
 
 namespace BloomBirb.Extensions;
@@ -10,22 +9,19 @@ public static class Matrix4Extensions
 
     public static Matrix4x4 RotateRadians(this Matrix4x4 matrix, float radians)
     {
-
         (float sin, float cos) = MathF.SinCos(radians);
-        var result = new Matrix4x4
+
+        var t = new Matrix4x4
         {
-            M11 = (cos * matrix.M11) + (-sin * matrix.M21),
-            M12 = (cos * matrix.M12) + (-sin * matrix.M22),
-            M21 = (sin * matrix.M11) + (cos * matrix.M21),
-            M22 = (sin * matrix.M12) + (cos * matrix.M22),
+            M11 = cos,
+            M21 = sin,
+            M12 = -sin,
+            M22 = cos,
             M33 = 1,
-            M14 = matrix.M14,
-            M24 = matrix.M24,
-            M34 = matrix.M34,
-            M44 = 1,
+            M44 = 1
         };
 
-        return result;
+        return t * matrix;
     }
 
     public static Matrix4x4 Shear(this Matrix4x4 matrix, Vector2 vec)
@@ -33,20 +29,17 @@ public static class Matrix4Extensions
 
     public static Matrix4x4 Shear(this Matrix4x4 matrix, float x, float y)
     {
-        var result = new Matrix4x4
+        var t = new Matrix4x4
         {
-            M11 = ((1 + x * y) * matrix.M11) + (y * matrix.M21),
-            M12 = ((1 + x * y) * matrix.M12) + (y * matrix.M22),
-            M21 = (x * matrix.M11) + matrix.M21,
-            M22 = (x * matrix.M12) + matrix.M22,
+            M11 = 1,
+            M21 = x,
+            M12 = y,
+            M22 = 1,
             M33 = 1,
-            M14 = matrix.M14,
-            M24 = matrix.M24,
-            M34 = matrix.M34,
-            M44 = 1,
+            M44 = 1
         };
 
-        return result;
+        return t * matrix;
     }
 
     public static Matrix4x4 Scale(this Matrix4x4 matrix, Vector2 vec)
@@ -54,20 +47,15 @@ public static class Matrix4Extensions
 
     public static Matrix4x4 Scale(this Matrix4x4 matrix, float x, float y)
     {
-        var result = new Matrix4x4
+        var t = new Matrix4x4
         {
-            M11 = x * matrix.M11,
-            M12 = x * matrix.M12,
-            M21 = y * matrix.M21,
-            M22 = y * matrix.M22,
+            M11 = x,
+            M22 = y,
             M33 = 1,
-            M14 = matrix.M14,
-            M24 = matrix.M24,
-            M34 = matrix.M34,
-            M44 = 1,
+            M44 = 1
         };
 
-        return result;
+        return t * matrix;
     }
 
     public static Matrix4x4 Translate(this Matrix4x4 matrix, Vector2 vec)
@@ -76,8 +64,8 @@ public static class Matrix4Extensions
     public static Matrix4x4 Translate(this Matrix4x4 matrix, float x, float y)
     {
         var tmp = Matrix4x4.Identity;
-        tmp.M14 = x;
-        tmp.M14 = y;
+        tmp.M41 = x;
+        tmp.M42 = y;
 
         return tmp * matrix;
     }

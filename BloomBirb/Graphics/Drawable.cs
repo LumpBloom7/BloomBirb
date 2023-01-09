@@ -35,7 +35,7 @@ public abstract class Drawable
 
     public void Invalidate()
     {
-        Transformation = Matrix4x4.Transpose((Parent?.Transformation ?? Matrix4x4.Identity).RotateDegrees(Rotation).Shear(Shear).Scale(Size * Scale).Translate(Position));
+        Transformation = (Parent?.Transformation ?? Matrix4x4.Identity).RotateDegrees(Rotation).Shear(Shear).Scale(Size * Scale).Translate(Position);
         DrawColour = (Parent?.DrawColour ?? Vector4.One) * Colour * new Vector4(1, 1, 1, Alpha);
     }
 }
