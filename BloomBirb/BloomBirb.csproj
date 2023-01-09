@@ -24,4 +24,9 @@
     <Folder Include="Resources\Textures" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="Silk.NET.Maths.Matrix4X4&lt;float&gt;" Alias="Matrix4"/>
+    <Using Include="Silk.NET.Maths.Matrix3X3&lt;float&gt;" Alias="Matrix3"/>
+  </ItemGroup>
+
 </Project>

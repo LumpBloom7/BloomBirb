@@ -1,18 +1,11 @@
-﻿using System.Drawing;
-using BloomBirb.Audio;
-using BloomBirb.Audio.Format;
-using BloomBirb.Extensions;
+﻿using BloomBirb.Audio;
 using BloomBirb.Graphics;
 using BloomBirb.Renderers.OpenGL;
 using BloomBirb.ResourceStores;
-using Silk.NET.Core.Native;
 using Silk.NET.Input;
 using Silk.NET.Maths;
-using Silk.NET.OpenAL;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-using Shader = BloomBirb.Renderers.OpenGL.Shader;
-using Texture = BloomBirb.Renderers.OpenGL.Texture;
 
 namespace BloomBirb
 {
@@ -30,11 +23,11 @@ namespace BloomBirb
         // UV origin is topleft.
         private static readonly float[] vertices =
         {
-            //X    Y      Z     U   V
-            -0.5f, -0.5f , 1, 0, 1,
-             0.5f, -0.5f , 1, 1, 1,
-            -0.5f,  0.5f , 1, 0, 0,
-             0.5f,  0.5f , 1, 1, 0
+            //X    Y       U  V
+            -0.5f, -0.5f , 0, 1,
+             0.5f, -0.5f , 1, 1,
+            -0.5f,  0.5f , 0, 0,
+             0.5f,  0.5f , 1, 0
         };
 
         private static readonly uint[] indices =
@@ -77,8 +70,8 @@ namespace BloomBirb
             vao = new VertexArrayObject<float, uint>(vbo, ebo);
 
             //Telling the VAO object how to lay out the attribute pointers
-            vao.VertexAttributePointer(0, 3, VertexAttribPointerType.Float, 5, 0);
-            vao.VertexAttributePointer(1, 2, VertexAttribPointerType.Float, 5, 3);
+            vao.VertexAttributePointer(0, 2, VertexAttribPointerType.Float, 4, 0);
+            vao.VertexAttributePointer(1, 2, VertexAttribPointerType.Float, 4, 2);
 
             vao?.Bind();
 
@@ -93,7 +86,7 @@ namespace BloomBirb
                 Looping = true,
             };
 
-            audioSource.Play();
+            //audioSource.Play();
         }
 
         private static unsafe void onRender(double obj)

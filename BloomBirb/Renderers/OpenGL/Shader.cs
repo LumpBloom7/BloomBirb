@@ -137,24 +137,14 @@ public class Shader : IDisposable
         gl.Uniform4(location, vector);
     }
 
-    public unsafe void SetUniform(string name, Matrix4X4<float> matrix)
+    public unsafe void SetUniform(string name, Matrix3 matrix)
     {
         int location = gl.GetUniformLocation(handle, name);
         if (location == -1)
         {
             throw new Exception($"{name} uniform not found on shader.");
         }
-        gl.UniformMatrix4(location, 1, false, (float*)&matrix);
-    }
-
-    public unsafe void SetUniform(string name, Matrix4x4 matrix)
-    {
-        int location = gl.GetUniformLocation(handle, name);
-        if (location == -1)
-        {
-            throw new Exception($"{name} uniform not found on shader.");
-        }
-        gl.UniformMatrix4(location, 1, false, (float*)&matrix);
+        gl.UniformMatrix3(location, 1, false, (float*)&matrix);
     }
 
     #endregion
