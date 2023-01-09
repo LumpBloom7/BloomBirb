@@ -2,68 +2,45 @@ using System.Numerics;
 
 namespace BloomBirb.Extensions;
 
-public static class Matrix4Extensions
+public static class Matrix3Extensions
 {
-    public static Matrix3 RotateDegrees(this Matrix3 matrix, float degrees)
-        => matrix.RotateRadians(degrees * (float.Pi / 180));
+    public static void RotateDegrees(ref Matrix3 m, float degrees) => RotateRadians(ref m, degrees * (float.Pi / 180));
 
-    public static Matrix3 RotateRadians(this Matrix3 matrix, float radians)
+    public static void RotateRadians(ref Matrix3 m, float radians)
     {
         (float sin, float cos) = MathF.SinCos(radians);
 
-        var t = new Matrix3
-        {
-            M11 = cos,
-            M21 = sin,
-            M12 = -sin,
-            M22 = cos,
-            M33 = 1,
-        };
+        var r1 = (m.Row1 * cos) + (m.Row2 * sin);
+        m.Row2 = (m.Row2 * cos) - (m.Row1 * sin);
 
-        return t * matrix;
+        m.Row1 = r1;
     }
 
-    public static Matrix3 Shear(this Matrix3 matrix, Vector2 vec)
-        => matrix.Shear(vec.X, vec.Y);
+    public static void Shear(ref Matrix3 m, Vector2 vec)
+        => Shear(ref m, vec.X, vec.Y);
 
-    public static Matrix3 Shear(this Matrix3 matrix, float x, float y)
+    public static void Shear(ref Matrix3 m, float x, float y)
     {
-        var t = new Matrix3
-        {
-            M11 = 1,
-            M21 = x,
-            M12 = y,
-            M22 = 1,
-            M33 = 1,
-        };
-
-        return t * matrix;
+        var r1 = m.Row1 + m.Row2 * y;
+        m.Row2 += m.Row1 * x;
+        m.Row1 = r1;
     }
 
-    public static Matrix3 Scale(this Matrix3 matrix, Vector2 vec)
-        => matrix.Scale(vec.X, vec.Y);
+    public static void Scale(ref Matrix3 m, Vector2 vec)
+        => Scale(ref m, vec.X, vec.Y);
 
-    public static Matrix3 Scale(this Matrix3 matrix, float x, float y)
+    public static void Scale(ref Matrix3 m, float x, float y)
     {
-        var t = new Matrix3
-        {
-            M11 = x,
-            M22 = y,
-            M33 = 1,
-        };
-
-        return t * matrix;
+        m.Row1 *= x;
+        m.Row2 *= y;
     }
 
-    public static Matrix3 Translate(this Matrix3 matrix, Vector2 vec)
-        => matrix.Translate(vec.X, vec.Y);
+    public static void Translate(ref Matrix3 m, Vector2 vec)
+        => Translate(ref m, vec.X, vec.Y);
 
-    public static Matrix3 Translate(this Matrix3 matrix, float x, float y)
+    public static void Translate(ref Matrix3 m, float x, float y)
     {
-        var tmp = Matrix3.Identity;
-        tmp.M31 = x;
-        tmp.M32 = y;
-
-        return tmp * matrix;
+        m.M31 += x;
+        m.M32 += y;
     }
 }

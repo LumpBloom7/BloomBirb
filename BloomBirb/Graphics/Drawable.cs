@@ -24,7 +24,7 @@ public abstract class Drawable
     public float Rotation { get; set; } = 0;
 
     // Draw info
-    protected Matrix3 Transformation { get; private set; } = Matrix3.Identity;
+    protected Matrix3 Transformation = Matrix3.Identity;
     protected Vector4 DrawColour { get; private set; } = Vector4.One;
 
     public virtual void Draw(GL context)
@@ -35,7 +35,13 @@ public abstract class Drawable
 
     public void Invalidate()
     {
-        Transformation = (Parent?.Transformation ?? Matrix3.Identity).RotateDegrees(Rotation).Shear(Shear).Scale(Size * Scale).Translate(Position);
+
+        Transformation = Parent?.Transformation ?? Matrix3.Identity;
+        Matrix3Extensions.RotateDegrees(ref Transformation, Rotation);
+        Matrix3Extensions.Shear(ref Transformation, Shear);
+        Matrix3Extensions.Translate(ref Transformation, Position);
+        Matrix3Extensions.Scale(ref Transformation, Scale);
+
         DrawColour = (Parent?.DrawColour ?? Vector4.One) * Colour * new Vector4(1, 1, 1, Alpha);
     }
 }
