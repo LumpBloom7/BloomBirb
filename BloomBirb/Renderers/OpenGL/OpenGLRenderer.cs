@@ -8,9 +8,18 @@ public class OpenGLRenderer
 {
     private static GL? glContext = null;
 
+    private static DebugProc debugProcCallback = debugCallback;
+    private static GCHandle debugProcCallbackHandle;
+
     public static GL CreateContext(IWindow window)
     {
         glContext ??= GL.GetApi(window);
+
+        debugProcCallbackHandle = GCHandle.Alloc(debugProcCallback);
+
+        glContext.DebugMessageCallback(debugProcCallback, IntPtr.Zero);
+        glContext.Enable(EnableCap.DebugOutput);
+        glContext.Enable(EnableCap.DebugOutputSynchronous);
 
         unsafe
         {
@@ -36,6 +45,15 @@ public class OpenGLRenderer
             ArgumentNullException.ThrowIfNull(glContext);
             return glContext;
         }
+    }
+
+    private static void debugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, IntPtr message, IntPtr userParam)
+    {
+        string messageString = Marshal.PtrToStringAnsi(message, length);
+        Console.WriteLine($"{severity} {type} | {messageString}");
+
+        if (type == GLEnum.DebugTypeError)
+            throw new Exception(messageString);
     }
 
 
