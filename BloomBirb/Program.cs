@@ -1,6 +1,8 @@
 ﻿using BloomBirb.Audio;
 using BloomBirb.Graphics;
+using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL;
+using BloomBirb.Renderers.OpenGL.Buffers;
 using BloomBirb.ResourceStores;
 using Silk.NET.Input;
 using Silk.NET.Maths;
@@ -15,25 +17,17 @@ namespace BloomBirb
         private static GL? gl;
 
         //Our new abstracted objects, here we specify what the types are.
-        private static BufferObject<float>? vbo;
-        private static BufferObject<uint>? ebo;
-        private static VertexArrayObject<float, uint>? vao;
+        private static QuadBuffer<TexturedVertex2D> quadBuffer = new QuadBuffer<TexturedVertex2D>(1);
 
         // Note to self Screen origin is bottom left, (0,0) is centre
         // UV origin is topleft.
-        private static readonly float[] vertices =
+        private static readonly TexturedVertex2D[] vertices =
         {
             //X    Y       U  V
-            -0.5f, -0.5f , 0, 1,
-             0.5f, -0.5f , 1, 1,
-            -0.5f,  0.5f , 0, 0,
-             0.5f,  0.5f , 1, 0
-        };
-
-        private static readonly uint[] indices =
-        {
-            0, 1, 2,
-            1, 3, 2
+            new(-0.5f, 0.5f , 0, 1),
+            new (-0.5f, -0.5f , 0, 0),
+            new(0.5f,  -0.5f , 1, 0),
+            new( 0.5f,  0.5f , 1, 1)
         };
 
         private static EmbeddedResourceStore? resources = new();
@@ -45,6 +39,7 @@ namespace BloomBirb
             var options = WindowOptions.Default;
             options.Size = new Vector2D<int>(1024, 768);
             options.Title = "You spin me right round baby right round. Like a record baby right round round round.";
+            options.VSync = false;
             window = Window.Create(options);
 
             window.Load += onLoad;
@@ -65,15 +60,8 @@ namespace BloomBirb
             gl = OpenGLRenderer.CreateContext(window!);
 
             //Instantiating our new abstractions
-            ebo = new BufferObject<uint>(indices, BufferTargetARB.ElementArrayBuffer);
-            vbo = new BufferObject<float>(vertices, BufferTargetARB.ArrayBuffer);
-            vao = new VertexArrayObject<float, uint>(vbo, ebo);
-
-            //Telling the VAO object how to lay out the attribute pointers
-            vao.VertexAttributePointer(0, 2, VertexAttribPointerType.Float, 4, 0);
-            vao.VertexAttributePointer(1, 2, VertexAttribPointerType.Float, 4, 2);
-
-            vao?.Bind();
+            quadBuffer.Initialize(gl);
+            quadBuffer.BufferData(vertices, 0);
 
             sprite = new DrawableSprite(resources?.Textures.Get("kitty")!, resources?.Shaders.Get("Texture", "Texture")!);
 
@@ -117,16 +105,14 @@ namespace BloomBirb
             sprite.Invalidate();
             sprite.Draw(gl!);
 
-            gl?.DrawElements(PrimitiveType.Triangles, (uint)indices.Length, DrawElementsType.UnsignedInt, null);
+            quadBuffer.DrawBuffer();
         }
 
         private static void onClose()
         {
             //Remember to dispose all the instances.
-            vbo?.Dispose();
-            ebo?.Dispose();
-            vao?.Dispose();
             audioSource?.Dispose();
+            quadBuffer.Dispose();
         }
 
         private static void onKeyDown(IKeyboard arg1, Key arg2, int arg3)
