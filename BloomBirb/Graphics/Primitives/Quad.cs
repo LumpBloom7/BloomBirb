@@ -7,6 +7,8 @@ namespace BloomBirb.Graphics.Primitives;
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct Quad
 {
+    public static readonly Quad DEFAULT = new(-0.5f, -0.5f, 1, 1);
+
     public readonly Vector2 TopLeft;
     public readonly Vector2 BottomLeft;
     public readonly Vector2 BottomRight;
