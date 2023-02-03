@@ -85,8 +85,7 @@ public class Shader : IDisposable
             gl.GetActiveUniform(Handle, (uint)i, 100, out uint _, out int _, out GLEnum type, out string name);
             int location = gl.GetUniformLocation(Handle, name);
 
-            Console.WriteLine($"{name} {location} {type}");
-            uniforms.Add(name, ((location, type)));
+            uniforms.Add(name, (location, type));
         }
     }
 
