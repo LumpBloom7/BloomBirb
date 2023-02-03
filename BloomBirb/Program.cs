@@ -1,4 +1,5 @@
-﻿using BloomBirb.Audio;
+﻿using System.Numerics;
+using BloomBirb.Audio;
 using BloomBirb.Graphics;
 using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL;
@@ -17,11 +18,11 @@ namespace BloomBirb
         private static GL? gl;
 
         //Our new abstracted objects, here we specify what the types are.
-        private static QuadBuffer<TexturedVertex2D> quadBuffer = new QuadBuffer<TexturedVertex2D>(1);
+        private static QuadBuffer<TexturedVertex2D> quadBuffer = new QuadBuffer<TexturedVertex2D>(10000);
 
         private static EmbeddedResourceStore? resources = new();
 
-        private static DrawableSprite sprite = null!;
+        private static DrawableSprite[] sprites = new DrawableSprite[10000];
 
         private static void Main(string[] args)
         {
@@ -51,9 +52,21 @@ namespace BloomBirb
 
             //Instantiating our new abstractions
             quadBuffer.Initialize(gl);
+            var tex = resources?.Textures.Get("kitty")!;
+            var shader = resources?.Shaders.Get("Texture", "Texture")!;
 
-            sprite = new DrawableSprite(resources?.Textures.Get("kitty")!, resources?.Shaders.Get("Texture", "Texture")!);
-            //sprite.Invalidate();
+            Random rng = Random.Shared;
+            for (int i = 0; i < sprites.Length; ++i)
+            {
+                var sprite = sprites[i] = new DrawableSprite(tex, shader);
+                sprites[i].Position = new Vector2(rng.NextSingle() * 2 - 1, rng.NextSingle() * 2 - 1);
+                sprites[i].Scale = new Vector2(rng.NextSingle() * 0.5f, rng.NextSingle() * 0.5f);
+                sprites[i].Shear = new Vector2(rng.NextSingle(), rng.NextSingle());
+                sprites[i].Rotation = rng.NextSingle() * 360;
+                sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), rng.NextSingle());
+                sprite.Invalidate();
+            }
+
 
             OpenAL.CreateContext();
 
@@ -71,29 +84,12 @@ namespace BloomBirb
         {
             gl?.Clear((uint)ClearBufferMask.ColorBufferBit);
 
-            float time = ((DateTime.Now.Second % 5) + DateTime.Now.Millisecond / 1000f) / 5f;
-            float timeRot = (DateTime.Now.Second + DateTime.Now.Millisecond / 1000f) / 60f;
-
-            // Everything is a sinewave
-            sprite.Rotation = MathF.Sin(timeRot * 6.28f) * 360;
-            float shear = MathF.Sin(time * 6.28f + 1) * 0.25f;
-            float shearY = MathF.Sin(time * 6.28f + 2) * 0.25f;
-            float sclX = MathF.Sin(time * 6.28f + 3) * 1;
-            float sclY = MathF.Sin(time * 6.28f + 4) * 1;
-            float trnsX = MathF.Sin(time * 6.28f + 5) * 0.5f;
-            float trnsY = MathF.Sin(time * 6.28f + 6) * 0.5f;
-
-            float r = MathF.Abs(MathF.Sin(time * 6.28f) * 1f);
-            float g = MathF.Abs(MathF.Sin(time * 6.28f + 2) * 1f);
-            float b = MathF.Abs(MathF.Sin(time * 6.28f + 4) * 1f);
-
-            sprite.Scale = new System.Numerics.Vector2(sclX, sclY);
-            sprite.Position = new System.Numerics.Vector2(trnsX, trnsY);
-            sprite.Shear = new System.Numerics.Vector2(shear, shearY);
-            sprite.Colour = new System.Numerics.Vector4(r, g, b, 1f);
-
-            sprite.Invalidate();
-            sprite.Draw(gl!, quadBuffer);
+            foreach (var sprite in sprites)
+            {
+                sprite.Rotation += (float)(obj * 180);
+                sprite.Invalidate();
+                sprite.Draw(gl!, quadBuffer);
+            }
 
             quadBuffer.DrawBuffer();
         }
