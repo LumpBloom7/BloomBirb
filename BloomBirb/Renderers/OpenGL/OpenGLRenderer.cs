@@ -11,6 +11,9 @@ public class OpenGLRenderer : IDisposable
     private static DebugProc debugProcCallback = debugCallback;
     private static GCHandle debugProcCallbackHandle;
 
+    private static Texture[] textureUnits = new Texture[1];
+    private static Shader boundProgram = null!;
+
     public static GL Initialize(IWindow window)
     {
         glContext ??= GL.GetApi(window);
@@ -54,6 +57,24 @@ public class OpenGLRenderer : IDisposable
 
         if (type == GLEnum.DebugTypeError)
             throw new Exception(messageString);
+    }
+
+    public static void BindShader(Shader shader)
+    {
+        if (boundProgram == shader)
+            return;
+
+        glContext?.UseProgram(shader.Handle);
+    }
+
+    public static void BindTexture(Texture texture, int textureUnit = 0)
+    {
+        if (textureUnits[textureUnit] == texture)
+            return;
+
+        textureUnits[textureUnit] = texture;
+        glContext?.ActiveTexture(TextureUnit.Texture0 + textureUnit);
+        glContext?.BindTexture(TextureTarget.Texture2D, texture.Handle);
     }
 
     private bool isDisposed;

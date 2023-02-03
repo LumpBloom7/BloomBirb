@@ -9,7 +9,7 @@ public class Shader : IDisposable
 {
     //Our handle and the GL instance this class will use, these are private because they have no reason to be public.
     //Most of the time you would want to abstract items to make things like this invisible.
-    private readonly uint handle;
+    public readonly uint Handle;
     private GL gl;
 
     private Dictionary<string, (int location, GLEnum type)> uniforms = new();
@@ -25,18 +25,18 @@ public class Shader : IDisposable
             throw new ArgumentNullException(nameof(fragShader));
 
 
-        handle = gl.CreateProgram();
-        gl.AttachShader(handle, vertShader);
-        gl.AttachShader(handle, fragShader);
-        gl.LinkProgram(handle);
+        Handle = gl.CreateProgram();
+        gl.AttachShader(Handle, vertShader);
+        gl.AttachShader(Handle, fragShader);
+        gl.LinkProgram(Handle);
 
         //Check for linking errors.
-        gl.GetProgram(handle, GLEnum.LinkStatus, out int status);
+        gl.GetProgram(Handle, GLEnum.LinkStatus, out int status);
         if (status == 0)
-            throw new Exception($"Program failed to link with error: {gl.GetProgramInfoLog(handle)}");
+            throw new Exception($"Program failed to link with error: {gl.GetProgramInfoLog(Handle)}");
 
-        gl.DetachShader(handle, vertShader);
-        gl.DetachShader(handle, fragShader);
+        gl.DetachShader(Handle, vertShader);
+        gl.DetachShader(Handle, fragShader);
         cacheUniforms();
     }
 
@@ -52,39 +52,38 @@ public class Shader : IDisposable
         uint fragment = loadShader(ShaderType.FragmentShader, fragStream);
 
         //Create the shader program.
-        handle = gl.CreateProgram();
+        Handle = gl.CreateProgram();
 
         //Attach the individual shaders.
-        gl.AttachShader(handle, vertex);
-        gl.AttachShader(handle, fragment);
-        gl.LinkProgram(handle);
+        gl.AttachShader(Handle, vertex);
+        gl.AttachShader(Handle, fragment);
+        gl.LinkProgram(Handle);
 
         //Check for linking errors.
-        gl.GetProgram(handle, GLEnum.LinkStatus, out int status);
+        gl.GetProgram(Handle, GLEnum.LinkStatus, out int status);
         if (status == 0)
-            throw new Exception($"Program failed to link with error: {gl.GetProgramInfoLog(handle)}");
+            throw new Exception($"Program failed to link with error: {gl.GetProgramInfoLog(Handle)}");
 
         //Detach and delete the shaders
-        gl.DetachShader(handle, vertex);
-        gl.DetachShader(handle, fragment);
+        gl.DetachShader(Handle, vertex);
+        gl.DetachShader(Handle, fragment);
 
         cacheUniforms();
     }
 
     public void Use()
     {
-        //Using the program
-        gl.UseProgram(handle);
+        OpenGLRenderer.BindShader(this);
     }
 
     private void cacheUniforms()
     {
-        gl.GetProgram(handle, GLEnum.ActiveUniforms, out int count);
+        gl.GetProgram(Handle, GLEnum.ActiveUniforms, out int count);
 
         for (int i = 0; i < count; i++)
         {
-            gl.GetActiveUniform(handle, (uint)i, 100, out uint _, out int _, out GLEnum type, out string name);
-            int location = gl.GetUniformLocation(handle, name);
+            gl.GetActiveUniform(Handle, (uint)i, 100, out uint _, out int _, out GLEnum type, out string name);
+            int location = gl.GetUniformLocation(Handle, name);
 
             Console.WriteLine($"{name} {location} {type}");
             uniforms.Add(name, ((location, type)));
@@ -156,7 +155,7 @@ public class Shader : IDisposable
     public void Dispose()
     {
         //Remember to delete the program when we are done.
-        gl.DeleteProgram(handle);
+        gl.DeleteProgram(Handle);
 
         GC.SuppressFinalize(this);
     }

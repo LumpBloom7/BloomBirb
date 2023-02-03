@@ -6,7 +6,7 @@ namespace BloomBirb.Renderers.OpenGL;
 
 public class Texture : IDisposable
 {
-    private uint handle;
+    public readonly uint Handle;
     private GL gl;
 
     public static readonly Texture BLANK;
@@ -21,7 +21,7 @@ public class Texture : IDisposable
     {
         gl = OpenGLRenderer.GlContext;
 
-        handle = gl.GenTexture();
+        Handle = gl.GenTexture();
         Bind();
         gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, 1, 1, 0,
             PixelFormat.Rgba, PixelType.UnsignedByte, null);
@@ -42,7 +42,7 @@ public class Texture : IDisposable
     {
         gl = OpenGLRenderer.GlContext;
 
-        handle = gl.GenTexture();
+        Handle = gl.GenTexture();
         Bind();
 
         using (var img = Image.Load<Rgba32>(stream))
@@ -76,13 +76,12 @@ public class Texture : IDisposable
 
     public void Bind(TextureUnit textureUnit = TextureUnit.Texture0)
     {
-        gl.ActiveTexture(textureUnit);
-        gl.BindTexture(TextureTarget.Texture2D, handle);
+        OpenGLRenderer.BindTexture(this, 0);
     }
 
     public void Dispose()
     {
-        gl.DeleteTexture(handle);
+        gl.DeleteTexture(Handle);
 
         GC.SuppressFinalize(this);
     }
