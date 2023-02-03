@@ -12,6 +12,8 @@ public class Shader : IDisposable
     private readonly uint handle;
     private GL gl;
 
+    private Dictionary<string, (int location, GLEnum type)> uniforms = new();
+
     public Shader(uint vertShader, uint fragShader)
     {
         gl = OpenGLRenderer.GlContext;
@@ -35,6 +37,7 @@ public class Shader : IDisposable
 
         gl.DetachShader(handle, vertShader);
         gl.DetachShader(handle, fragShader);
+        cacheUniforms();
     }
 
     public Shader(Stream? vertStream, Stream? fragStream)
@@ -64,8 +67,8 @@ public class Shader : IDisposable
         //Detach and delete the shaders
         gl.DetachShader(handle, vertex);
         gl.DetachShader(handle, fragment);
-        gl.DeleteShader(vertex);
-        gl.DeleteShader(fragment);
+
+        cacheUniforms();
     }
 
     public void Use()
@@ -74,77 +77,78 @@ public class Shader : IDisposable
         gl.UseProgram(handle);
     }
 
+    private void cacheUniforms()
+    {
+        gl.GetProgram(handle, GLEnum.ActiveUniforms, out int count);
+
+        for (int i = 0; i < count; i++)
+        {
+            gl.GetActiveUniform(handle, (uint)i, 100, out uint _, out int _, out GLEnum type, out string name);
+            int location = gl.GetUniformLocation(handle, name);
+
+            Console.WriteLine($"{name} {location} {type}");
+            uniforms.Add(name, ((location, type)));
+        }
+    }
+
     #region SetUniforms
 
     //Uniforms are properties that applies to the entire geometry
     public void SetUniform(string name, int value)
     {
         //Setting a uniform on a shader using a name.
-        int location = gl.GetUniformLocation(handle, name);
-        if (location == -1) //If GetUniformLocation returns -1 the uniform is not found.
-        {
+        if (!uniforms.TryGetValue(name, out var info))
             throw new Exception($"{name} uniform not found on shader.");
-        }
-        gl.Uniform1(location, value);
+
+        gl.Uniform1(info.location, value);
     }
 
     public void SetUniform(string name, float value)
     {
-        int location = gl.GetUniformLocation(handle, name);
-        if (location == -1)
-        {
+        if (!uniforms.TryGetValue(name, out var info))
             throw new Exception($"{name} uniform not found on shader.");
-        }
-        gl.Uniform1(location, value);
+
+        gl.Uniform1(info.location, value);
     }
 
     public void SetUniform(string name, bool value)
     {
-        int location = gl.GetUniformLocation(handle, name);
-        if (location == -1)
-        {
+        if (!uniforms.TryGetValue(name, out var info))
             throw new Exception($"{name} uniform not found on shader.");
-        }
-        gl.Uniform1(location, value ? 1 : 0);
+
+        gl.Uniform1(info.location, value ? 1 : 0);
     }
 
     public void SetUniform(string name, Vector2 vector)
     {
-        int location = gl.GetUniformLocation(handle, name);
-        if (location == -1)
-        {
+        if (!uniforms.TryGetValue(name, out var info))
             throw new Exception($"{name} uniform not found on shader.");
-        }
-        gl.Uniform2(location, vector);
+
+        gl.Uniform2(info.location, vector);
     }
+
     public void SetUniform(string name, Vector3 vector)
     {
-        int location = gl.GetUniformLocation(handle, name);
-        if (location == -1)
-        {
+        if (!uniforms.TryGetValue(name, out var info))
             throw new Exception($"{name} uniform not found on shader.");
-        }
-        gl.Uniform3(location, vector);
+
+        gl.Uniform3(info.location, vector);
     }
 
     public void SetUniform(string name, Vector4 vector)
     {
-        int location = gl.GetUniformLocation(handle, name);
-        if (location == -1)
-        {
+        if (!uniforms.TryGetValue(name, out var info))
             throw new Exception($"{name} uniform not found on shader.");
-        }
-        gl.Uniform4(location, vector);
+
+        gl.Uniform4(info.location, vector);
     }
 
     public unsafe void SetUniform(string name, Matrix3 matrix)
     {
-        int location = gl.GetUniformLocation(handle, name);
-        if (location == -1)
-        {
+        if (!uniforms.TryGetValue(name, out var info))
             throw new Exception($"{name} uniform not found on shader.");
-        }
-        gl.UniformMatrix3(location, 1, false, (float*)&matrix);
+
+        gl.UniformMatrix3(info.location, 1, false, (float*)&matrix);
     }
 
     #endregion
