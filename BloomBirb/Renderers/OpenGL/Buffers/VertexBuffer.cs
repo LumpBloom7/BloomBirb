@@ -25,7 +25,7 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IVertex
         Size = amountOfVertices;
     }
 
-    public void Initialize(GL gl)
+    public unsafe void Initialize(GL gl)
     {
         this.gl = gl;
 
@@ -37,7 +37,7 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IVertex
 
         vboHandle = gl.GenBuffer();
         gl.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
-        gl.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)Size, (nuint)null, BufferUsageARB.StaticDraw);
+        gl.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * T.Size), (void**)null, BufferUsageARB.StaticDraw);
 
         eboHandle = gl.GenBuffer();
         gl.BindBuffer((GLEnum)BufferTargetARB.ElementArrayBuffer, eboHandle);
