@@ -19,17 +19,6 @@ namespace BloomBirb
         //Our new abstracted objects, here we specify what the types are.
         private static QuadBuffer<TexturedVertex2D> quadBuffer = new QuadBuffer<TexturedVertex2D>(1);
 
-        // Note to self Screen origin is bottom left, (0,0) is centre
-        // UV origin is topleft.
-        private static readonly TexturedVertex2D[] vertices =
-        {
-            //X    Y       U  V
-            new(-0.5f, 0.5f , 0, 1),
-            new (-0.5f, -0.5f , 0, 0),
-            new(0.5f,  -0.5f , 1, 0),
-            new( 0.5f,  0.5f , 1, 1)
-        };
-
         private static EmbeddedResourceStore? resources = new();
 
         private static DrawableSprite sprite = null!;
@@ -40,6 +29,7 @@ namespace BloomBirb
             options.Size = new Vector2D<int>(1024, 768);
             options.Title = "You spin me right round baby right round. Like a record baby right round round round.";
             options.VSync = false;
+            options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.Debug, new APIVersion(4, 5));
             window = Window.Create(options);
 
             window.Load += onLoad;
@@ -57,13 +47,13 @@ namespace BloomBirb
                 input.Keyboards[i].KeyDown += onKeyDown;
             }
 
-            gl = OpenGLRenderer.CreateContext(window!);
+            gl = OpenGLRenderer.Initialize(window!);
 
             //Instantiating our new abstractions
             quadBuffer.Initialize(gl);
-            quadBuffer.BufferData(vertices, 0);
 
             sprite = new DrawableSprite(resources?.Textures.Get("kitty")!, resources?.Shaders.Get("Texture", "Texture")!);
+            //sprite.Invalidate();
 
             OpenAL.CreateContext();
 
@@ -103,7 +93,7 @@ namespace BloomBirb
             sprite.Colour = new System.Numerics.Vector4(r, g, b, 1f);
 
             sprite.Invalidate();
-            sprite.Draw(gl!);
+            sprite.Draw(gl!, quadBuffer);
 
             quadBuffer.DrawBuffer();
         }

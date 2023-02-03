@@ -15,10 +15,12 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IVertex
     protected readonly int Size;
 
     protected abstract PrimitiveType PrimitiveType { get; }
+    protected abstract int IndicesPerPrimitive { get; }
+    protected abstract int VerticesPerPrimitive { get; }
 
     private GL? gl;
 
-    public VertexBuffer(int amountOfVertices)
+    public VertexBuffer(int amountOfVertices = 10000)
     {
         Size = amountOfVertices;
     }
@@ -44,6 +46,39 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IVertex
         GLUtils.SetVAO<TexturedVertex2D>(gl);
     }
 
+    private int count;
+    private int beginBuffer = -1;
+    private int endBuffer = -1;
+
+    public void AddVertex(T vertex)
+    {
+        ArgumentNullException.ThrowIfNull(Vertices);
+
+        if (!Vertices[count].Equals(vertex))
+        {
+            Vertices[count] = vertex;
+
+            if (beginBuffer == -1)
+            {
+                beginBuffer = count;
+                endBuffer = count + 1;
+            }
+            else
+            {
+                endBuffer = count + 1;
+            }
+        }
+
+        ++count;
+    }
+
+    private void reset()
+    {
+        count = 0;
+        beginBuffer = -1;
+        endBuffer = -1;
+    }
+
     public void BufferData(ReadOnlySpan<T> data, int offset)
     {
         if (offset + data.Length > Size)
@@ -62,6 +97,19 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IVertex
 
     protected abstract uint[] InitializeEBO();
 
+    public unsafe void DrawBuffer()
+    {
+        if (beginBuffer != -1)
+            BufferData(new ReadOnlySpan<T>(Vertices, beginBuffer, endBuffer - beginBuffer), beginBuffer);
+
+        Bind();
+
+        int indicesToDraw = count / VerticesPerPrimitive * IndicesPerPrimitive;
+        gl?.DrawElements(PrimitiveType, (uint)indicesToDraw, DrawElementsType.UnsignedInt, (void*)null);
+
+        reset();
+    }
+
     private bool isDisposed;
 
     protected virtual void Dispose(bool disposing)
@@ -76,13 +124,6 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IVertex
         gl.DeleteBuffer(vboHandle);
         gl.DeleteBuffer(eboHandle);
         isDisposed = true;
-    }
-
-    public void DrawBuffer() => DrawBuffer((uint)(Indices?.Length));
-    public unsafe void DrawBuffer(uint count)
-    {
-        Bind();
-        gl?.DrawElements(PrimitiveType, count, DrawElementsType.UnsignedInt, (void*)null);
     }
 
     public void Dispose()

@@ -6,7 +6,8 @@ namespace BloomBirb.Renderers.OpenGL.Buffers;
 public class QuadBuffer<T> : VertexBuffer<T>, IDisposable where T : unmanaged, IVertex
 {
     protected override PrimitiveType PrimitiveType => PrimitiveType.Triangles;
-
+    protected override int IndicesPerPrimitive => 6;
+    protected override int VerticesPerPrimitive => 4;
 
     private int numberOfQuads;
 

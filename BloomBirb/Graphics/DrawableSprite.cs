@@ -1,3 +1,7 @@
+using System.Numerics;
+using BloomBirb.Graphics.Primitives;
+using BloomBirb.Graphics.Vertices;
+using BloomBirb.Renderers.OpenGL.Buffers;
 using Silk.NET.OpenGL;
 
 using Shader = BloomBirb.Renderers.OpenGL.Shader;
@@ -16,20 +20,23 @@ public class DrawableSprite : Drawable
         this.shader = shader;
     }
 
-    public override void Draw(GL context)
+    public override void Draw(GL context, QuadBuffer<TexturedVertex2D> quadBuffer)
     {
-        base.Draw(context);
+        base.Draw(context, quadBuffer);
         shader.Use();
         texture.Bind();
 
-        shader.SetUniform("u_TransMat", Transformation);
         shader.SetUniform("u_Color", DrawColour);
-
 
         shader?.SetUniform("u_Texture0", 0);
         shader?.SetUniform("u_Circle", 0);
         shader?.SetUniform("u_ScreenSpaceCentreX", 400f);
         shader?.SetUniform("u_ScreenSpaceCentreY", 300f);
         shader?.SetUniform("u_CircleRadius", 150f);
+
+        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.TopLeft, new Vector2(0, 1)));
+        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.BottomLeft, new Vector2(0, 0)));
+        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.BottomRight, new Vector2(1, 0)));
+        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.TopRight, new Vector2(1, 1)));
     }
 }

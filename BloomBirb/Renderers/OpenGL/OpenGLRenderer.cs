@@ -4,14 +4,14 @@ using Silk.NET.Windowing;
 
 namespace BloomBirb.Renderers.OpenGL;
 
-public class OpenGLRenderer
+public class OpenGLRenderer : IDisposable
 {
     private static GL? glContext = null;
 
     private static DebugProc debugProcCallback = debugCallback;
     private static GCHandle debugProcCallbackHandle;
 
-    public static GL CreateContext(IWindow window)
+    public static GL Initialize(IWindow window)
     {
         glContext ??= GL.GetApi(window);
 
@@ -56,6 +56,21 @@ public class OpenGLRenderer
             throw new Exception(messageString);
     }
 
+    private bool isDisposed;
 
+    public void Dispose()
+    {
+        if (isDisposed)
+            return;
+
+        debugProcCallbackHandle.Free();
+        isDisposed = true;
+        GC.SuppressFinalize(this);
+    }
+
+    ~OpenGLRenderer()
+    {
+        Dispose();
+    }
 
 }

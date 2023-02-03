@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace BloomBirb.Graphics.Vertices;
 
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct TexturedVertex2D : IVertex
+public readonly struct TexturedVertex2D : IVertex, IEquatable<TexturedVertex2D>
 {
     public static int Size => sizeof(float) * 4;
 
@@ -23,4 +23,14 @@ public readonly struct TexturedVertex2D : IVertex
     }
 
     public TexturedVertex2D(float x, float y, float u, float v) : this(new(x, y), new(u, v)) { }
+
+    public bool Equals(TexturedVertex2D other)
+    {
+        return VertexPosition.Equals(other.VertexPosition) && TexturePosition.Equals(other.TexturePosition);
+    }
+
+    public bool Equals(IVertex vertex)
+    {
+        return vertex is TexturedVertex2D other && Equals(other);
+    }
 }
