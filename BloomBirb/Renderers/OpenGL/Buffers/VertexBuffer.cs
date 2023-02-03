@@ -87,7 +87,7 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IVertex
         gl?.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
 
         // If we are replacing the entire buffer, we just ask for a new buffer from GL so we don't have to sync up with the driver
-        if (data.Length + offset == Size)
+        if (data.Length == Size)
             gl?.BufferData(BufferTargetARB.ArrayBuffer, data, BufferUsageARB.StaticDraw);
         else
             gl?.BufferSubData(BufferTargetARB.ArrayBuffer, (nint)offset * T.Size, data);
