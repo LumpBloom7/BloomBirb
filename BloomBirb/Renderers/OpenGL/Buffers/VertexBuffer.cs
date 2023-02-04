@@ -18,32 +18,32 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IVertex
     protected abstract int IndicesPerPrimitive { get; }
     protected abstract int VerticesPerPrimitive { get; }
 
-    private GL? gl;
+    private readonly OpenGLRenderer renderer;
+    private GL context => renderer.Context!;
 
-    public VertexBuffer(int amountOfVertices = 10000)
+    public VertexBuffer(OpenGLRenderer renderer, int amountOfVertices = 10000)
     {
+        this.renderer = renderer;
         Size = amountOfVertices;
     }
 
-    public unsafe void Initialize(GL gl)
+    public unsafe void Initialize()
     {
-        this.gl = gl;
-
         Vertices = new T[Size];
         Indices = InitializeEBO();
 
-        vaoHandle = gl.GenVertexArray();
+        vaoHandle = context.GenVertexArray();
         Bind();
 
-        vboHandle = gl.GenBuffer();
-        gl.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
-        gl.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * T.Size), (void**)null, BufferUsageARB.DynamicDraw);
+        vboHandle = context.GenBuffer();
+        context.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
+        context.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * T.Size), (void**)null, BufferUsageARB.DynamicDraw);
 
-        eboHandle = gl.GenBuffer();
-        gl.BindBuffer((GLEnum)BufferTargetARB.ElementArrayBuffer, eboHandle);
-        gl.BufferData((GLEnum)BufferTargetARB.ElementArrayBuffer, new ReadOnlySpan<uint>(Indices), BufferUsageARB.StaticDraw);
+        eboHandle = context.GenBuffer();
+        context.BindBuffer((GLEnum)BufferTargetARB.ElementArrayBuffer, eboHandle);
+        context.BufferData((GLEnum)BufferTargetARB.ElementArrayBuffer, new ReadOnlySpan<uint>(Indices), BufferUsageARB.StaticDraw);
 
-        GLUtils.SetVAO<TexturedVertex2D>(gl);
+        GLUtils.SetVAO<TexturedVertex2D>(context);
     }
 
     private int count;
@@ -84,16 +84,16 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IVertex
         if (offset + data.Length > Size)
             throw new IndexOutOfRangeException("An attempt to store data outside of buffer bounds");
 
-        gl?.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
+        context?.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
 
         // If we are replacing the entire buffer, we just ask for a new buffer from GL so we don't have to sync up with the driver
         if (data.Length == Size)
-            gl?.BufferData(BufferTargetARB.ArrayBuffer, data, BufferUsageARB.DynamicDraw);
+            context?.BufferData(BufferTargetARB.ArrayBuffer, data, BufferUsageARB.DynamicDraw);
         else
-            gl?.BufferSubData(BufferTargetARB.ArrayBuffer, (nint)offset * T.Size, data);
+            context?.BufferSubData(BufferTargetARB.ArrayBuffer, (nint)offset * T.Size, data);
     }
 
-    public void Bind() => gl?.BindVertexArray(vaoHandle);
+    public void Bind() => context?.BindVertexArray(vaoHandle);
 
     protected abstract uint[] InitializeEBO();
 
@@ -105,7 +105,7 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IVertex
         Bind();
 
         int indicesToDraw = count / VerticesPerPrimitive * IndicesPerPrimitive;
-        gl?.DrawElements(PrimitiveType, (uint)indicesToDraw, DrawElementsType.UnsignedInt, (void*)null);
+        context?.DrawElements(PrimitiveType, (uint)indicesToDraw, DrawElementsType.UnsignedInt, (void*)null);
 
         reset();
     }
@@ -117,12 +117,9 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IVertex
         if (isDisposed)
             return;
 
-        if (gl is null)
-            return;
-
-        gl.DeleteVertexArray(vaoHandle);
-        gl.DeleteBuffer(vboHandle);
-        gl.DeleteBuffer(eboHandle);
+        context.DeleteVertexArray(vaoHandle);
+        context.DeleteBuffer(vboHandle);
+        context.DeleteBuffer(eboHandle);
         isDisposed = true;
     }
 

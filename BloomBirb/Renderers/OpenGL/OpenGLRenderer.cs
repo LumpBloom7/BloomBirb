@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
@@ -6,48 +7,98 @@ namespace BloomBirb.Renderers.OpenGL;
 
 public class OpenGLRenderer : IDisposable
 {
-    private static GL? glContext = null;
+    public GL? Context = null;
 
     private static DebugProc debugProcCallback = debugCallback;
     private static GCHandle debugProcCallbackHandle;
 
-    private static Texture[] textureUnits = new Texture[1];
-    private static Shader boundProgram = null!;
+    private static uint[] textureUnits = new uint[1];
+    private static uint boundProgram;
 
-    public static GL Initialize(IWindow window)
+    private bool isInitialized = false;
+
+    public Texture? BlankTexture { get; private set; }
+
+    public void Initialize(IWindow window)
     {
-        glContext ??= GL.GetApi(window);
+        if (isInitialized)
+            return;
+
+        Context ??= GL.GetApi(window);
 
         debugProcCallbackHandle = GCHandle.Alloc(debugProcCallback);
 
-        glContext.DebugMessageCallback(debugProcCallback, IntPtr.Zero);
-        glContext.Enable(EnableCap.DebugOutput);
-        glContext.Enable(EnableCap.DebugOutputSynchronous);
+        Context.DebugMessageCallback(debugProcCallback, IntPtr.Zero);
+        Context.Enable(EnableCap.DebugOutput);
+        Context.Enable(EnableCap.DebugOutputSynchronous);
 
         unsafe
         {
-            Console.WriteLine($"GL Version: {glContext.GetStringS(GLEnum.Version)}");
-            Console.WriteLine($"GL Vendor: {glContext.GetStringS(GLEnum.Vendor)}");
-            Console.WriteLine($"GL Renderer: {glContext.GetStringS(GLEnum.Renderer)}");
+            Console.WriteLine($"GL Version: {Context.GetStringS(GLEnum.Version)}");
+            Console.WriteLine($"GL Vendor: {Context.GetStringS(GLEnum.Vendor)}");
+            Console.WriteLine($"GL Renderer: {Context.GetStringS(GLEnum.Renderer)}");
 
-            int numExtensions = glContext.GetInteger(GLEnum.NumExtensions);
+            int numExtensions = Context.GetInteger(GLEnum.NumExtensions);
             Console.Write("GL Extensions: ");
             for (int i = 0; i < numExtensions; ++i)
-                Console.Write($"{glContext.GetStringS(GLEnum.Extensions, (uint)i)} ");
+                Console.Write($"{Context.GetStringS(GLEnum.Extensions, (uint)i)} ");
 
             Console.WriteLine();
         }
 
-        return glContext;
+        BlankTexture = new Texture(this);
+
+        isInitialized = true;
     }
 
-    public static GL GlContext
+    private void ensureInitialized()
     {
-        get
-        {
-            ArgumentNullException.ThrowIfNull(glContext);
-            return glContext;
-        }
+        if (!isInitialized)
+            throw new InvalidOperationException("OpenGLRenderer is not initialized");
+    }
+
+    public void Clear(ClearBufferMask bufferMask) => Context?.Clear((uint)bufferMask);
+
+    public Shader CreateShader(params uint[] shaderParts) => new(this, shaderParts);
+
+    public uint CreateShaderPart(ShaderType type, string source)
+    {
+        ensureInitialized();
+        Debug.Assert(Context is not null);
+
+        uint handle = Context.CreateShader(type);
+
+        Context.ShaderSource(handle, source);
+        Context.CompileShader(handle);
+
+        //Check for linking errors.
+        string status = Context.GetShaderInfoLog(handle);
+        if (!string.IsNullOrEmpty(status))
+            throw new Exception($"Program failed to link with error: {status}");
+
+        return handle;
+    }
+
+    public void BindShader(uint programID)
+    {
+        if (boundProgram == programID)
+            return;
+
+        boundProgram = programID;
+        Context?.UseProgram(programID);
+    }
+
+    public Texture CreateTexture(Stream? stream) => new(this, stream);
+
+    public void BindTexture(uint textureHandle, TextureUnit textureUnit = 0)
+    {
+        int textureUnitIndex = textureUnit - TextureUnit.Texture0;
+        if (textureUnits[textureUnitIndex] == textureHandle)
+            return;
+
+        textureUnits[textureUnitIndex] = textureHandle;
+        Context?.ActiveTexture(textureUnit);
+        Context?.BindTexture(TextureTarget.Texture2D, textureHandle);
     }
 
     private static void debugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, IntPtr message, IntPtr userParam)
@@ -57,24 +108,6 @@ public class OpenGLRenderer : IDisposable
 
         if (type == GLEnum.DebugTypeError)
             throw new Exception(messageString);
-    }
-
-    public static void BindShader(Shader shader)
-    {
-        if (boundProgram == shader)
-            return;
-
-        glContext?.UseProgram(shader.Handle);
-    }
-
-    public static void BindTexture(Texture texture, int textureUnit = 0)
-    {
-        if (textureUnits[textureUnit] == texture)
-            return;
-
-        textureUnits[textureUnit] = texture;
-        glContext?.ActiveTexture(TextureUnit.Texture0 + textureUnit);
-        glContext?.BindTexture(TextureTarget.Texture2D, texture.Handle);
     }
 
     private bool isDisposed;

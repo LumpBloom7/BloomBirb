@@ -15,12 +15,12 @@ namespace BloomBirb
     public class Program
     {
         private static IWindow? window;
-        private static GL? gl;
+        private static OpenGLRenderer? gl;
 
         //Our new abstracted objects, here we specify what the types are.
-        private static QuadBuffer<TexturedVertex2D> quadBuffer = new QuadBuffer<TexturedVertex2D>(10000);
+        private static QuadBuffer<TexturedVertex2D>? quadBuffer;
 
-        private static EmbeddedResourceStore? resources = new();
+        private static EmbeddedResourceStore? resources;
 
         private static DrawableSprite[] sprites = new DrawableSprite[10000];
 
@@ -48,10 +48,14 @@ namespace BloomBirb
                 input.Keyboards[i].KeyDown += onKeyDown;
             }
 
-            gl = OpenGLRenderer.Initialize(window!);
+            gl = new OpenGLRenderer();
+            quadBuffer = new QuadBuffer<TexturedVertex2D>(gl, sprites.Length);
+            resources = new EmbeddedResourceStore(gl);
 
             //Instantiating our new abstractions
-            quadBuffer.Initialize(gl);
+            gl.Initialize(window!);
+            quadBuffer.Initialize();
+
             var tex = resources?.Textures.Get("kitty")!;
             var shader = resources?.Shaders.Get("Texture", "Texture")!;
 
@@ -82,23 +86,24 @@ namespace BloomBirb
 
         private static unsafe void onRender(double obj)
         {
-            gl?.Clear((uint)ClearBufferMask.ColorBufferBit);
+            gl?.Clear(ClearBufferMask.ColorBufferBit);
 
             foreach (var sprite in sprites)
             {
                 sprite.Rotation += (float)(obj * 180);
                 sprite.Invalidate();
-                sprite.Draw(gl!, quadBuffer);
+                sprite.Draw(gl!, quadBuffer!);
             }
 
-            quadBuffer.DrawBuffer();
+            quadBuffer?.DrawBuffer();
         }
 
         private static void onClose()
         {
             //Remember to dispose all the instances.
             audioSource?.Dispose();
-            quadBuffer.Dispose();
+            quadBuffer?.Dispose();
+            gl?.Dispose();
         }
 
         private static void onKeyDown(IKeyboard arg1, Key arg2, int arg3)

@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using BloomBirb.Renderers.OpenGL;
 
 namespace BloomBirb.ResourceStores;
 
@@ -12,9 +13,9 @@ public class EmbeddedResourceStore
     public ShaderStore Shaders { get; private set; }
     public AudioStore Audio { get; private set; }
 
-    public EmbeddedResourceStore() : this(typeof(EmbeddedResourceStore).GetTypeInfo().Assembly) { }
+    public EmbeddedResourceStore(OpenGLRenderer renderer) : this(renderer, typeof(EmbeddedResourceStore).GetTypeInfo().Assembly) { }
 
-    public EmbeddedResourceStore(Assembly assembly)
+    public EmbeddedResourceStore(OpenGLRenderer renderer, Assembly assembly)
     {
         this.assembly = assembly;
 
@@ -26,8 +27,8 @@ public class EmbeddedResourceStore
             Console.WriteLine(resource);
         }
 
-        Textures = new TextureStore(assembly, $"{prefix}.Textures");
-        Shaders = new ShaderStore(assembly, $"{prefix}.Shaders");
+        Textures = new TextureStore(renderer, assembly, $"{prefix}.Textures");
+        Shaders = new ShaderStore(renderer, assembly, $"{prefix}.Shaders");
         Audio = new AudioStore(assembly, $"{prefix}.Audio");
     }
 

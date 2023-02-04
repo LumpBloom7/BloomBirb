@@ -19,8 +19,11 @@ public class TextureStore
 
     private readonly string prefix;
 
-    public TextureStore(Assembly assembly, string prefix)
+    private readonly OpenGLRenderer renderer;
+
+    public TextureStore(OpenGLRenderer renderer, Assembly assembly, string prefix)
     {
+        this.renderer = renderer;
         this.assembly = assembly;
         this.prefix = prefix;
     }
@@ -36,7 +39,7 @@ public class TextureStore
                 if (stream is null)
                     continue;
 
-                var newTexture = new Texture(stream);
+                var newTexture = renderer.CreateTexture(stream);
                 textureCache.Add(actualFilename, newTexture);
                 return newTexture;
             }
@@ -44,6 +47,6 @@ public class TextureStore
             return texture;
         }
 
-        return Texture.BLANK;
+        return renderer.BlankTexture!;
     }
 }

@@ -1,6 +1,7 @@
 using System.Numerics;
 using BloomBirb.Graphics.Primitives;
 using BloomBirb.Graphics.Vertices;
+using BloomBirb.Renderers.OpenGL;
 using BloomBirb.Renderers.OpenGL.Buffers;
 using Silk.NET.OpenGL;
 
@@ -20,10 +21,10 @@ public class DrawableSprite : Drawable
         this.shader = shader;
     }
 
-    public override void Draw(GL context, QuadBuffer<TexturedVertex2D> quadBuffer)
+    public override void Draw(OpenGLRenderer renderer, QuadBuffer<TexturedVertex2D> quadBuffer)
     {
-        base.Draw(context, quadBuffer);
-        shader.Use();
+        base.Draw(renderer, quadBuffer);
+        shader.Bind();
         texture.Bind();
 
         shader.SetUniform("u_Color", DrawColour);

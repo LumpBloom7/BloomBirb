@@ -20,8 +20,11 @@ public class ShaderStore
     private readonly Dictionary<string, uint> vertexParts = new();
     private readonly Dictionary<string, uint> fragParts = new();
 
-    public ShaderStore(Assembly assembly, string prefix)
+    private readonly OpenGLRenderer renderer;
+
+    public ShaderStore(OpenGLRenderer renderer, Assembly assembly, string prefix)
     {
+        this.renderer = renderer;
         this.assembly = assembly;
         this.prefix = prefix;
     }
@@ -35,7 +38,7 @@ public class ShaderStore
 
         if (!shaderCache.TryGetValue(parts, out var shader))
         {
-            shader = new Shader(vertHandle, fragHandle);
+            shader = renderer.CreateShader(vertHandle, fragHandle);
             shaderCache.Add(parts, shader);
         }
 
@@ -67,31 +70,14 @@ public class ShaderStore
     {
         if (!cache.TryGetValue(name, out uint handle))
         {
+            string src = loadFile(name);
 
-            handle = loadShaderPart(type, name);
+            if (string.IsNullOrEmpty(src))
+                return 0;
+
+            handle = renderer.CreateShaderPart(type, src);
             cache.Add(name, handle);
         }
-
-        return handle;
-    }
-
-    private uint loadShaderPart(ShaderType type, string file)
-    {
-        var gl = OpenGLRenderer.GlContext;
-
-        string src = loadFile(file);
-
-        if (src == "")
-            return 0;
-
-        uint handle = gl.CreateShader(type);
-
-        gl.ShaderSource(handle, src);
-        gl.CompileShader(handle);
-        string infoLog = gl.GetShaderInfoLog(handle);
-
-        if (!string.IsNullOrWhiteSpace(infoLog))
-            throw new Exception($"Error compiling shader of type {type}, failed with error {infoLog}");
 
         return handle;
     }

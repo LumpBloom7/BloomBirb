@@ -11,7 +11,7 @@ public class QuadBuffer<T> : VertexBuffer<T>, IDisposable where T : unmanaged, I
 
     private int numberOfQuads;
 
-    public QuadBuffer(int numberOfQuads) : base(numberOfQuads * 4)
+    public QuadBuffer(OpenGLRenderer renderer, int numberOfQuads) : base(renderer, numberOfQuads * 4)
     {
         this.numberOfQuads = numberOfQuads;
     }

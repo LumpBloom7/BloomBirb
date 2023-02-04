@@ -6,24 +6,21 @@ namespace BloomBirb.Renderers.OpenGL;
 
 public class Texture : IDisposable
 {
-    public readonly uint Handle;
-    private GL gl;
+    private readonly uint handle;
 
-    public static readonly Texture BLANK;
-
-    static Texture()
-    {
-        BLANK = new Texture();
-    }
+    private readonly OpenGLRenderer renderer;
+    private GL context => renderer.Context!;
 
     // Creates blank texture
-    private unsafe Texture()
+    public unsafe Texture(OpenGLRenderer renderer)
     {
-        gl = OpenGLRenderer.GlContext;
+        this.renderer = renderer;
 
-        Handle = gl.GenTexture();
+        handle = context.GenTexture();
+
         Bind();
-        gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, 1, 1, 0,
+
+        context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, 1, 1, 0,
             PixelFormat.Rgba, PixelType.UnsignedByte, null);
 
         var img = new Image<Rgba32>(Configuration.Default, 1, 1);
@@ -31,30 +28,29 @@ public class Texture : IDisposable
         {
             accessor.GetRowSpan(0)[0] = new Rgba32(255, 255, 255, 255);
             fixed (void* data = accessor.GetRowSpan(0))
-                gl.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte,
+                context.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte,
                     data);
         });
 
         setParameters();
     }
 
-    public unsafe Texture(Stream? stream)
+    public unsafe Texture(OpenGLRenderer renderer, Stream? stream)
     {
-        gl = OpenGLRenderer.GlContext;
-
-        Handle = gl.GenTexture();
+        this.renderer = renderer;
+        handle = context.GenTexture();
         Bind();
 
         using (var img = Image.Load<Rgba32>(stream))
         {
-            gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, (uint)img.Width, (uint)img.Height, 0,
+            context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, (uint)img.Width, (uint)img.Height, 0,
                 PixelFormat.Rgba, PixelType.UnsignedByte, null);
 
             img.ProcessPixelRows(accessor =>
             {
                 for (int i = 0; i < accessor.Height; ++i)
                     fixed (void* data = accessor.GetRowSpan(i))
-                        gl.TexSubImage2D(TextureTarget.Texture2D, 0, 0, i, (uint)accessor.Width, 1U, PixelFormat.Rgba,
+                        context.TexSubImage2D(TextureTarget.Texture2D, 0, 0, i, (uint)accessor.Width, 1U, PixelFormat.Rgba,
                             PixelType.UnsignedByte, data);
             });
         }
@@ -65,24 +61,26 @@ public class Texture : IDisposable
     private void setParameters()
     {
         // Set some parameters
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.LinearMipmapLinear);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 8);
-        gl.GenerateMipmap(TextureTarget.Texture2D);
+        context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);
+        context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
+        context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.LinearMipmapLinear);
+        context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
+        context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
+        context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 8);
+        context.GenerateMipmap(TextureTarget.Texture2D);
     }
 
-    public void Bind(TextureUnit textureUnit = TextureUnit.Texture0)
-    {
-        OpenGLRenderer.BindTexture(this, 0);
-    }
+    public void Bind(TextureUnit textureUnit = TextureUnit.Texture0) => renderer.BindTexture(handle, textureUnit);
 
     public void Dispose()
     {
-        gl.DeleteTexture(Handle);
+        context.DeleteTexture(handle);
 
         GC.SuppressFinalize(this);
+    }
+
+    ~Texture()
+    {
+        Dispose();
     }
 }
