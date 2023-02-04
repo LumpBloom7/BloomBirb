@@ -27,17 +27,15 @@ public class DrawableSprite : Drawable
         shader.Bind();
         texture.Bind();
 
-        shader.SetUniform("u_Color", DrawColour);
-
         shader?.SetUniform("u_Texture0", 0);
         shader?.SetUniform("u_Circle", 0);
         shader?.SetUniform("u_ScreenSpaceCentreX", 400f);
         shader?.SetUniform("u_ScreenSpaceCentreY", 300f);
         shader?.SetUniform("u_CircleRadius", 150f);
 
-        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.TopLeft, new Vector2(0, 1)));
-        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.BottomLeft, new Vector2(0, 0)));
-        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.BottomRight, new Vector2(1, 0)));
-        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.TopRight, new Vector2(1, 1)));
+        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.TopLeft, DrawColour, new Vector2(0, 1)));
+        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.BottomLeft, DrawColour, new Vector2(0, 0)));
+        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.BottomRight, DrawColour, new Vector2(1, 0)));
+        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.TopRight, DrawColour, new Vector2(1, 1)));
     }
 }
