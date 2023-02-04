@@ -3,7 +3,7 @@ using Silk.NET.OpenGL;
 
 namespace BloomBirb.Renderers.OpenGL.Buffers;
 
-public class QuadBuffer<T> : VertexBuffer<T>, IDisposable where T : unmanaged, IVertex
+public class QuadBuffer<T> : VertexBuffer<T>, IDisposable where T : unmanaged, IEquatable<T>, IVertex
 {
     protected override PrimitiveType PrimitiveType => PrimitiveType.Triangles;
     protected override int IndicesPerPrimitive => 6;

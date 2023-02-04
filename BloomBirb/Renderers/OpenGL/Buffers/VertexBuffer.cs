@@ -3,7 +3,7 @@ using Silk.NET.OpenGL;
 
 namespace BloomBirb.Renderers.OpenGL.Buffers;
 
-public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IVertex
+public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquatable<T>, IVertex
 {
     protected uint[]? Indices;
     protected T[]? Vertices;
