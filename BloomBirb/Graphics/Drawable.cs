@@ -3,6 +3,7 @@ using BloomBirb.Extensions;
 using BloomBirb.Graphics.Primitives;
 using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL;
+using BloomBirb.Renderers.OpenGL.Batches;
 using BloomBirb.Renderers.OpenGL.Buffers;
 using Silk.NET.OpenGL;
 
@@ -32,7 +33,7 @@ public abstract class Drawable
     protected Quad DrawQuad = Quad.DEFAULT;
     protected Vector4 DrawColour { get; private set; } = Vector4.One;
 
-    public virtual void Draw(OpenGLRenderer renderer, QuadBuffer<TexturedVertex2D> quadBuffer)
+    public virtual void Draw(OpenGLRenderer renderer, QuadBatch<TexturedVertex2D> quadBuffer)
     {
 
     }

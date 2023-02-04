@@ -46,35 +46,38 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
         GLUtils.SetVAO<TexturedVertex2D>(context);
     }
 
-    private int count;
+    public bool IsFull => Count == Size;
+
+    public int Count { get; private set; }
+
     private int beginBuffer = -1;
     private int endBuffer = -1;
 
-    public void AddVertex(T vertex)
+    public void AddVertex(ref T vertex)
     {
         ArgumentNullException.ThrowIfNull(Vertices);
 
-        if (!Vertices[count].Equals(vertex))
+        if (!Vertices[Count].Equals(vertex))
         {
-            Vertices[count] = vertex;
+            Vertices[Count] = vertex;
 
             if (beginBuffer == -1)
             {
-                beginBuffer = count;
-                endBuffer = count + 1;
+                beginBuffer = Count;
+                endBuffer = Count + 1;
             }
             else
             {
-                endBuffer = count + 1;
+                endBuffer = Count + 1;
             }
         }
 
-        ++count;
+        ++Count;
     }
 
     private void reset()
     {
-        count = 0;
+        Count = 0;
         beginBuffer = -1;
         endBuffer = -1;
     }
@@ -84,16 +87,17 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
         if (offset + data.Length > Size)
             throw new IndexOutOfRangeException("An attempt to store data outside of buffer bounds");
 
-        context?.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
+        BindBuffer();
 
         // If we are replacing the entire buffer, we just ask for a new buffer from GL so we don't have to sync up with the driver
-        if (data.Length == Size)
+        if (data.Length == Size || offset == 0)
             context?.BufferData(BufferTargetARB.ArrayBuffer, data, BufferUsageARB.DynamicDraw);
         else
             context?.BufferSubData(BufferTargetARB.ArrayBuffer, (nint)offset * T.Size, data);
     }
 
     public void Bind() => context?.BindVertexArray(vaoHandle);
+    public void BindBuffer() => context.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
 
     protected abstract uint[] InitializeEBO();
 
@@ -104,7 +108,7 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
 
         Bind();
 
-        int indicesToDraw = count / VerticesPerPrimitive * IndicesPerPrimitive;
+        int indicesToDraw = Count / VerticesPerPrimitive * IndicesPerPrimitive;
         context?.DrawElements(PrimitiveType, (uint)indicesToDraw, DrawElementsType.UnsignedInt, (void*)null);
 
         reset();

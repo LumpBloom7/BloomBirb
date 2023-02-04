@@ -101,6 +101,8 @@ public class OpenGLRenderer : IDisposable
         Context?.BindTexture(TextureTarget.Texture2D, textureHandle);
     }
 
+    public void Flush() => Context?.Flush();
+
     private static void debugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, IntPtr message, IntPtr userParam)
     {
         string messageString = Marshal.PtrToStringAnsi(message, length);

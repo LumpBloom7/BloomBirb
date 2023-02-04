@@ -3,6 +3,7 @@ using BloomBirb.Audio;
 using BloomBirb.Graphics;
 using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL;
+using BloomBirb.Renderers.OpenGL.Batches;
 using BloomBirb.Renderers.OpenGL.Buffers;
 using BloomBirb.ResourceStores;
 using Silk.NET.Input;
@@ -18,7 +19,7 @@ namespace BloomBirb
         private static OpenGLRenderer? gl;
 
         //Our new abstracted objects, here we specify what the types are.
-        private static QuadBuffer<TexturedVertex2D>? quadBuffer;
+        private static QuadBatch<TexturedVertex2D>? quadBuffer;
 
         private static EmbeddedResourceStore? resources;
 
@@ -30,7 +31,6 @@ namespace BloomBirb
             options.Size = new Vector2D<int>(1024, 768);
             options.Title = "You spin me right round baby right round. Like a record baby right round round round.";
             options.VSync = false;
-            options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.Debug, new APIVersion(4, 5));
             window = Window.Create(options);
 
             window.Load += onLoad;
@@ -49,7 +49,7 @@ namespace BloomBirb
             }
 
             gl = new OpenGLRenderer();
-            quadBuffer = new QuadBuffer<TexturedVertex2D>(gl, sprites.Length);
+            quadBuffer = new QuadBatch<TexturedVertex2D>(gl, 10, 1000);
             resources = new EmbeddedResourceStore(gl);
 
             //Instantiating our new abstractions
@@ -78,7 +78,6 @@ namespace BloomBirb
             gl.Context?.Enable(GLEnum.Blend);
             gl.Context?.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
 
-
             OpenAL.CreateContext();
 
             audioSource = new StreamedSoundSource(resources?.Audio.Get("arrow")!)
@@ -102,7 +101,7 @@ namespace BloomBirb
                 sprite.Draw(gl!, quadBuffer!);
             }
 
-            quadBuffer?.DrawBuffer();
+            quadBuffer?.FlushBatch();
         }
 
         private static void onClose()

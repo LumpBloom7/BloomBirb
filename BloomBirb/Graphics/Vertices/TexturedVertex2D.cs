@@ -24,9 +24,4 @@ public readonly struct TexturedVertex2D : IVertex, IEquatable<TexturedVertex2D>
     {
         return PositionAndColour.Equals(other.PositionAndColour) && TexturePosition.Equals(other.TexturePosition);
     }
-
-    public bool Equals(IVertex vertex)
-    {
-        return vertex is TexturedVertex2D other && Equals(other);
-    }
 }
