@@ -59,6 +59,10 @@ namespace BloomBirb
             var tex = resources?.Textures.Get("kitty")!;
             var shader = resources?.Shaders.Get("Texture", "Texture")!;
 
+            shader.Bind();
+
+            shader.SetUniform("u_Texture0", 0);
+
             Random rng = Random.Shared;
             for (int i = 0; i < sprites.Length; ++i)
             {
@@ -70,6 +74,9 @@ namespace BloomBirb
                 sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), rng.NextSingle());
                 sprite.Invalidate();
             }
+
+            gl.Context?.Enable(GLEnum.Blend);
+            gl.Context?.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
 
 
             OpenAL.CreateContext();

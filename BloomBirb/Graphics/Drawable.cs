@@ -34,8 +34,7 @@ public abstract class Drawable
 
     public virtual void Draw(OpenGLRenderer renderer, QuadBuffer<TexturedVertex2D> quadBuffer)
     {
-        renderer.Context?.Enable(GLEnum.Blend);
-        renderer.Context?.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
+
     }
 
     public void Invalidate()
