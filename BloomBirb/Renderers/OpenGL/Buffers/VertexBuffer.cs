@@ -5,11 +5,15 @@ namespace BloomBirb.Renderers.OpenGL.Buffers;
 
 public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquatable<T>, IVertex
 {
+    // Ebo sharing
+    private static int eboMaxSize;
+    private static uint eboHandle;
+
     protected uint[]? Indices;
     protected T[]? Vertices;
 
     private uint vboHandle;
-    private uint eboHandle;
+
     private uint vaoHandle;
 
     protected readonly int Size;
@@ -27,10 +31,27 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
         Size = amountOfVertices;
     }
 
+    private void createAndUseEBO()
+    {
+        int desiredSize = Size / VerticesPerPrimitive * IndicesPerPrimitive;
+
+        if (eboHandle == 0)
+            eboHandle = context.GenBuffer();
+
+        context.BindBuffer((GLEnum)BufferTargetARB.ElementArrayBuffer, eboHandle);
+
+        if (eboMaxSize >= desiredSize)
+            return;
+
+        eboMaxSize = desiredSize;
+        Indices = InitializeEBO();
+
+        context.BufferData((GLEnum)BufferTargetARB.ElementArrayBuffer, new ReadOnlySpan<uint>(Indices), BufferUsageARB.DynamicDraw);
+    }
+
     public unsafe void Initialize()
     {
         Vertices = new T[Size];
-        Indices = InitializeEBO();
 
         vaoHandle = context.GenVertexArray();
         Bind();
@@ -39,9 +60,7 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
         context.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
         context.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * T.Size), (void**)null, BufferUsageARB.DynamicDraw);
 
-        eboHandle = context.GenBuffer();
-        context.BindBuffer((GLEnum)BufferTargetARB.ElementArrayBuffer, eboHandle);
-        context.BufferData((GLEnum)BufferTargetARB.ElementArrayBuffer, new ReadOnlySpan<uint>(Indices), BufferUsageARB.StaticDraw);
+        createAndUseEBO();
 
         GLUtils.SetVAO<TexturedVertex2D>(context);
     }
