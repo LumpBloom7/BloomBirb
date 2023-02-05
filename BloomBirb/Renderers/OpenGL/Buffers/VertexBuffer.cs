@@ -62,7 +62,7 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
 
         createAndUseEBO();
 
-        GLUtils.SetVAO<TexturedVertex2D>(context);
+        GLUtils.SetVAO<T>(context);
     }
 
     public bool IsFull => Count == Size;
