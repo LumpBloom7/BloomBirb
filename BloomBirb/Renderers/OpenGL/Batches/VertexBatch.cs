@@ -29,8 +29,6 @@ namespace BloomBirb.Renderers.OpenGL.Batches
         {
             foreach (VertexBuffer<T> buffer in buffers)
                 buffer.Initialize();
-
-            buffers[0].Bind();
         }
 
         public void AddVertex(T vertex)

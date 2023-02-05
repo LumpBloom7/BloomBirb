@@ -87,8 +87,6 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
         if (offset + data.Length > Size)
             throw new IndexOutOfRangeException("An attempt to store data outside of buffer bounds");
 
-        BindBuffer();
-
         // If we are replacing the entire buffer, we just ask for a new buffer from GL so we don't have to sync up with the driver
         if (data.Length == Size || offset == 0)
             context?.BufferData(BufferTargetARB.ArrayBuffer, data, BufferUsageARB.DynamicDraw);
@@ -96,17 +94,20 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
             context?.BufferSubData(BufferTargetARB.ArrayBuffer, (nint)offset * T.Size, data);
     }
 
-    public void Bind() => context?.BindVertexArray(vaoHandle);
-    public void BindBuffer() => context.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
+    public void Bind()
+    {
+        context?.BindVertexArray(vaoHandle);
+        context?.BindBuffer(BufferTargetARB.ArrayBuffer, vboHandle);
+    }
 
     protected abstract uint[] InitializeEBO();
 
     public unsafe void DrawBuffer()
     {
+        Bind();
+
         if (beginBuffer != -1)
             BufferData(new ReadOnlySpan<T>(Vertices, beginBuffer, endBuffer - beginBuffer), beginBuffer);
-
-        Bind();
 
         int indicesToDraw = Count / VerticesPerPrimitive * IndicesPerPrimitive;
         context?.DrawElements(PrimitiveType, (uint)indicesToDraw, DrawElementsType.UnsignedInt, (void*)null);
