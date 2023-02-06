@@ -9,7 +9,5 @@ public enum VertexAttributeType
     Int,
     UnsignedInt,
     Float,
-    Double,
-    HalfFloat,
-    Fixed
+    Double
 }

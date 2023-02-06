@@ -7,9 +7,9 @@ namespace BloomBirb.Graphics.Vertices;
 public struct PositionAndColourVertex : IVertex, IEquatable<PositionAndColourVertex>
 {
     public static int Size => sizeof(float) * 6;
-    public static (VertexAttributeType type, int typeSize, int count)[] Layout => new[]{
-        (VertexAttributeType.Float, sizeof(float), 2),
-        (VertexAttributeType.Float, sizeof(float), 4),
+    public static (VertexAttributeType type, int count)[] Layout => new[]{
+        (VertexAttributeType.Float, 2),
+        (VertexAttributeType.Float, 4),
     };
 
     public readonly Vector2 VertexPosition;

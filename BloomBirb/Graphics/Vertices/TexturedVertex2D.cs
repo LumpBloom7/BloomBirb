@@ -8,7 +8,7 @@ public readonly struct TexturedVertex2D : IVertex, IEquatable<TexturedVertex2D>
 {
     public static int Size => PositionAndColourVertex.Size + sizeof(float) * 2;
 
-    public static (VertexAttributeType type, int typeSize, int count)[] Layout => PositionAndColourVertex.Layout.Append((VertexAttributeType.Float, sizeof(float), 2)).ToArray();
+    public static (VertexAttributeType type, int count)[] Layout => PositionAndColourVertex.Layout.Append((VertexAttributeType.Float, 2)).ToArray();
 
     public readonly PositionAndColourVertex PositionAndColour;
     public readonly Vector2 TexturePosition;

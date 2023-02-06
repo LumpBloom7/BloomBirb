@@ -18,7 +18,7 @@ public static class GLUtils
             {
                 gl.VertexAttribPointer(i, currentAttribEntry.count, (GLEnum)toGLVertexAttribPointerType(currentAttribEntry.type), false, (uint)stride, (void*)offset);
             }
-            offset += currentAttribEntry.count * currentAttribEntry.typeSize;
+            offset += currentAttribEntry.count * sizeOf(currentAttribEntry.type);
             gl.EnableVertexAttribArray(i);
         }
     }
@@ -30,4 +30,14 @@ public static class GLUtils
 
         return (VertexAttribPointerType)typeEnum;
     }
+
+    private static int sizeOf(VertexAttributeType type) => type switch
+    {
+        VertexAttributeType.Byte or VertexAttributeType.UnsignedByte => sizeof(byte),
+        VertexAttributeType.Short or VertexAttributeType.UnsignedShort => sizeof(short),
+        VertexAttributeType.Int or VertexAttributeType.UnsignedInt => sizeof(int),
+        VertexAttributeType.Float => sizeof(float),
+        VertexAttributeType.Double => sizeof(double),
+        _ => 0,
+    };
 }
