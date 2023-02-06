@@ -179,3 +179,6 @@ csharp_prefer_simple_using_statement = true:silent
 csharp_style_prefer_index_operator = false:silent
 csharp_style_prefer_range_operator = false:silent
 csharp_style_prefer_switch_expression = false:none
+
+# We don't want to enforce Equals(object?) to be overridden
+dotnet_diagnostic.CA1067.severity = none
