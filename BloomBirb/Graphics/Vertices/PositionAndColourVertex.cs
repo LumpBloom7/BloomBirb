@@ -4,9 +4,10 @@ using System.Runtime.InteropServices;
 namespace BloomBirb.Graphics.Vertices;
 
 [StructLayout(LayoutKind.Sequential)]
-public struct PositionAndColourVertex : IVertex, IEquatable<PositionAndColourVertex>
+public readonly struct PositionAndColourVertex : IVertex, IEquatable<PositionAndColourVertex>
 {
     public static int Size => sizeof(float) * 6;
+
     public static (VertexAttributeType type, int count)[] Layout => new[]{
         (VertexAttributeType.Float, 2),
         (VertexAttributeType.Float, 4),
@@ -22,6 +23,4 @@ public struct PositionAndColourVertex : IVertex, IEquatable<PositionAndColourVer
     }
 
     public bool Equals(PositionAndColourVertex other) => VertexPosition.Equals(other.VertexPosition) && VertexColour.Equals(other.VertexColour);
-
-    public bool Equals(IVertex other) => other is PositionAndColourVertex posColVert && Equals(posColVert);
 }
