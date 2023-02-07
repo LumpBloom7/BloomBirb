@@ -15,13 +15,13 @@ public class TextureStore
 
     private readonly Dictionary<string, Texture> textureCache = new();
 
-    private readonly EmbeddedResourceStore resources;
+    private readonly IResourceStore resources;
 
     private readonly string prefix;
 
     private readonly OpenGLRenderer renderer;
 
-    public TextureStore(OpenGLRenderer renderer, EmbeddedResourceStore resourceStore, string prefix = "Textures")
+    public TextureStore(OpenGLRenderer renderer, IResourceStore resourceStore, string prefix = "Textures")
     {
         this.renderer = renderer;
         resources = resourceStore;

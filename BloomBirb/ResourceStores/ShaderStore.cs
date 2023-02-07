@@ -18,11 +18,11 @@ public class ShaderStore
     private readonly Dictionary<string, uint> vertexParts = new();
     private readonly Dictionary<string, uint> fragParts = new();
 
-    private readonly EmbeddedResourceStore resources;
+    private readonly IResourceStore resources;
 
     private readonly OpenGLRenderer renderer;
 
-    public ShaderStore(OpenGLRenderer renderer, EmbeddedResourceStore resources, string prefix = "Shaders")
+    public ShaderStore(OpenGLRenderer renderer, IResourceStore resources, string prefix = "Shaders")
     {
         this.renderer = renderer;
         this.resources = resources;

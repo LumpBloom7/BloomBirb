@@ -12,10 +12,10 @@ public class AudioStore
         ".mp3"
     };
 
-    private EmbeddedResourceStore resources;
+    private IResourceStore resources;
     private string prefix;
 
-    public AudioStore(EmbeddedResourceStore resources, string prefix = "Audio")
+    public AudioStore(IResourceStore resources, string prefix = "Audio")
     {
         this.resources = resources;
         this.prefix = prefix;

@@ -1,9 +1,8 @@
 ﻿using System.Reflection;
-using BloomBirb.Renderers.OpenGL;
 
 namespace BloomBirb.ResourceStores;
 
-public class EmbeddedResourceStore
+public class EmbeddedResourceStore : IResourceStore
 {
     private Assembly assembly;
 
