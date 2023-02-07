@@ -22,7 +22,7 @@ namespace BloomBirb
 
         private static EmbeddedResourceStore? resources;
 
-        private static DrawableSprite[] sprites = new DrawableSprite[100000];
+        private static DrawableSprite[] sprites = new DrawableSprite[10000];
 
         private static void Main(string[] args)
         {
@@ -57,7 +57,7 @@ namespace BloomBirb
             gl.Initialize(window!);
             quadBuffer.Initialize();
 
-            var tex = resources?.Textures.Get("stickyt")!;
+            var tex = resources?.Textures.Get("sticky")!;
             var shader = resources?.Shaders.Get("Texture", "Texture")!;
 
             shader.Bind();
