@@ -1,5 +1,7 @@
+using System.Collections.ObjectModel;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using BloomBirb.Extensions;
 
 namespace BloomBirb.Graphics.Vertices;
 
@@ -8,7 +10,9 @@ public readonly struct TexturedVertex2D : IVertex, IEquatable<TexturedVertex2D>
 {
     public static int Size => PositionAndColourVertex.Size + sizeof(float) * 2;
 
-    public static (VertexAttributeType type, int count)[] Layout => PositionAndColourVertex.Layout.Append((VertexAttributeType.Float, 2)).ToArray();
+    public static ReadOnlyCollection<VertexLayoutEntry> Layout { get; } = PositionAndColourVertex.Layout.AddRange(
+        new VertexLayoutEntry(VertexAttributeType.Float, 2)
+    );
 
     public readonly PositionAndColourVertex PositionAndColour;
     public readonly Vector2 TexturePosition;

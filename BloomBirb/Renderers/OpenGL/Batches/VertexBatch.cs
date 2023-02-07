@@ -6,7 +6,6 @@ namespace BloomBirb.Renderers.OpenGL.Batches
 {
     public abstract class VertexBatch<T> : IDisposable where T : unmanaged, IEquatable<T>, IVertex
     {
-
         private VertexBuffer<T>[] buffers;
 
         private int bufferCount;

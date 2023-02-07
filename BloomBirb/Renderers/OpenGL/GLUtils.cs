@@ -11,25 +11,20 @@ public static class GLUtils
         int offset = 0;
 
         var layout = T.Layout;
-        for (uint i = 0; i < layout.Length; ++i)
+        for (int i = 0; i < layout.Count; ++i)
         {
             var currentAttribEntry = layout[i];
             unsafe
             {
-                gl.VertexAttribPointer(i, currentAttribEntry.count, (GLEnum)toGLVertexAttribPointerType(currentAttribEntry.type), false, (uint)stride, (void*)offset);
+                gl.VertexAttribPointer((uint)i, currentAttribEntry.Count, (GLEnum)toGLVertexAttribPointerType(currentAttribEntry.Type), false, (uint)stride, (void*)offset);
             }
-            offset += currentAttribEntry.count * sizeOf(currentAttribEntry.type);
-            gl.EnableVertexAttribArray(i);
+            offset += currentAttribEntry.Count * sizeOf(currentAttribEntry.Type);
+            gl.EnableVertexAttribArray((uint)i);
         }
     }
 
     private static VertexAttribPointerType toGLVertexAttribPointerType(VertexAttributeType type)
-    {
-        int typeEnum = (int)type;
-        typeEnum += (int)VertexAttribPointerType.Byte;
-
-        return (VertexAttribPointerType)typeEnum;
-    }
+        => (VertexAttribPointerType)((int)type + (int)VertexAttribPointerType.Byte);
 
     private static int sizeOf(VertexAttributeType type) => type switch
     {

@@ -23,7 +23,7 @@ namespace BloomBirb
 
         private static EmbeddedResourceStore? resources;
 
-        private static DrawableSprite[] sprites = new DrawableSprite[10000];
+        private static DrawableSprite[] sprites = new DrawableSprite[100000];
 
         private static void Main(string[] args)
         {
@@ -56,7 +56,7 @@ namespace BloomBirb
             gl.Initialize(window!);
             quadBuffer.Initialize();
 
-            var tex = resources?.Textures.Get("kitty")!;
+            var tex = resources?.Textures.Get("stickyt")!;
             var shader = resources?.Shaders.Get("Texture", "Texture")!;
 
             shader.Bind();
@@ -71,7 +71,7 @@ namespace BloomBirb
                 sprites[i].Scale = new Vector2(rng.NextSingle() * 0.5f, rng.NextSingle() * 0.5f);
                 sprites[i].Shear = new Vector2(rng.NextSingle(), rng.NextSingle());
                 sprites[i].Rotation = rng.NextSingle() * 360;
-                sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), rng.NextSingle());
+                sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1);
                 sprite.Invalidate();
             }
 
