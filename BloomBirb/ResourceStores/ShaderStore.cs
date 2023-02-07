@@ -11,8 +11,6 @@ public class ShaderStore
 {
     private record shaderParts(uint Vert, uint Frag);
 
-    private readonly Assembly assembly;
-
     private readonly string prefix;
 
     private readonly Dictionary<shaderParts, Shader> shaderCache = new();
@@ -20,12 +18,14 @@ public class ShaderStore
     private readonly Dictionary<string, uint> vertexParts = new();
     private readonly Dictionary<string, uint> fragParts = new();
 
+    private readonly EmbeddedResourceStore resources;
+
     private readonly OpenGLRenderer renderer;
 
-    public ShaderStore(OpenGLRenderer renderer, Assembly assembly, string prefix)
+    public ShaderStore(OpenGLRenderer renderer, EmbeddedResourceStore resources, string prefix = "Shaders")
     {
         this.renderer = renderer;
-        this.assembly = assembly;
+        this.resources = resources;
         this.prefix = prefix;
     }
 
@@ -100,7 +100,7 @@ public class ShaderStore
     {
         const string inc_pref = @"#include ";
 
-        Stream? stream = assembly.GetManifestResourceStream($"{prefix}.{path}");
+        Stream? stream = resources.Get($"{prefix}.{path}");
 
         if (stream is null)
             return;

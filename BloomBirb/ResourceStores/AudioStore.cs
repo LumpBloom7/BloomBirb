@@ -12,12 +12,12 @@ public class AudioStore
         ".mp3"
     };
 
-    private Assembly assembly;
+    private EmbeddedResourceStore resources;
     private string prefix;
 
-    public AudioStore(Assembly assembly, string prefix)
+    public AudioStore(EmbeddedResourceStore resources, string prefix = "Audio")
     {
-        this.assembly = assembly;
+        this.resources = resources;
         this.prefix = prefix;
     }
 
@@ -26,7 +26,7 @@ public class AudioStore
         foreach (string extension in lookup_extensions)
         {
             string fullPath = $"{prefix}.{path}{extension}";
-            Stream? stream = assembly.GetManifestResourceStream(fullPath);
+            Stream? stream = resources.Get(fullPath);
 
             if (stream is null)
                 continue;

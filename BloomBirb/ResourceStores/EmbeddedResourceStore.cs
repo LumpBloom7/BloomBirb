@@ -22,17 +22,15 @@ public class EmbeddedResourceStore
     {
         this.assembly = assembly;
 
-
         Console.WriteLine("Resources available:");
         Console.WriteLine("-------------------");
-        foreach (string resource in assembly.GetManifestResourceNames())
-        {
-            Console.WriteLine(resource);
-        }
 
-        Textures = new TextureStore(renderer, assembly, $"{prefix}.Textures");
-        Shaders = new ShaderStore(renderer, assembly, $"{prefix}.Shaders");
-        Audio = new AudioStore(assembly, $"{prefix}.Audio");
+        foreach (string resource in assembly.GetManifestResourceNames())
+            Console.WriteLine(resource);
+
+        Textures = new TextureStore(renderer, this);
+        Shaders = new ShaderStore(renderer, this);
+        Audio = new AudioStore(this);
     }
 
     public Stream? Get(string filename)

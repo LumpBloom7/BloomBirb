@@ -15,16 +15,16 @@ public class TextureStore
 
     private readonly Dictionary<string, Texture> textureCache = new();
 
-    private readonly Assembly assembly;
+    private readonly EmbeddedResourceStore resources;
 
     private readonly string prefix;
 
     private readonly OpenGLRenderer renderer;
 
-    public TextureStore(OpenGLRenderer renderer, Assembly assembly, string prefix)
+    public TextureStore(OpenGLRenderer renderer, EmbeddedResourceStore resourceStore, string prefix = "Textures")
     {
         this.renderer = renderer;
-        this.assembly = assembly;
+        resources = resourceStore;
         this.prefix = prefix;
     }
 
@@ -35,7 +35,8 @@ public class TextureStore
             string actualFilename = $"{filename}{fallbackExt}";
             if (!textureCache.TryGetValue(actualFilename, out var texture))
             {
-                var stream = assembly.GetManifestResourceStream($"{prefix}.{actualFilename}");
+                var stream = resources.Get($"{prefix}.{actualFilename}");
+
                 if (stream is null)
                     continue;
 
