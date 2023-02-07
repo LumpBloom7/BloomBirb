@@ -46,7 +46,8 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
         eboMaxSize = desiredSize;
         Indices = InitializeEBO();
 
-        context.BufferData((GLEnum)BufferTargetARB.ElementArrayBuffer, new ReadOnlySpan<uint>(Indices), BufferUsageARB.DynamicDraw);
+        context.BufferData((GLEnum)BufferTargetARB.ElementArrayBuffer, new ReadOnlySpan<uint>(Indices),
+            BufferUsageARB.DynamicDraw);
     }
 
     public unsafe void Initialize()
@@ -58,7 +59,8 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
 
         vboHandle = context.GenBuffer();
         context.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
-        context.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * T.Size), (void**)null, BufferUsageARB.DynamicDraw);
+        context.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * T.Size), (void**)null,
+            BufferUsageARB.DynamicDraw);
 
         createAndUseEBO();
 

@@ -16,6 +16,7 @@ public class SoundSource : AudioSource
     }
 
     private bool looping;
+
     public override bool Looping
     {
         get => looping;

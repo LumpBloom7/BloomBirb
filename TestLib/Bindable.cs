@@ -26,9 +26,11 @@
 
         private WeakReference<Bindable<T>> weakReferenceInstance = null!;
 
-        private WeakReference<Bindable<T>> weakReference => weakReferenceInstance ?? new WeakReference<Bindable<T>>(this);
+        private WeakReference<Bindable<T>> weakReference =>
+            weakReferenceInstance ?? new WeakReference<Bindable<T>>(this);
 
         private T value;
+
         public T Value
         {
             get => value;

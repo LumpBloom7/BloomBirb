@@ -10,6 +10,7 @@ public abstract class AudioSource : IDisposable
     protected readonly uint Source;
 
     private float volume = 1;
+
     public float Volume
     {
         get => volume;
@@ -17,6 +18,7 @@ public abstract class AudioSource : IDisposable
     }
 
     private float speed = 1;
+
     public float Speed
     {
         get => speed;

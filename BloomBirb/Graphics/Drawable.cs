@@ -4,8 +4,6 @@ using BloomBirb.Graphics.Primitives;
 using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL;
 using BloomBirb.Renderers.OpenGL.Batches;
-using BloomBirb.Renderers.OpenGL.Buffers;
-using Silk.NET.OpenGL;
 
 namespace BloomBirb.Graphics;
 
@@ -35,7 +33,6 @@ public abstract class Drawable
 
     public virtual void Draw(OpenGLRenderer renderer, QuadBatch<TexturedVertex2D> quadBuffer)
     {
-
     }
 
     public void Invalidate()

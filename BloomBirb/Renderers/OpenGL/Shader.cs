@@ -3,6 +3,7 @@ using System.Numerics;
 using Silk.NET.OpenGL;
 
 namespace BloomBirb.Renderers.OpenGL;
+
 public class Shader : IDisposable
 {
     //Our handle and the GL instance this class will use, these are private because they have no reason to be public.
@@ -92,6 +93,7 @@ public class Shader : IDisposable
                 {
                     context.UniformMatrix3(info.location, 1, false, (float*)&mat3Val);
                 }
+
                 return;
         }
     }

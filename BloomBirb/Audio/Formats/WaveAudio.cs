@@ -24,8 +24,8 @@ public class WaveAudio : AudioBase
         waveReader = new WaveFileReader(audioStream);
         sampleSize = waveReader.WaveFormat.BitsPerSample / 8;
         shouldConvert = sampleSize > 2;
-        Format = ConvertToBufferFormat(shouldConvert ? 16 : waveReader.WaveFormat.BitsPerSample, waveReader.WaveFormat.Channels);
-
+        Format = ConvertToBufferFormat(shouldConvert ? 16 : waveReader.WaveFormat.BitsPerSample,
+            waveReader.WaveFormat.Channels);
     }
 
     // A wave file may contain 24 or 32 bit data, which needs to be converted to 16bits

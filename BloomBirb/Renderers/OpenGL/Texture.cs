@@ -50,7 +50,8 @@ public class Texture : IDisposable
             {
                 for (int i = 0; i < accessor.Height; ++i)
                     fixed (void* data = accessor.GetRowSpan(i))
-                        context.TexSubImage2D(TextureTarget.Texture2D, 0, 0, i, (uint)accessor.Width, 1U, PixelFormat.Rgba,
+                        context.TexSubImage2D(TextureTarget.Texture2D, 0, 0, i, (uint)accessor.Width, 1U,
+                            PixelFormat.Rgba,
                             PixelType.UnsignedByte, data);
             });
         }
@@ -63,7 +64,8 @@ public class Texture : IDisposable
         // Set some parameters
         context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);
         context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
-        context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.LinearMipmapLinear);
+        context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+            (int)GLEnum.LinearMipmapLinear);
         context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
         context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
         context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 8);

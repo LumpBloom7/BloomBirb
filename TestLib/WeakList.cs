@@ -21,7 +21,9 @@ namespace BloomBirb.Framework
             public InvalidatableWeakReference(WeakReference<T> reference)
             {
                 Reference = reference;
-                ObjectHashCode = !reference.TryGetTarget(out var item) ? 0 : EqualityComparer<T>.Default.GetHashCode(item);
+                ObjectHashCode = !reference.TryGetTarget(out var item)
+                    ? 0
+                    : EqualityComparer<T>.Default.GetHashCode(item);
             }
         }
 
@@ -47,7 +49,8 @@ namespace BloomBirb.Framework
             public bool MoveNext()
             {
                 if (weakList.enumeratorVersion != version)
-                    throw new InvalidOperationException($"May not add or remove items from this {nameof(WeakList<T>)} during enumeration.");
+                    throw new InvalidOperationException(
+                        $"May not add or remove items from this {nameof(WeakList<T>)} during enumeration.");
 
                 while (index + 1 < weakList.Count)
                 {
@@ -61,7 +64,6 @@ namespace BloomBirb.Framework
                 }
 
                 return false;
-
             }
 
             public void Reset()
@@ -102,7 +104,8 @@ namespace BloomBirb.Framework
                 if (items[i].ObjectHashCode != itemHash)
                     continue;
 
-                if (!items[i].Reference.TryGetTarget(out var refItem) || !EqualityComparer<T>.Default.Equals(item, refItem))
+                if (!items[i].Reference.TryGetTarget(out var refItem) ||
+                    !EqualityComparer<T>.Default.Equals(item, refItem))
                     continue;
 
                 items.RemoveAt(i);
@@ -142,7 +145,8 @@ namespace BloomBirb.Framework
                 if (items[i].ObjectHashCode != itemHashCode)
                     continue;
 
-                if (!items[i].Reference.TryGetTarget(out var target) || !EqualityComparer<T>.Default.Equals(item, target))
+                if (!items[i].Reference.TryGetTarget(out var target) ||
+                    !EqualityComparer<T>.Default.Equals(item, target))
                     continue;
 
                 return true;

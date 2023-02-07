@@ -1,4 +1,3 @@
-
 using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL.Buffers;
 

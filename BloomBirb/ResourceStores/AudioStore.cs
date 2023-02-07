@@ -5,7 +5,8 @@ namespace BloomBirb.ResourceStores;
 
 public class AudioStore
 {
-    private static readonly string[] lookup_extensions = new string[]{
+    private static readonly string[] lookup_extensions = new string[]
+    {
         "",
         ".wav",
         ".mp3"

@@ -91,7 +91,8 @@ public abstract class AudioBase : IDisposable
     {
         for (int i = 0; i < floatSamples.Length / sizeof(float); ++i)
         {
-            float floatValue = normalizeFloat(BitConverter.ToSingle(floatSamples.Slice(i * sizeof(float), sizeof(float))));
+            float floatValue =
+                normalizeFloat(BitConverter.ToSingle(floatSamples.Slice(i * sizeof(float), sizeof(float))));
             short sampleValue = (short)(floatValue * short.MaxValue);
 
             destination[i * sizeof(short)] = (byte)sampleValue;

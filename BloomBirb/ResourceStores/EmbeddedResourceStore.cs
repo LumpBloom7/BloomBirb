@@ -13,7 +13,10 @@ public class EmbeddedResourceStore
     public ShaderStore Shaders { get; private set; }
     public AudioStore Audio { get; private set; }
 
-    public EmbeddedResourceStore(OpenGLRenderer renderer) : this(renderer, typeof(EmbeddedResourceStore).GetTypeInfo().Assembly) { }
+    public EmbeddedResourceStore(OpenGLRenderer renderer)
+        : this(renderer, typeof(EmbeddedResourceStore).GetTypeInfo().Assembly)
+    {
+    }
 
     public EmbeddedResourceStore(OpenGLRenderer renderer, Assembly assembly)
     {

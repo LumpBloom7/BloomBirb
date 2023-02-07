@@ -5,7 +5,8 @@ namespace BloomBirb.Renderers.OpenGL.Batches;
 
 public class QuadBatch<T> : VertexBatch<T> where T : unmanaged, IEquatable<T>, IVertex
 {
-    public QuadBatch(OpenGLRenderer renderer, int numberOfBuffers, int bufferSize) : base(renderer, numberOfBuffers, bufferSize)
+    public QuadBatch(OpenGLRenderer renderer, int numberOfBuffers, int bufferSize)
+        : base(renderer, numberOfBuffers, bufferSize)
     {
     }
 

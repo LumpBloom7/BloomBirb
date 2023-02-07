@@ -28,7 +28,7 @@ public class OpenGLRenderer : IDisposable
 
         debugProcCallbackHandle = GCHandle.Alloc(debugProcCallback);
 
-        Context.DebugMessageCallback(debugProcCallback, IntPtr.Zero);
+        Context.DebugMessageCallback(debugProcCallback, nint.Zero);
         Context.Enable(EnableCap.DebugOutput);
         Context.Enable(EnableCap.DebugOutputSynchronous);
 
@@ -103,7 +103,7 @@ public class OpenGLRenderer : IDisposable
 
     public void Flush() => Context?.Flush();
 
-    private static void debugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, IntPtr message, IntPtr userParam)
+    private static void debugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
     {
         string messageString = Marshal.PtrToStringAnsi(message, length);
         Console.WriteLine($"{severity} {type} | {messageString}");
@@ -128,5 +128,4 @@ public class OpenGLRenderer : IDisposable
     {
         Dispose();
     }
-
 }

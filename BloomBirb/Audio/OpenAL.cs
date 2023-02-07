@@ -1,5 +1,5 @@
-using NAudio.Wave;
 using Silk.NET.OpenAL;
+
 namespace BloomBirb.Audio;
 
 public unsafe class OpenAL

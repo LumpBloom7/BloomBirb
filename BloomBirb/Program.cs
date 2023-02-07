@@ -4,7 +4,6 @@ using BloomBirb.Graphics;
 using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL;
 using BloomBirb.Renderers.OpenGL.Batches;
-using BloomBirb.Renderers.OpenGL.Buffers;
 using BloomBirb.ResourceStores;
 using Silk.NET.Input;
 using Silk.NET.Maths;
@@ -39,7 +38,9 @@ namespace BloomBirb
 
             window.Run();
         }
+
         private static AudioSource audioSource = null!;
+
         private static void onLoad()
         {
             IInputContext input = window?.CreateInput()!;

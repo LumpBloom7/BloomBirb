@@ -31,9 +31,9 @@ public readonly struct Quad
     }
 
     public static Quad operator *(Quad quad, Matrix3 transformation) => new(
-            quad.TopLeft.Transform(transformation),
-            quad.BottomLeft.Transform(transformation),
-            quad.BottomRight.Transform(transformation),
-            quad.TopRight.Transform(transformation)
-        );
+        quad.TopLeft.Transform(transformation),
+        quad.BottomLeft.Transform(transformation),
+        quad.BottomRight.Transform(transformation),
+        quad.TopRight.Transform(transformation)
+    );
 }

@@ -2,10 +2,6 @@ using System.Numerics;
 using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL;
 using BloomBirb.Renderers.OpenGL.Batches;
-using BloomBirb.Renderers.OpenGL.Buffers;
-
-using Shader = BloomBirb.Renderers.OpenGL.Shader;
-using Texture = BloomBirb.Renderers.OpenGL.Texture;
 
 namespace BloomBirb.Graphics;
 

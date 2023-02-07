@@ -16,8 +16,10 @@ public static class GLUtils
             var currentAttribEntry = layout[i];
             unsafe
             {
-                gl.VertexAttribPointer((uint)i, currentAttribEntry.Count, (GLEnum)toGLVertexAttribPointerType(currentAttribEntry.Type), false, (uint)stride, (void*)offset);
+                gl.VertexAttribPointer((uint)i, currentAttribEntry.Count,
+                    (GLEnum)toGLVertexAttribPointerType(currentAttribEntry.Type), false, (uint)stride, (void*)offset);
             }
+
             offset += currentAttribEntry.Count * sizeOf(currentAttribEntry.Type);
             gl.EnableVertexAttribArray((uint)i);
         }

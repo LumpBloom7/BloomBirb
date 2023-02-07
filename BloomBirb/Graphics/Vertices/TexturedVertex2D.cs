@@ -23,5 +23,6 @@ public readonly struct TexturedVertex2D : IVertex, IEquatable<TexturedVertex2D>
         TexturePosition = texturePosition;
     }
 
-    public bool Equals(TexturedVertex2D other) => PositionAndColour.Equals(other.PositionAndColour) && TexturePosition.Equals(other.TexturePosition);
+    public bool Equals(TexturedVertex2D other) => PositionAndColour.Equals(other.PositionAndColour) &&
+                                                  TexturePosition.Equals(other.TexturePosition);
 }
