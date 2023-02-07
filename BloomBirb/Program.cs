@@ -22,6 +22,10 @@ namespace BloomBirb
 
         private static EmbeddedResourceStore? resources;
 
+        private static ShaderStore? shaders;
+        private static TextureStore? textures;
+        private static AudioStore? audioStore;
+
         private static DrawableSprite[] sprites = new DrawableSprite[10000];
 
         private static void Main(string[] args)
@@ -51,14 +55,17 @@ namespace BloomBirb
 
             gl = new OpenGLRenderer();
             quadBuffer = new QuadBatch<TexturedVertex2D>(gl, 10, 1000);
-            resources = new EmbeddedResourceStore(gl);
+            resources = new EmbeddedResourceStore();
+            textures = new TextureStore(gl, resources);
+            shaders = new ShaderStore(gl, resources);
+            audioStore = new AudioStore(resources);
 
             //Instantiating our new abstractions
             gl.Initialize(window!);
             quadBuffer.Initialize();
 
-            var tex = resources?.Textures.Get("sticky")!;
-            var shader = resources?.Shaders.Get("Texture", "Texture")!;
+            var tex = textures.Get("sticky")!;
+            var shader = shaders.Get("Texture", "Texture")!;
 
             shader.Bind();
 
@@ -81,7 +88,7 @@ namespace BloomBirb
 
             OpenAL.CreateContext();
 
-            audioSource = new StreamedSoundSource(resources?.Audio.Get("arrow")!)
+            audioSource = new StreamedSoundSource(audioStore.Get("arrow")!)
             {
                 Volume = 0.25f,
                 Speed = 1,

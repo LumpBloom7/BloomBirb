@@ -9,16 +9,12 @@ public class EmbeddedResourceStore
 
     private string prefix = "BloomBirb.Resources";
 
-    public TextureStore Textures { get; private set; }
-    public ShaderStore Shaders { get; private set; }
-    public AudioStore Audio { get; private set; }
-
-    public EmbeddedResourceStore(OpenGLRenderer renderer)
-        : this(renderer, typeof(EmbeddedResourceStore).GetTypeInfo().Assembly)
+    public EmbeddedResourceStore()
+        : this(typeof(EmbeddedResourceStore).GetTypeInfo().Assembly)
     {
     }
 
-    public EmbeddedResourceStore(OpenGLRenderer renderer, Assembly assembly)
+    public EmbeddedResourceStore(Assembly assembly)
     {
         this.assembly = assembly;
 
@@ -27,10 +23,6 @@ public class EmbeddedResourceStore
 
         foreach (string resource in assembly.GetManifestResourceNames())
             Console.WriteLine(resource);
-
-        Textures = new TextureStore(renderer, this);
-        Shaders = new ShaderStore(renderer, this);
-        Audio = new AudioStore(this);
     }
 
     public Stream? Get(string filename)
