@@ -7,26 +7,28 @@ namespace BloomBirb.Renderers.OpenGL.Batches
     {
         private VertexBuffer<T>[] buffers;
 
-        private int bufferCount;
+        private readonly int maxBuffers;
+        private int availableBuffers;
 
         private int currentBufferIndex;
 
+        private readonly int bufferSize;
+
         protected readonly OpenGLRenderer Renderer;
 
-        public VertexBatch(OpenGLRenderer renderer, int numberOfBuffers, int bufferSize)
+        public VertexBatch(OpenGLRenderer renderer, int bufferSize, int maxNumberOfBuffers = 100)
         {
             Renderer = renderer;
-            bufferCount = numberOfBuffers;
-            buffers = new VertexBuffer<T>[numberOfBuffers];
-
-            for (int i = 0; i < bufferCount; i++)
-                buffers[i] = CreateVertexBuffer(bufferSize);
+            this.bufferSize = bufferSize;
+            maxBuffers = maxNumberOfBuffers;
+            buffers = new VertexBuffer<T>[maxNumberOfBuffers];
         }
 
         public void Initialize()
         {
-            foreach (VertexBuffer<T> buffer in buffers)
-                buffer.Initialize();
+            buffers[0] = CreateVertexBuffer(bufferSize);
+            buffers[0].Initialize();
+            availableBuffers = 1;
         }
 
         public void AddVertex(T vertex)
@@ -37,7 +39,17 @@ namespace BloomBirb.Renderers.OpenGL.Batches
             if (currentBuffer.IsFull)
             {
                 currentBuffer.DrawBuffer();
-                currentBufferIndex = (currentBufferIndex + 1) % bufferCount;
+                currentBufferIndex = (currentBufferIndex + 1) % maxBuffers;
+
+                if (currentBufferIndex == availableBuffers)
+                {
+                    if (currentBufferIndex == maxBuffers)
+                        throw new InvalidOperationException("Exceeded maximum amount of buffers");
+
+                    buffers[currentBufferIndex] = CreateVertexBuffer(bufferSize);
+                    buffers[currentBufferIndex].Initialize();
+                    availableBuffers++;
+                }
             }
         }
 
@@ -54,7 +66,7 @@ namespace BloomBirb.Renderers.OpenGL.Batches
         public void Dispose()
         {
             foreach (VertexBuffer<T> buffer in buffers)
-                buffer.Dispose();
+                buffer?.Dispose();
 
             GC.SuppressFinalize(this);
         }

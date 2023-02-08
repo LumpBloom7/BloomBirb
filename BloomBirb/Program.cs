@@ -54,7 +54,7 @@ namespace BloomBirb
             }
 
             gl = new OpenGLRenderer();
-            quadBuffer = new QuadBatch<TexturedVertex2D>(gl, 10, 1000);
+            quadBuffer = new QuadBatch<TexturedVertex2D>(gl, 1000, 10000);
             resources = new EmbeddedResourceStore();
             textures = new TextureStore(gl, resources);
             shaders = new ShaderStore(gl, resources);
@@ -79,7 +79,7 @@ namespace BloomBirb
                 sprites[i].Scale = new Vector2(rng.NextSingle() * 0.5f, rng.NextSingle() * 0.5f);
                 sprites[i].Shear = new Vector2(rng.NextSingle(), rng.NextSingle());
                 sprites[i].Rotation = rng.NextSingle() * 360;
-                sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1);
+                sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1f);
                 sprite.Invalidate();
             }
 
