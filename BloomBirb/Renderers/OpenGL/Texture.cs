@@ -20,17 +20,10 @@ public class Texture : IDisposable
 
         Bind();
 
-        context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, 1, 1, 0,
-            PixelFormat.Rgba, PixelType.UnsignedByte, null);
+        var whitePixel = new Rgba32(1f, 1f, 1f);
 
-        var img = new Image<Rgba32>(Configuration.Default, 1, 1);
-        img.ProcessPixelRows(accessor =>
-        {
-            accessor.GetRowSpan(0)[0] = new Rgba32(255, 255, 255, 255);
-            fixed (void* data = accessor.GetRowSpan(0))
-                context.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte,
-                    data);
-        });
+        context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, 1, 1, 0,
+                PixelFormat.Rgba, PixelType.UnsignedByte, in whitePixel);
 
         setParameters();
     }
