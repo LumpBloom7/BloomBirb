@@ -3,6 +3,37 @@ using Silk.NET.OpenGL;
 
 namespace BloomBirb.Renderers.OpenGL.Buffers;
 
+internal static class QuadIndexBuffer
+{
+    public static void InitializeEBO(OpenGLRenderer renderer, int desiredIndices)
+    {
+        if (eboHandle == 0)
+            eboHandle = renderer.Context!.GenBuffer();
+
+        renderer.Context!.BindBuffer(BufferTargetARB.ElementArrayBuffer, eboHandle);
+
+        if (maxIndices < desiredIndices)
+        {
+            uint[] buffer = new uint[desiredIndices];
+            for (int i = 0, j = 0; i < desiredIndices; i += 6, j += 4)
+            {
+                buffer[i] = (uint)j;
+                buffer[i + 1] = (uint)j + 1;
+                buffer[i + 2] = (uint)j + 2;
+                buffer[i + 3] = (uint)j + 2;
+                buffer[i + 4] = (uint)j + 3;
+                buffer[i + 5] = (uint)j;
+            }
+
+            renderer.Context!.BufferData(BufferTargetARB.ElementArrayBuffer, new ReadOnlySpan<uint>(buffer), BufferUsageARB.DynamicDraw);
+        }
+    }
+
+
+    private static uint eboHandle;
+    private static int maxIndices;
+}
+
 public class QuadBuffer<T> : VertexBuffer<T>, IDisposable where T : unmanaged, IEquatable<T>, IVertex
 {
     protected override PrimitiveType PrimitiveType => PrimitiveType.Triangles;
@@ -16,21 +47,5 @@ public class QuadBuffer<T> : VertexBuffer<T>, IDisposable where T : unmanaged, I
         this.numberOfQuads = numberOfQuads;
     }
 
-    protected override uint[] InitializeEBO()
-    {
-        // 6 indices to render a quad
-        uint[] indices = new uint[numberOfQuads * 6];
-
-        for (int i = 0; i < numberOfQuads; ++i)
-        {
-            indices[i * 6] = (uint)(i * 4);
-            indices[(i * 6) + 1] = (uint)(i * 4) + 1;
-            indices[(i * 6) + 2] = (uint)(i * 4) + 2;
-            indices[(i * 6) + 3] = (uint)(i * 4) + 2;
-            indices[(i * 6) + 4] = (uint)(i * 4) + 3;
-            indices[(i * 6) + 5] = (uint)(i * 4);
-        }
-
-        return indices;
-    }
+    protected override void InitializeEBO() => QuadIndexBuffer.InitializeEBO(Renderer, numberOfQuads * 6);
 }

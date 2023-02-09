@@ -5,10 +5,6 @@ namespace BloomBirb.Renderers.OpenGL.Buffers;
 
 public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, IEquatable<T>, IVertex
 {
-    // Ebo sharing
-    private static int eboMaxSize;
-    private static uint eboHandle;
-
     protected uint[]? Indices;
 
     private T* vertices;
@@ -23,32 +19,13 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
     protected abstract int IndicesPerPrimitive { get; }
     protected abstract int VerticesPerPrimitive { get; }
 
-    private readonly OpenGLRenderer renderer;
-    private GL context => renderer.Context!;
+    protected readonly OpenGLRenderer Renderer;
+    private GL context => Renderer.Context!;
 
     public VertexBuffer(OpenGLRenderer renderer, int amountOfVertices = 10000)
     {
-        this.renderer = renderer;
+        Renderer = renderer;
         Size = amountOfVertices;
-    }
-
-    private void createAndUseEBO()
-    {
-        int desiredSize = Size / VerticesPerPrimitive * IndicesPerPrimitive;
-
-        if (eboHandle == 0)
-            eboHandle = context.GenBuffer();
-
-        context.BindBuffer((GLEnum)BufferTargetARB.ElementArrayBuffer, eboHandle);
-
-        if (eboMaxSize >= desiredSize)
-            return;
-
-        eboMaxSize = desiredSize;
-        Indices = InitializeEBO();
-
-        context.BufferData((GLEnum)BufferTargetARB.ElementArrayBuffer, new ReadOnlySpan<uint>(Indices),
-            BufferUsageARB.DynamicDraw);
     }
 
     public unsafe void Initialize()
@@ -62,7 +39,7 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
 
         vertices = (T*)context.MapBufferRange(BufferTargetARB.ArrayBuffer, 0, (nuint)(Size * T.Size), MapBufferAccessMask.ReadBit | MapBufferAccessMask.WriteBit | MapBufferAccessMask.FlushExplicitBit | MapBufferAccessMask.PersistentBit);
 
-        createAndUseEBO();
+        InitializeEBO();
 
         GLUtils.SetVAO<T>(context);
     }
@@ -105,7 +82,7 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
 
     public void BufferData()
     {
-        renderer?.Context?.FlushMappedBufferRange(BufferTargetARB.ArrayBuffer, beginBuffer, (nuint)(endBuffer - beginBuffer));
+        Renderer?.Context?.FlushMappedBufferRange(BufferTargetARB.ArrayBuffer, beginBuffer, (nuint)(endBuffer - beginBuffer));
     }
 
     public void Bind()
@@ -114,7 +91,7 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
         context?.BindBuffer(BufferTargetARB.ArrayBuffer, vboHandle);
     }
 
-    protected abstract uint[] InitializeEBO();
+    protected abstract void InitializeEBO();
 
     public unsafe void DrawBuffer()
     {
@@ -138,7 +115,6 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
 
         context.DeleteVertexArray(vaoHandle);
         context.DeleteBuffer(vboHandle);
-        context.DeleteBuffer(eboHandle);
         isDisposed = true;
     }
 
