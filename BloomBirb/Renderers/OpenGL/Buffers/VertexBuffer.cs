@@ -3,14 +3,15 @@ using Silk.NET.OpenGL;
 
 namespace BloomBirb.Renderers.OpenGL.Buffers;
 
-public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquatable<T>, IVertex
+public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, IEquatable<T>, IVertex
 {
     // Ebo sharing
     private static int eboMaxSize;
     private static uint eboHandle;
 
     protected uint[]? Indices;
-    protected T[]? Vertices;
+
+    private T* vertices;
 
     private uint vboHandle;
 
@@ -52,15 +53,14 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
 
     public unsafe void Initialize()
     {
-        Vertices = new T[Size];
-
         vaoHandle = context.GenVertexArray();
         Bind();
 
         vboHandle = context.GenBuffer();
         context.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
-        context.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * T.Size), (void**)null,
-            BufferUsageARB.DynamicDraw);
+        context.BufferStorage((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * T.Size), (void**)null, BufferStorageMask.MapReadBit | BufferStorageMask.MapWriteBit | BufferStorageMask.MapPersistentBit);
+
+        vertices = (T*)context.MapBufferRange(BufferTargetARB.ArrayBuffer, 0, (nuint)(Size * T.Size), MapBufferAccessMask.ReadBit | MapBufferAccessMask.WriteBit | MapBufferAccessMask.FlushExplicitBit | MapBufferAccessMask.PersistentBit);
 
         createAndUseEBO();
 
@@ -76,11 +76,11 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
 
     public void AddVertex(ref T vertex)
     {
-        ArgumentNullException.ThrowIfNull(Vertices);
+        ArgumentNullException.ThrowIfNull(vertices);
 
-        if (!Vertices[Count].Equals(vertex))
+        if (!vertices[Count].Equals(vertex))
         {
-            Vertices[Count] = vertex;
+            vertices[Count] = vertex;
 
             if (beginBuffer == -1)
             {
@@ -103,16 +103,9 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
         endBuffer = -1;
     }
 
-    public void BufferData(ReadOnlySpan<T> data, int offset)
+    public void BufferData()
     {
-        if (offset + data.Length > Size)
-            throw new IndexOutOfRangeException("An attempt to store data outside of buffer bounds");
-
-        // If we are replacing the entire buffer, we just ask for a new buffer from GL so we don't have to sync up with the driver
-        if (data.Length == Size || offset == 0)
-            context?.BufferData(BufferTargetARB.ArrayBuffer, data, BufferUsageARB.DynamicDraw);
-        else
-            context?.BufferSubData(BufferTargetARB.ArrayBuffer, (nint)offset * T.Size, data);
+        renderer?.Context?.FlushMappedBufferRange(BufferTargetARB.ArrayBuffer, beginBuffer, (nuint)(endBuffer - beginBuffer));
     }
 
     public void Bind()
@@ -128,7 +121,7 @@ public abstract class VertexBuffer<T> : IDisposable where T : unmanaged, IEquata
         Bind();
 
         if (beginBuffer != -1)
-            BufferData(new ReadOnlySpan<T>(Vertices, beginBuffer, endBuffer - beginBuffer), beginBuffer);
+            BufferData();
 
         int indicesToDraw = Count / VerticesPerPrimitive * IndicesPerPrimitive;
         context?.DrawElements(PrimitiveType, (uint)indicesToDraw, DrawElementsType.UnsignedInt, (void*)null);
