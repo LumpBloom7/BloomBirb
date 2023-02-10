@@ -54,7 +54,7 @@ namespace BloomBirb
             }
 
             gl = new OpenGLRenderer();
-            quadBuffer = new QuadBatch<TexturedVertex2D>(gl, 1000, 10000);
+            quadBuffer = new QuadBatch<TexturedVertex2D>(gl, 10000, 100);
             resources = new EmbeddedResourceStore();
             textures = new TextureStore(gl, resources);
             shaders = new ShaderStore(gl, resources);
