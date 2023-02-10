@@ -22,9 +22,11 @@ public class DrawableSprite : Drawable
         shader.Bind();
         texture.Bind();
 
-        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.TopLeft, DrawColour, new Vector2(0, 1)));
-        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.BottomLeft, DrawColour, new Vector2(0, 0)));
-        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.BottomRight, DrawColour, new Vector2(1, 0)));
-        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.TopRight, DrawColour, new Vector2(1, 1)));
+        bool isOpaque = !texture.HasTransparencies && DrawColour.W == 1f;
+
+        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.TopLeft, DrawColour, new Vector2(0, 1)), isOpaque);
+        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.BottomLeft, DrawColour, new Vector2(0, 0)), isOpaque);
+        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.BottomRight, DrawColour, new Vector2(1, 0)), isOpaque);
+        quadBuffer.AddVertex(new TexturedVertex2D(DrawQuad.TopRight, DrawColour, new Vector2(1, 1)), isOpaque);
     }
 }

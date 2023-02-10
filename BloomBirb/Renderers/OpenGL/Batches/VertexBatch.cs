@@ -16,6 +16,8 @@ namespace BloomBirb.Renderers.OpenGL.Batches
 
         protected readonly OpenGLRenderer Renderer;
 
+        private readonly Stack<T> translucentVertices = new Stack<T>();
+
         public VertexBatch(OpenGLRenderer renderer, int bufferSize, int maxNumberOfBuffers = 100)
         {
             Renderer = renderer;
@@ -31,11 +33,19 @@ namespace BloomBirb.Renderers.OpenGL.Batches
             availableBuffers = 1;
         }
 
-        public void AddVertex(T vertex)
+        public void AddVertex(T vertex, bool isOpaque = true)
         {
+            // Defer translucent objects until after opaque ones are drawn
+            if (!isOpaque)
+            {
+                translucentVertices.Push(vertex);
+                return;
+            }
+
             VertexBuffer<T> currentBuffer = buffers[currentBufferIndex];
 
             currentBuffer.AddVertex(ref vertex);
+
             if (currentBuffer.IsFull)
             {
                 currentBuffer.DrawBuffer();
@@ -55,6 +65,9 @@ namespace BloomBirb.Renderers.OpenGL.Batches
 
         public void FlushBatch()
         {
+            while (translucentVertices.Count > 0)
+                AddVertex(translucentVertices.Pop());
+
             if (buffers[currentBufferIndex].Count > 0)
                 buffers[currentBufferIndex].DrawBuffer();
 

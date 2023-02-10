@@ -80,7 +80,7 @@ namespace BloomBirb
                 sprites[i].Scale = new Vector2(rng.NextSingle() * 0.5f, rng.NextSingle() * 0.5f);
                 sprites[i].Shear = new Vector2(rng.NextSingle(), rng.NextSingle());
                 sprites[i].Rotation = rng.NextSingle() * 360;
-                sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1f);
+                sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), (rng.Next(2) == 0) ? 1f : rng.NextSingle());
                 sprite.Invalidate();
             }
 
