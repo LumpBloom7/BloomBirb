@@ -16,7 +16,7 @@ namespace BloomBirb.Renderers.OpenGL.Batches
 
         protected readonly OpenGLRenderer Renderer;
 
-        private readonly Stack<T> translucentVertices = new Stack<T>();
+        private readonly Stack<T> translucentVertices = new();
 
         public VertexBatch(OpenGLRenderer renderer, int bufferSize, int maxNumberOfBuffers = 100)
         {

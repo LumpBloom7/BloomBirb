@@ -26,6 +26,7 @@ internal static class QuadIndexBuffer
             }
 
             renderer.Context!.BufferData(BufferTargetARB.ElementArrayBuffer, new ReadOnlySpan<uint>(buffer), BufferUsageARB.DynamicDraw);
+            maxIndices = desiredIndices;
         }
     }
 
