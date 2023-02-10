@@ -18,7 +18,7 @@ namespace BloomBirb
         private static OpenGLRenderer? gl;
 
         //Our new abstracted objects, here we specify what the types are.
-        private static QuadBatch<TexturedVertex2D>? quadBuffer;
+        private static QuadBatch<DepthWrappingVertex<TexturedVertex2D>>? quadBuffer;
 
         private static EmbeddedResourceStore? resources;
 
@@ -54,7 +54,8 @@ namespace BloomBirb
             }
 
             gl = new OpenGLRenderer();
-            quadBuffer = new QuadBatch<TexturedVertex2D>(gl, 10000, 100);
+
+            quadBuffer = new QuadBatch<DepthWrappingVertex<TexturedVertex2D>>(gl, 10000, 100);
             resources = new EmbeddedResourceStore();
             textures = new TextureStore(gl, resources);
             shaders = new ShaderStore(gl, resources);
@@ -85,10 +86,13 @@ namespace BloomBirb
 
             gl.Context?.Enable(GLEnum.Blend);
             gl.Context?.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
+            gl.Context?.Enable(GLEnum.DepthTest);
+            gl.Context?.DepthFunc(DepthFunction.Lequal);
+
 
             OpenAL.CreateContext();
 
-            audioSource = new StreamedSoundSource(audioStore.Get("arrow")!)
+            audioSource = new StreamedSoundSource(audioStore.Get("blue")!)
             {
                 Volume = 0.25f,
                 Speed = 1,
@@ -98,18 +102,21 @@ namespace BloomBirb
             //audioSource.Play();
         }
 
-        private static unsafe void onRender(double obj)
+        private static void onRender(double obj)
         {
-            gl?.Clear(ClearBufferMask.ColorBufferBit);
+            gl?.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             foreach (var sprite in sprites)
             {
                 sprite.Rotation += (float)(obj * 180);
                 sprite.Invalidate();
                 sprite.Draw(gl!, quadBuffer!);
+                DepthWrappingVertex<TexturedVertex2D>.Increment();
             }
 
             quadBuffer?.FlushBatch();
+
+            DepthWrappingVertex<TexturedVertex2D>.Reset();
         }
 
         private static void onClose()

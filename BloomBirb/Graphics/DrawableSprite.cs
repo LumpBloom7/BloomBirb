@@ -16,7 +16,7 @@ public class DrawableSprite : Drawable
         this.shader = shader;
     }
 
-    public override void Draw(OpenGLRenderer renderer, QuadBatch<TexturedVertex2D> quadBuffer)
+    public override void Draw(OpenGLRenderer renderer, QuadBatch<DepthWrappingVertex<TexturedVertex2D>> quadBuffer)
     {
         base.Draw(renderer, quadBuffer);
         shader.Bind();

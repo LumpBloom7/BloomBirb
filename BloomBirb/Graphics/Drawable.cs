@@ -31,7 +31,7 @@ public abstract class Drawable
     protected Quad DrawQuad = Quad.DEFAULT;
     protected Vector4 DrawColour { get; private set; } = Vector4.One;
 
-    public virtual void Draw(OpenGLRenderer renderer, QuadBatch<TexturedVertex2D> quadBuffer)
+    public virtual void Draw(OpenGLRenderer renderer, QuadBatch<DepthWrappingVertex<TexturedVertex2D>> quadBuffer)
     {
     }
 
