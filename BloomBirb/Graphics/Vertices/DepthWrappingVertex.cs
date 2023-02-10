@@ -24,7 +24,7 @@ public readonly struct DepthWrappingVertex<T> : IVertex, IEquatable<DepthWrappin
     public DepthWrappingVertex(T vertex)
     {
         Vertex = vertex;
-        Depth = nextDepth;
+        Depth = Math.Min(1f, nextDepth);
     }
 
     public static implicit operator DepthWrappingVertex<T>(T vertex) => new(vertex);
