@@ -20,10 +20,8 @@ public class Texture : IDisposable
 
         Bind();
 
-        var whitePixel = new Rgba32(1f, 1f, 1f);
-
         context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, 1, 1, 0,
-                PixelFormat.Rgba, PixelType.UnsignedByte, in whitePixel);
+                PixelFormat.Rgba, PixelType.UnsignedByte, new Rgba32(1f, 1f, 1f));
 
         setParameters();
     }

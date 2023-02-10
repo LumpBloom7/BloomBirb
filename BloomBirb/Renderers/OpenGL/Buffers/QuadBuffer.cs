@@ -29,7 +29,6 @@ internal static class QuadIndexBuffer
         }
     }
 
-
     private static uint eboHandle;
     private static int maxIndices;
 }
