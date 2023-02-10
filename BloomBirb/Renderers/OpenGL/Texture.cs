@@ -11,6 +11,8 @@ public class Texture : IDisposable
     private readonly OpenGLRenderer renderer;
     private GL context => renderer.Context!;
 
+    public bool HasTransparencies { get; private set; }
+
     // Creates blank texture
     public unsafe Texture(OpenGLRenderer renderer)
     {
@@ -40,10 +42,23 @@ public class Texture : IDisposable
             img.ProcessPixelRows(accessor =>
             {
                 for (int i = 0; i < accessor.Height; ++i)
+                {
+                    var rowSpan = accessor.GetRowSpan(i);
+                    if (!HasTransparencies)
+                    {
+                        foreach (var pixel in rowSpan)
+                            if (pixel.A < 255)
+                            {
+                                HasTransparencies = true;
+                                break;
+                            }
+                    }
+
                     fixed (void* data = accessor.GetRowSpan(i))
                         context.TexSubImage2D(TextureTarget.Texture2D, 0, 0, i, (uint)accessor.Width, 1U,
                             PixelFormat.Rgba,
                             PixelType.UnsignedByte, data);
+                }
             });
         }
 
