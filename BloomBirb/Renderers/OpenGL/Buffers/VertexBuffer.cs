@@ -7,7 +7,7 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
 {
     protected uint[]? Indices;
 
-    private T* vertices;
+    private T[] vertices;
 
     private uint vboHandle;
 
@@ -26,6 +26,7 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
     {
         Renderer = renderer;
         Size = amountOfVertices;
+        vertices = new T[amountOfVertices];
     }
 
     public unsafe void Initialize()
@@ -35,9 +36,7 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
 
         vboHandle = context.GenBuffer();
         context.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
-        context.BufferStorage((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * T.Size), (void**)null, BufferStorageMask.MapReadBit | BufferStorageMask.MapWriteBit | BufferStorageMask.MapPersistentBit);
-
-        vertices = (T*)context.MapBufferRange(BufferTargetARB.ArrayBuffer, 0, (nuint)(Size * T.Size), MapBufferAccessMask.ReadBit | MapBufferAccessMask.WriteBit | MapBufferAccessMask.FlushExplicitBit | MapBufferAccessMask.PersistentBit);
+        context.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * T.Size), (void**)null, BufferUsageARB.DynamicDraw);
 
         InitializeEBO();
 
@@ -82,7 +81,7 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
 
     public void BufferData()
     {
-        Renderer?.Context?.FlushMappedBufferRange(BufferTargetARB.ArrayBuffer, beginBuffer, (nuint)(endBuffer - beginBuffer));
+        Renderer?.Context?.BufferSubData(BufferTargetARB.ArrayBuffer, beginBuffer * T.Size, new ReadOnlySpan<T>(vertices, beginBuffer, endBuffer - beginBuffer));
     }
 
     public void Bind()
@@ -92,6 +91,7 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
     }
 
     protected abstract void InitializeEBO();
+
 
     public unsafe void DrawBuffer()
     {

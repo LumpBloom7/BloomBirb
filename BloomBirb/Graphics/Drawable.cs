@@ -1,9 +1,7 @@
 using System.Numerics;
 using BloomBirb.Extensions;
 using BloomBirb.Graphics.Primitives;
-using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL;
-using BloomBirb.Renderers.OpenGL.Batches;
 
 namespace BloomBirb.Graphics;
 
@@ -35,7 +33,10 @@ public abstract class Drawable
 
     public virtual bool IsTranslucent => DrawColour.W < 1f;
 
-    public virtual void QueueDraw(OpenGLRenderer renderer) => renderer.QueueDrawable(this, IsTranslucent);
+    public virtual void QueueDraw(OpenGLRenderer renderer)
+    {
+
+    }
 
     public virtual void Draw(OpenGLRenderer renderer)
     {

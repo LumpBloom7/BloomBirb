@@ -87,6 +87,8 @@ public class OpenGLRenderer : IDisposable
         if (boundProgram == programID)
             return;
 
+        currentVertexBatch?.FlushBatch();
+
         boundProgram = programID;
         Context?.UseProgram(programID);
     }
@@ -99,6 +101,8 @@ public class OpenGLRenderer : IDisposable
         if (textureUnits[textureUnitIndex] == textureHandle)
             return;
 
+        currentVertexBatch?.FlushBatch();
+
         textureUnits[textureUnitIndex] = textureHandle;
         Context?.ActiveTexture(textureUnit);
         Context?.BindTexture(TextureTarget.Texture2D, textureHandle);
@@ -107,6 +111,8 @@ public class OpenGLRenderer : IDisposable
     public void Flush() => Context?.Flush();
 
     // <Render>
+
+    private DrawableBatchTree batchTree = new();
 
     // This is the current active batch that the next vertex will be submitted to
     private IVertexBatch? currentVertexBatch;
@@ -124,7 +130,7 @@ public class OpenGLRenderer : IDisposable
         {
             batch = new BatchType();
             batch.Initialize(this, 10000, 100);
-            defaultBatches.Add(typeof(BatchType), batch);
+            defaultBatches[typeof(BatchType)] = batch;
         }
 
         currentVertexBatch?.FlushBatch();
@@ -137,9 +143,10 @@ public class OpenGLRenderer : IDisposable
     {
         Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         DrawDepth.Reset();
+        //Context?.Disable(EnableCap.Blend);
     }
 
-    public void QueueDrawable(Drawable drawable, bool IsTranslucent = false)
+    public void QueueDrawable(Drawable drawable, Shader shader, Texture texture, bool IsTranslucent = false)
     {
         drawable.DrawDepth = DrawDepth.NextDepth;
         DrawDepth.Increment();
@@ -150,7 +157,7 @@ public class OpenGLRenderer : IDisposable
             return;
         }
 
-        drawable.Draw(this);
+        batchTree.Add(shader, texture, drawable);
     }
 
     public void AddVertex<VertexType>(VertexType vertex)
@@ -161,10 +168,15 @@ public class OpenGLRenderer : IDisposable
 
     public void EndFrame()
     {
-        while (deferredDrawables.Count > 0)
-            deferredDrawables.Pop().Draw(this);
+        batchTree.DrawAll(this);
 
-        currentVertexBatch?.FlushBatch();
+        if (deferredDrawables.Count > 0)
+        {
+            while (deferredDrawables.Count > 0)
+                deferredDrawables.Pop().Draw(this);
+
+            currentVertexBatch?.FlushBatch();
+        }
     }
 
     // </render>

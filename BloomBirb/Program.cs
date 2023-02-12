@@ -49,15 +49,16 @@ namespace BloomBirb
             }
 
             gl = new OpenGLRenderer();
+
+
+            //Instantiating our new abstractions
+            gl.Initialize(window!);
+
             resources = new EmbeddedResourceStore();
             textures = new TextureStore(gl, resources);
             shaders = new ShaderStore(gl, resources);
             audioStore = new AudioStore(resources);
 
-            //Instantiating our new abstractions
-            gl.Initialize(window!);
-
-            var tex = textures.Get("sticky")!;
             var shader = shaders.Get("Texture", "Texture")!;
 
             shader.Bind();
@@ -67,19 +68,21 @@ namespace BloomBirb
             Random rng = Random.Shared;
             for (int i = 0; i < sprites.Length; ++i)
             {
+                var tex = textures.Get(randomTexture(rng.Next(5)))!;
                 var sprite = sprites[i] = new DrawableSprite(tex, shader);
                 sprites[i].Position = new Vector2(rng.NextSingle() * 2 - 1, rng.NextSingle() * 2 - 1);
                 sprites[i].Scale = new Vector2(rng.NextSingle() * 0.5f, rng.NextSingle() * 0.5f);
                 sprites[i].Shear = new Vector2(rng.NextSingle(), rng.NextSingle());
                 sprites[i].Rotation = rng.NextSingle() * 360;
-                sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), (rng.Next(2) == 0) ? 1f : (rng.NextSingle() * 0.5f + 0.25f));
+                sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1);
                 sprite.Invalidate();
             }
 
-            gl.Context?.Enable(GLEnum.Blend);
-            gl.Context?.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
             gl.Context?.Enable(GLEnum.DepthTest);
             gl.Context?.DepthFunc(DepthFunction.Lequal);
+            gl.Context?.Enable(GLEnum.Blend);
+            gl.Context?.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
+
 
             OpenAL.CreateContext();
 
@@ -121,5 +124,15 @@ namespace BloomBirb
                 window?.Close();
             }
         }
+
+        private static string randomTexture(int i) => i switch
+        {
+            0 => "mike",
+            1 => "sticky",
+            2 => "whatever",
+            3 => "kitty",
+            4 => "funnyface",
+            _ => "whatever"
+        };
     }
 }
