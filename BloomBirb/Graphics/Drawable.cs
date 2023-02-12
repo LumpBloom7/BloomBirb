@@ -31,7 +31,13 @@ public abstract class Drawable
     protected Quad DrawQuad = Quad.DEFAULT;
     protected Vector4 DrawColour { get; private set; } = Vector4.One;
 
-    public virtual void Draw(OpenGLRenderer renderer, QuadBatch<DepthWrappingVertex<TexturedVertex2D>> quadBuffer)
+    internal float DrawDepth;
+
+    public virtual bool IsTranslucent => DrawColour.W < 1f;
+
+    public virtual void QueueDraw(OpenGLRenderer renderer) => renderer.QueueDrawable(this, IsTranslucent);
+
+    public virtual void Draw(OpenGLRenderer renderer)
     {
     }
 

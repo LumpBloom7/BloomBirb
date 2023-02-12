@@ -1,9 +1,7 @@
 ﻿using System.Numerics;
 using BloomBirb.Audio;
 using BloomBirb.Graphics;
-using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL;
-using BloomBirb.Renderers.OpenGL.Batches;
 using BloomBirb.ResourceStores;
 using Silk.NET.Input;
 using Silk.NET.Maths;
@@ -16,9 +14,6 @@ namespace BloomBirb
     {
         private static IWindow? window;
         private static OpenGLRenderer? gl;
-
-        //Our new abstracted objects, here we specify what the types are.
-        private static QuadBatch<DepthWrappingVertex<TexturedVertex2D>>? quadBuffer;
 
         private static EmbeddedResourceStore? resources;
 
@@ -54,8 +49,6 @@ namespace BloomBirb
             }
 
             gl = new OpenGLRenderer();
-
-            quadBuffer = new QuadBatch<DepthWrappingVertex<TexturedVertex2D>>(gl, 10000, 100);
             resources = new EmbeddedResourceStore();
             textures = new TextureStore(gl, resources);
             shaders = new ShaderStore(gl, resources);
@@ -63,7 +56,6 @@ namespace BloomBirb
 
             //Instantiating our new abstractions
             gl.Initialize(window!);
-            quadBuffer.Initialize();
 
             var tex = textures.Get("sticky")!;
             var shader = shaders.Get("Texture", "Texture")!;
@@ -80,7 +72,7 @@ namespace BloomBirb
                 sprites[i].Scale = new Vector2(rng.NextSingle() * 0.5f, rng.NextSingle() * 0.5f);
                 sprites[i].Shear = new Vector2(rng.NextSingle(), rng.NextSingle());
                 sprites[i].Rotation = rng.NextSingle() * 360;
-                sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), (rng.Next(2) == 0) ? 1f : rng.NextSingle());
+                sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), (rng.Next(2) == 0) ? 1f : (rng.NextSingle() * 0.5f + 0.25f));
                 sprite.Invalidate();
             }
 
@@ -88,7 +80,6 @@ namespace BloomBirb
             gl.Context?.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
             gl.Context?.Enable(GLEnum.DepthTest);
             gl.Context?.DepthFunc(DepthFunction.Lequal);
-
 
             OpenAL.CreateContext();
 
@@ -104,26 +95,22 @@ namespace BloomBirb
 
         private static void onRender(double obj)
         {
-            gl?.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            gl?.BeginFrame();
 
             foreach (var sprite in sprites)
             {
                 sprite.Rotation += (float)(obj * 180);
                 sprite.Invalidate();
-                sprite.Draw(gl!, quadBuffer!);
-                DepthWrappingVertex<TexturedVertex2D>.Increment();
+                sprite.QueueDraw(gl!);
             }
 
-            quadBuffer?.FlushBatch();
-
-            DepthWrappingVertex<TexturedVertex2D>.Reset();
+            gl?.EndFrame();
         }
 
         private static void onClose()
         {
             //Remember to dispose all the instances.
             audioSource?.Dispose();
-            quadBuffer?.Dispose();
             gl?.Dispose();
         }
 

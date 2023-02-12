@@ -17,19 +17,11 @@ public readonly struct DepthWrappingVertex<T> : IVertex, IEquatable<DepthWrappin
 
     public readonly float Depth;
 
-    private static float nextDepth;
-    public static void Reset() => nextDepth = -1;
-    public static void Increment() => nextDepth += 0.001f;
-
-    public DepthWrappingVertex(T vertex)
+    public DepthWrappingVertex(T vertex, float depth)
     {
         Vertex = vertex;
-        Depth = Math.Min(1f, nextDepth);
+        Depth = Math.Min(1f, depth);
     }
 
-    public static implicit operator DepthWrappingVertex<T>(T vertex) => new(vertex);
-
     public bool Equals(DepthWrappingVertex<T> other) => Vertex.Equals(other.Vertex) && Depth == other.Depth;
-
-
 }

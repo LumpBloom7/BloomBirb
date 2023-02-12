@@ -1,5 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using BloomBirb.Graphics;
+using BloomBirb.Graphics.Vertices;
+using BloomBirb.Renderers.OpenGL.Batches;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
@@ -102,6 +105,69 @@ public class OpenGLRenderer : IDisposable
     }
 
     public void Flush() => Context?.Flush();
+
+    // <Render>
+
+    // This is the current active batch that the next vertex will be submitted to
+    private IVertexBatch? currentVertexBatch;
+
+    // All the batches that have been initialized so far
+    private Dictionary<Type, IVertexBatch> defaultBatches = new();
+
+    // Attempts to initialize or reuse a batch we've already created
+    public void UseBatch<BatchType>() where BatchType : IVertexBatch, new()
+    {
+        if (currentVertexBatch is BatchType)
+            return;
+
+        if (!defaultBatches.TryGetValue(typeof(BatchType), out IVertexBatch? batch))
+        {
+            batch = new BatchType();
+            batch.Initialize(this, 10000, 100);
+            defaultBatches.Add(typeof(BatchType), batch);
+        }
+
+        currentVertexBatch?.FlushBatch();
+        currentVertexBatch = batch;
+    }
+
+    private Stack<Drawable> deferredDrawables = new();
+
+    public void BeginFrame()
+    {
+        Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        DrawDepth.Reset();
+    }
+
+    public void QueueDrawable(Drawable drawable, bool IsTranslucent = false)
+    {
+        drawable.DrawDepth = DrawDepth.NextDepth;
+        DrawDepth.Increment();
+
+        if (IsTranslucent)
+        {
+            deferredDrawables.Push(drawable);
+            return;
+        }
+
+        drawable.Draw(this);
+    }
+
+    public void AddVertex<VertexType>(VertexType vertex)
+        where VertexType : unmanaged, IEquatable<VertexType>, IVertex
+    {
+        ((IVertexBatch<VertexType>)currentVertexBatch!).AddVertex(vertex);
+    }
+
+    public void EndFrame()
+    {
+        while (deferredDrawables.Count > 0)
+            deferredDrawables.Pop().Draw(this);
+
+        currentVertexBatch?.FlushBatch();
+    }
+
+    // </render>
 
     private static void debugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
     {

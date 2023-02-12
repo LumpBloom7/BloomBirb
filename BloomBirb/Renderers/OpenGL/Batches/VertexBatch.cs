@@ -1,87 +1,78 @@
 using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL.Buffers;
 
-namespace BloomBirb.Renderers.OpenGL.Batches
+namespace BloomBirb.Renderers.OpenGL.Batches;
+
+public abstract class VertexBatch<T> : IVertexBatch<T>, IDisposable where T : unmanaged, IEquatable<T>, IVertex
 {
-    public abstract class VertexBatch<T> : IDisposable where T : unmanaged, IEquatable<T>, IVertex
+    private VertexBuffer<T>[] buffers = null!;
+
+    private int maxBuffers;
+    private int availableBuffers;
+
+    private int currentBufferIndex;
+
+    private int bufferSize;
+
+    protected OpenGLRenderer Renderer = null!;
+
+    private bool isInitialized;
+
+    public void Initialize(OpenGLRenderer renderer, int bufferSize, int maxNumberOfBuffers = 100)
     {
-        private VertexBuffer<T>[] buffers;
+        if (isInitialized)
+            throw new InvalidOperationException("Vertex batch has already been initialized");
 
-        private readonly int maxBuffers;
-        private int availableBuffers;
+        Renderer = renderer;
+        this.bufferSize = bufferSize;
+        maxBuffers = maxNumberOfBuffers;
+        buffers = new VertexBuffer<T>[maxNumberOfBuffers];
 
-        private int currentBufferIndex;
+        buffers[0] = CreateVertexBuffer(bufferSize);
+        buffers[0].Initialize();
+        availableBuffers = 1;
 
-        private readonly int bufferSize;
+        isInitialized = true;
+    }
 
-        protected readonly OpenGLRenderer Renderer;
+    public void AddVertex(T vertex)
+    {
+        VertexBuffer<T> currentBuffer = buffers[currentBufferIndex];
 
-        private readonly Stack<T> translucentVertices = new();
+        currentBuffer.AddVertex(ref vertex);
 
-        public VertexBatch(OpenGLRenderer renderer, int bufferSize, int maxNumberOfBuffers = 100)
+        if (currentBuffer.IsFull)
         {
-            Renderer = renderer;
-            this.bufferSize = bufferSize;
-            maxBuffers = maxNumberOfBuffers;
-            buffers = new VertexBuffer<T>[maxNumberOfBuffers];
-        }
+            currentBuffer.DrawBuffer();
+            currentBufferIndex = (currentBufferIndex + 1) % maxBuffers;
 
-        public void Initialize()
-        {
-            buffers[0] = CreateVertexBuffer(bufferSize);
-            buffers[0].Initialize();
-            availableBuffers = 1;
-        }
-
-        public void AddVertex(T vertex, bool isOpaque = true)
-        {
-            // Defer translucent objects until after opaque ones are drawn
-            if (!isOpaque)
+            if (currentBufferIndex == availableBuffers)
             {
-                translucentVertices.Push(vertex);
-                return;
-            }
+                if (currentBufferIndex == maxBuffers)
+                    throw new InvalidOperationException("Exceeded maximum amount of buffers");
 
-            VertexBuffer<T> currentBuffer = buffers[currentBufferIndex];
-
-            currentBuffer.AddVertex(ref vertex);
-
-            if (currentBuffer.IsFull)
-            {
-                currentBuffer.DrawBuffer();
-                currentBufferIndex = (currentBufferIndex + 1) % maxBuffers;
-
-                if (currentBufferIndex == availableBuffers)
-                {
-                    if (currentBufferIndex == maxBuffers)
-                        throw new InvalidOperationException("Exceeded maximum amount of buffers");
-
-                    buffers[currentBufferIndex] = CreateVertexBuffer(bufferSize);
-                    buffers[currentBufferIndex].Initialize();
-                    availableBuffers++;
-                }
+                buffers[currentBufferIndex] = CreateVertexBuffer(bufferSize);
+                buffers[currentBufferIndex].Initialize();
+                availableBuffers++;
             }
         }
+    }
 
-        public void FlushBatch()
-        {
-            while (translucentVertices.Count > 0)
-                AddVertex(translucentVertices.Pop());
+    public void FlushBatch()
+    {
+        if (buffers[currentBufferIndex].Count > 0)
+            buffers[currentBufferIndex].DrawBuffer();
 
-            if (buffers[currentBufferIndex].Count > 0)
-                buffers[currentBufferIndex].DrawBuffer();
+        currentBufferIndex = 0;
+    }
 
-            currentBufferIndex = 0;
-        }
+    protected abstract VertexBuffer<T> CreateVertexBuffer(int size);
 
-        protected abstract VertexBuffer<T> CreateVertexBuffer(int size);
+    public void Dispose()
+    {
+        foreach (VertexBuffer<T> buffer in buffers)
+            buffer?.Dispose();
 
-        public void Dispose()
-        {
-            foreach (VertexBuffer<T> buffer in buffers)
-                buffer?.Dispose();
-
-            GC.SuppressFinalize(this);
-        }
+        GC.SuppressFinalize(this);
     }
 }
