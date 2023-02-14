@@ -175,6 +175,7 @@ public class OpenGLRenderer : IDisposable
 
         if (deferredDrawables.Count > 0)
         {
+            currentVertexBatch?.FlushBatch();
             Context?.Enable(EnableCap.Blend);
             while (deferredDrawables.Count > 0)
                 deferredDrawables.Pop().Draw(this);
