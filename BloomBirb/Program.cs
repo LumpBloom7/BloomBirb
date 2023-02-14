@@ -34,6 +34,7 @@ namespace BloomBirb
             window.Load += onLoad;
             window.Render += onRender;
             window.Closing += onClose;
+            window.Resize += onResize;
 
             window.Run();
         }
@@ -68,7 +69,7 @@ namespace BloomBirb
             Random rng = Random.Shared;
             for (int i = 0; i < sprites.Length; ++i)
             {
-                var tex = textures.Get(randomTexture(rng.Next(5)))!;
+                var tex = textures.Get(randomTexture(rng.Next(4)))!;
                 var sprite = sprites[i] = new DrawableSprite(tex, shader);
                 sprites[i].Position = new Vector2(rng.NextSingle() * 2 - 1, rng.NextSingle() * 2 - 1);
                 sprites[i].Scale = new Vector2(rng.NextSingle() * 0.5f, rng.NextSingle() * 0.5f);
@@ -110,6 +111,11 @@ namespace BloomBirb
             gl?.EndFrame();
         }
 
+        private static void onResize(Vector2D<int> size)
+        {
+            gl?.Context?.Viewport(size);
+        }
+
         private static void onClose()
         {
             //Remember to dispose all the instances.
@@ -129,9 +135,8 @@ namespace BloomBirb
         {
             0 => "mike",
             1 => "sticky",
-            2 => "whatever",
-            3 => "kitty",
-            4 => "funnyface",
+            2 => "kitty",
+            3 => "funnyface",
             _ => "whatever"
         };
     }

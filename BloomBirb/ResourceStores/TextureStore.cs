@@ -1,5 +1,8 @@
 ﻿using System.Reflection;
 using BloomBirb.Renderers.OpenGL;
+using BloomBirb.Renderers.OpenGL.Textures;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace BloomBirb.ResourceStores;
 
@@ -13,7 +16,10 @@ public class TextureStore
         ".bmp"
     };
 
-    private readonly Dictionary<string, Texture> textureCache = new();
+    private readonly List<TextureAtlas> atlases = new();
+    private readonly List<Texture> textures = new();
+
+    private readonly Dictionary<string, TextureUsage> textureCache = new();
 
     private readonly IResourceStore resources;
 
@@ -28,7 +34,7 @@ public class TextureStore
         this.prefix = prefix;
     }
 
-    public Texture Get(string filename)
+    public TextureUsage Get(string filename)
     {
         foreach (string fallbackExt in lookup_extensions)
         {
@@ -40,7 +46,17 @@ public class TextureStore
                 if (stream is null)
                     continue;
 
-                var newTexture = renderer.CreateTexture(stream);
+                TextureUsage newTexture;
+
+                using (var image = Image.Load<Rgba32>(stream))
+                {
+                    if (image.Width >= 2048 || image.Height >= 2048)
+                        newTexture = addLargeTexture(image);
+                    else
+                        newTexture = addRegularTexture(image);
+
+                }
+
                 textureCache.Add(actualFilename, newTexture);
                 return newTexture;
             }
@@ -49,5 +65,34 @@ public class TextureStore
         }
 
         return renderer.BlankTexture!;
+    }
+
+    private TextureUsage addLargeTexture(Image<Rgba32> image)
+    {
+        var texture = new Texture(renderer);
+        texture.Initialize(image.Size());
+
+        texture.BufferImageData(image, 0, 0);
+
+        textures.Add(texture);
+        return texture;
+    }
+
+    private TextureUsage addRegularTexture(Image<Rgba32> image)
+    {
+        foreach (var textureAtlas in atlases)
+        {
+            var textureUsage = textureAtlas.AddSubtexture(image);
+            if (textureUsage is not null)
+                return textureUsage;
+        }
+
+        // No fitting atlas, create new
+        var newAtlas = new TextureAtlas(renderer);
+        newAtlas.Initialize(new Size(4096, 4096));
+
+        atlases.Add(newAtlas);
+
+        return newAtlas.AddSubtexture(image)!;
     }
 }

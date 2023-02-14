@@ -3,8 +3,11 @@ using System.Runtime.InteropServices;
 using BloomBirb.Graphics;
 using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL.Batches;
+using BloomBirb.Renderers.OpenGL.Textures;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using SixLabors.ImageSharp.PixelFormats;
+using Texture = BloomBirb.Renderers.OpenGL.Textures.Texture;
 
 namespace BloomBirb.Renderers.OpenGL;
 
@@ -20,7 +23,7 @@ public class OpenGLRenderer : IDisposable
 
     private bool isInitialized = false;
 
-    public Texture? BlankTexture { get; private set; }
+    public Texture BlankTexture { get; private set; } = null!;
 
     public void Initialize(IWindow window)
     {
@@ -50,6 +53,8 @@ public class OpenGLRenderer : IDisposable
         }
 
         BlankTexture = new Texture(this);
+        BlankTexture.Initialize(new(1, 1));
+        BlankTexture.SetPixel(0, 0, new Rgba32(255, 255, 255, 255));
 
         isInitialized = true;
     }
@@ -93,9 +98,7 @@ public class OpenGLRenderer : IDisposable
         Context?.UseProgram(programID);
     }
 
-    public Texture CreateTexture(Stream? stream) => new(this, stream);
-
-    public void BindTexture(uint textureHandle, TextureUnit textureUnit = 0)
+    public void BindTexture(uint textureHandle, TextureUnit textureUnit = TextureUnit.Texture0)
     {
         int textureUnitIndex = textureUnit - TextureUnit.Texture0;
         if (textureUnits[textureUnitIndex] == textureHandle)
@@ -143,10 +146,10 @@ public class OpenGLRenderer : IDisposable
     {
         Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         DrawDepth.Reset();
-        //Context?.Disable(EnableCap.Blend);
+        Context?.Disable(EnableCap.Blend);
     }
 
-    public void QueueDrawable(Drawable drawable, Shader shader, Texture texture, bool IsTranslucent = false)
+    public void QueueDrawable(Drawable drawable, Shader shader, TextureUsage texture, bool IsTranslucent = false)
     {
         drawable.DrawDepth = DrawDepth.NextDepth;
         DrawDepth.Increment();
@@ -157,7 +160,7 @@ public class OpenGLRenderer : IDisposable
             return;
         }
 
-        batchTree.Add(shader, texture, drawable);
+        batchTree.Add(shader, texture.BackingTexture, drawable);
     }
 
     public void AddVertex<VertexType>(VertexType vertex)
@@ -172,11 +175,12 @@ public class OpenGLRenderer : IDisposable
 
         if (deferredDrawables.Count > 0)
         {
+            Context?.Enable(EnableCap.Blend);
             while (deferredDrawables.Count > 0)
                 deferredDrawables.Pop().Draw(this);
-
-            currentVertexBatch?.FlushBatch();
         }
+
+        currentVertexBatch?.FlushBatch();
     }
 
     // </render>
