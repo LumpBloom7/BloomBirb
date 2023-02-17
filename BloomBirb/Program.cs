@@ -29,6 +29,8 @@ namespace BloomBirb
             options.Size = new Vector2D<int>(1024, 768);
             options.Title = "You spin me right round baby right round. Like a record baby right round round round.";
             options.VSync = false;
+            options.PreferredDepthBufferBits = 24;
+
             window = Window.Create(options);
 
             window.Load += onLoad;
