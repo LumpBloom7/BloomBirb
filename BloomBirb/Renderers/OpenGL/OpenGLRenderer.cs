@@ -132,7 +132,7 @@ public class OpenGLRenderer : IDisposable
         if (!defaultBatches.TryGetValue(typeof(BatchType), out IVertexBatch? batch))
         {
             batch = new BatchType();
-            batch.Initialize(this, 10000, 100);
+            batch.Initialize(this, 10000, 1000);
             defaultBatches[typeof(BatchType)] = batch;
         }
 
@@ -154,7 +154,7 @@ public class OpenGLRenderer : IDisposable
         drawable.DrawDepth = DrawDepth.NextDepth;
         DrawDepth.Increment();
 
-        if (IsTranslucent)
+        if (IsTranslucent || drawable.DrawDepth >= 1)
         {
             deferredDrawables.Push(drawable);
             return;
@@ -175,7 +175,6 @@ public class OpenGLRenderer : IDisposable
 
         if (deferredDrawables.Count > 0)
         {
-            currentVertexBatch?.FlushBatch();
             Context?.Enable(EnableCap.Blend);
             while (deferredDrawables.Count > 0)
                 deferredDrawables.Pop().Draw(this);
