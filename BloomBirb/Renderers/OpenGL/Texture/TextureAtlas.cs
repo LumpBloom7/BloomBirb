@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Silk.NET.Maths;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -56,7 +57,7 @@ public class TextureAtlas : Texture
 
     private List<Rectangle<int>> rectangles = null!;
 
-    private bool tryGetRegion(int desiredSizeX, int desiredSizeY, out Rectangle<int>? rectangle)
+    private bool tryGetRegion(int desiredSizeX, int desiredSizeY, [NotNullWhen(true)] out Rectangle<int>? rectangle)
     {
         // Get all the rectangles which can fit our new texture, sorted by area
         var sizeSortedRects = rectangles.Where(r => r.Size.X >= desiredSizeX && r.Size.Y >= desiredSizeY)
