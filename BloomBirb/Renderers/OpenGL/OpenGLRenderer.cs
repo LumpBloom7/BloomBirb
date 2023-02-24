@@ -154,7 +154,10 @@ public class OpenGLRenderer : IDisposable
         drawable.DrawDepth = DrawDepth.NextDepth;
         DrawDepth.Increment();
 
-        if (IsTranslucent || drawable.DrawDepth >= 1)
+        if (DrawDepth.NextDepth == 1.001f)
+            batchTree.DrawAll(this);
+
+        if (IsTranslucent || DrawDepth.NextDepth > 1)
         {
             deferredDrawables.Push(drawable);
             return;
