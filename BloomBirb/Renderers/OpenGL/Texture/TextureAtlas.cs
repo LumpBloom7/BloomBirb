@@ -55,6 +55,8 @@ public class TextureAtlas : Texture
 
     }
 
+
+
     private List<Rectangle<int>> rectangles = null!;
 
     private bool tryGetRegion(int desiredSizeX, int desiredSizeY, [NotNullWhen(true)] out Rectangle<int>? rectangle)
@@ -80,9 +82,23 @@ public class TextureAtlas : Texture
         var rect1 = new Rectangle<int>(smallestFittingRect.Origin.X + desiredSizeX,
                                                       smallestFittingRect.Origin.Y,
                                                       smallestFittingRect.Size.X - desiredSizeX,
-                                                      smallestFittingRect.Size.Y);
+                                                      desiredSizeY);
 
-        var rect2 = new Rectangle<int>(smallestFittingRect.Origin.X, smallestFittingRect.Origin.Y + desiredSizeY, smallestFittingRect.Size.X, smallestFittingRect.Size.Y + desiredSizeY);
+        var rect2 = new Rectangle<int>(smallestFittingRect.Origin.X,
+                                                      smallestFittingRect.Origin.Y + desiredSizeY,
+                                                      smallestFittingRect.Size.X,
+                                                      smallestFittingRect.Size.Y - desiredSizeY);
+
+        var rect1_ = new SixLabors.ImageSharp.Rectangle(rect1.Origin.X, rect1.Origin.Y, rect1.Size.X, rect1.Size.Y);
+        var rect2_ = new SixLabors.ImageSharp.Rectangle(rect2.Origin.X, rect2.Origin.Y, rect2.Size.X, rect2.Size.Y);
+
+        var intersect = SixLabors.ImageSharp.Rectangle.Intersect(rect1_, rect2_);
+
+        // For debugging purposes
+        PaintRectangle(rect1, new Rgba32(Random.Shared.NextSingle(), Random.Shared.NextSingle(), Random.Shared.NextSingle(), 1));
+        PaintRectangle(rect2, new Rgba32(Random.Shared.NextSingle(), Random.Shared.NextSingle(), Random.Shared.NextSingle(), 1));
+
+        PaintRectangle(new(intersect.X, intersect.Y, intersect.Width, intersect.Height), new Rgba32(0, 0, 0, 0));
 
         rectangles.Remove(smallestFittingRect);
         rectangles.Add(rect1);

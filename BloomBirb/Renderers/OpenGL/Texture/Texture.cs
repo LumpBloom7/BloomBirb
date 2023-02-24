@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -41,6 +42,18 @@ public class Texture
         renderer.Context?.TexSubImage2D(TextureTarget.Texture2D, 0, offsetX, offsetY, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, in pixel);
     }
 
+    protected void PaintRectangle(Rectangle<int> rect, Rgba32 pixel)
+    {
+        Span<Rgba32> pixels = new Rgba32[rect.Size.X * rect.Size.Y];
+
+        pixels.Fill(pixel);
+
+        unsafe
+        {
+            fixed (void* data = pixels)
+                renderer.Context?.TexSubImage2D(TextureTarget.Texture2D, 0, rect.Origin.X, rect.Origin.Y, (uint)rect.Size.X, (uint)rect.Size.Y, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+        }
+    }
     public unsafe void BufferImageData(Image<Rgba32> image, int offsetX = 0, int offsetY = 0)
     {
         Bind();
