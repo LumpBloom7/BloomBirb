@@ -27,11 +27,14 @@ public class TextureStore
 
     private readonly OpenGLRenderer renderer;
 
-    public TextureStore(OpenGLRenderer renderer, IResourceStore resourceStore, string prefix = "Textures")
+    private readonly int mipMapLevels;
+
+    public TextureStore(OpenGLRenderer renderer, IResourceStore resourceStore, string prefix = "Textures", int mipLevels = 4)
     {
         this.renderer = renderer;
         resources = resourceStore;
         this.prefix = prefix;
+        mipMapLevels = mipLevels;
     }
 
     public TextureUsage Get(string filename)
@@ -69,7 +72,7 @@ public class TextureStore
 
     private TextureUsage addLargeTexture(Image<Rgba32> image)
     {
-        var texture = new Texture(renderer);
+        var texture = new Texture(renderer, mipMapLevels);
         texture.Initialize(image.Size());
 
         texture.BufferImageData(image, 0, 0);
@@ -88,7 +91,7 @@ public class TextureStore
         }
 
         // No fitting atlas, create new
-        var newAtlas = new TextureAtlas(renderer);
+        var newAtlas = new TextureAtlas(renderer, mipMapLevels);
         newAtlas.Initialize(new Size(4096, 4096));
 
         atlases.Add(newAtlas);
