@@ -18,7 +18,7 @@ public class OpenGLRenderer : IDisposable
     private static DebugProc debugProcCallback = debugCallback;
     private static GCHandle debugProcCallbackHandle;
 
-    private static uint[] textureUnits = new uint[1];
+    private static Texture[] textureUnits = new Texture[1];
     private static uint boundProgram;
 
     private bool isInitialized = false;
@@ -98,17 +98,17 @@ public class OpenGLRenderer : IDisposable
         Context?.UseProgram(programID);
     }
 
-    public void BindTexture(uint textureHandle, TextureUnit textureUnit = TextureUnit.Texture0)
+    public void BindTexture(Texture texture, TextureUnit textureUnit = TextureUnit.Texture0)
     {
         int textureUnitIndex = textureUnit - TextureUnit.Texture0;
-        if (textureUnits[textureUnitIndex] == textureHandle)
+        if (textureUnits[textureUnitIndex] == texture)
             return;
 
         currentVertexBatch?.FlushBatch();
 
-        textureUnits[textureUnitIndex] = textureHandle;
+        textureUnits[textureUnitIndex] = texture;
         Context?.ActiveTexture(textureUnit);
-        Context?.BindTexture(TextureTarget.Texture2D, textureHandle);
+        Context?.BindTexture(TextureTarget.Texture2D, texture.TextureHandle);
     }
 
     public void Flush() => Context?.Flush();

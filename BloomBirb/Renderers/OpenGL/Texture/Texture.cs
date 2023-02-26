@@ -8,7 +8,7 @@ namespace BloomBirb.Renderers.OpenGL.Textures;
 
 public class Texture
 {
-    protected uint TextureHandle { get; private set; }
+    public uint TextureHandle { get; private set; }
 
     private readonly OpenGLRenderer renderer;
 
