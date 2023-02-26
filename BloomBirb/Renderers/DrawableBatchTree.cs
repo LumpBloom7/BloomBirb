@@ -10,7 +10,7 @@ public class DrawableBatchTree
 
     private Queue<ShaderNode> list = new();
 
-    public void Add(Shader shader, Texture texture, Drawable drawable)
+    public void Add(Shader shader, ITexture texture, Drawable drawable)
     {
         if (!shaderNodes.TryGetValue(shader, out var node))
             shaderNodes[shader] = node = new ShaderNode();
@@ -32,11 +32,11 @@ public class ShaderNode
 {
     public int Count => list.Count;
 
-    private Dictionary<Texture, TextureNode> textureNodes = new();
+    private Dictionary<ITexture, TextureNode> textureNodes = new();
 
     private Queue<TextureNode> list = new();
 
-    public void Add(Texture texture, Drawable drawable)
+    public void Add(ITexture texture, Drawable drawable)
     {
         if (!textureNodes.TryGetValue(texture, out var node))
             textureNodes[texture] = node = new TextureNode();

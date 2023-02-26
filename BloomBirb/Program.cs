@@ -71,7 +71,7 @@ namespace BloomBirb
             Random rng = Random.Shared;
             for (int i = 0; i < sprites.Length; ++i)
             {
-                var tex = textures.Get(randomTexture(rng.Next(4)))!;
+                var tex = textures.Get(randomTexture(rng.Next(5)))!;
                 var sprite = sprites[i] = new DrawableSprite(tex, shader);
                 sprites[i].Position = new Vector2(rng.NextSingle() * 2 - 1, rng.NextSingle() * 2 - 1);
                 sprites[i].Scale = new Vector2(rng.NextSingle() * 0.5f, rng.NextSingle() * 0.5f);

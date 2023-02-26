@@ -6,7 +6,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace BloomBirb.Renderers.OpenGL.Textures;
 
-public class Texture
+public class Texture : ITexture
 {
     public uint TextureHandle { get; private set; }
 
@@ -14,7 +14,7 @@ public class Texture
 
     public bool HasTransparency { get; private set; }
 
-    protected Size TextureSize { get; private set; }
+    public Size TextureSize { get; private set; }
 
     protected int MipMapLevels { get; private set; }
 
@@ -114,9 +114,9 @@ public class Texture
 
     private void generateMipmap() => renderer.Context?.GenerateMipmap(TextureTarget.Texture2D);
 
-    public void Bind() => renderer.BindTexture(TextureHandle);
+    public void Bind() => renderer.BindTexture(this);
 
     public static implicit operator TextureUsage(Texture texture) => texture.AsTextureUsage();
 
-    public TextureUsage AsTextureUsage() => new(this, new System.Drawing.RectangleF(0, 0, 1, 1), HasTransparency);
+    public TextureUsage AsTextureUsage() => new(this, new(0, 0, TextureSize.Width, TextureSize.Height), HasTransparency);
 }

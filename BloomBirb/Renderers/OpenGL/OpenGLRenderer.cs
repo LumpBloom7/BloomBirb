@@ -23,7 +23,7 @@ public class OpenGLRenderer : IDisposable
 
     private bool isInitialized = false;
 
-    public Texture BlankTexture { get; private set; } = null!;
+    public TextureWhitePixel BlankTexture { get; private set; } = null!;
 
     public void Initialize(IWindow window)
     {
@@ -52,9 +52,7 @@ public class OpenGLRenderer : IDisposable
             Console.WriteLine();
         }
 
-        BlankTexture = new Texture(this);
-        BlankTexture.Initialize(new(1, 1));
-        BlankTexture.SetPixel(0, 0, new Rgba32(255, 255, 255, 255));
+        BlankTexture = new TextureWhitePixel(this);
 
         isInitialized = true;
     }
@@ -110,6 +108,7 @@ public class OpenGLRenderer : IDisposable
         Context?.ActiveTexture(textureUnit);
         Context?.BindTexture(TextureTarget.Texture2D, texture.TextureHandle);
     }
+    public ITexture? GetBoundTexture(TextureUnit textureUnit = TextureUnit.Texture0) => textureUnits[0];
 
     public void Flush() => Context?.Flush();
 

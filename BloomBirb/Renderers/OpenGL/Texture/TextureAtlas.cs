@@ -10,6 +10,18 @@ public class TextureAtlas : Texture
     public TextureAtlas(OpenGLRenderer renderer, int mipLevels)
         : base(renderer) { }
 
+    public override void Initialize(Size size)
+    {
+        base.Initialize(size);
+        int halfPad = paddingAmount / 2;
+        for (int i = 0; i < halfPad + 1; ++i)
+            for (int j = 0; j < halfPad + 1; ++j)
+                SetPixel(i, j, new Rgba32(255, 255, 255));
+
+        currentCoord = new Vector2D<int>(1 + paddingAmount, 0);
+        maxY = 1 + paddingAmount;
+    }
+
     public unsafe TextureUsage? AddSubtexture(Image<Rgba32> image)
     {
         int width = image.Width, height = image.Height;
@@ -37,17 +49,12 @@ public class TextureAtlas : Texture
 
         BufferImageData(image, offsetX, offsetY, paddingAmount / 2);
 
-        var floatRect = new System.Drawing.RectangleF(offsetX / (float)TextureSize.Width,
-                                                              offsetY / (float)TextureSize.Height,
-                                                              width / (float)TextureSize.Width,
-                                                              height / (float)TextureSize.Height);
-
-        return new TextureUsage(this, floatRect, transparent);
-
+        return new TextureUsage(this, rect.Value, transparent);
     }
 
     private Vector2D<int> currentCoord = Vector2D<int>.Zero;
     private int maxY = 0;
+
 
     private bool findFittingRect(int desiredSizeX, int desiredSizeY, [NotNullWhen(true)] out Rectangle<int>? rectangle)
     {
@@ -73,5 +80,5 @@ public class TextureAtlas : Texture
     }
 
     // This is the amount of padding between two textures
-    private int paddingAmount => (int)Math.Pow(2, MipMapLevels);
+    private int paddingAmount => 2 << MipMapLevels;
 }
