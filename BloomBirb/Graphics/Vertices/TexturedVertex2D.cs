@@ -2,27 +2,36 @@ using System.Collections.ObjectModel;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using BloomBirb.Extensions;
+using BloomBirb.Renderers.OpenGL.Textures;
 
 namespace BloomBirb.Graphics.Vertices;
 
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct TexturedVertex2D : IVertex, IEquatable<TexturedVertex2D>
 {
-    public static int Size => PositionAndColourVertex.Size + sizeof(float) * 2;
+    public static int Size => PositionAndColourVertex.Size + sizeof(float) * 6;
 
     public static ReadOnlyCollection<VertexLayoutEntry> Layout { get; } = PositionAndColourVertex.Layout.AddRange(
+        new VertexLayoutEntry(VertexAttributeType.Float, 2),
+        new VertexLayoutEntry(VertexAttributeType.Float, 2),
         new VertexLayoutEntry(VertexAttributeType.Float, 2)
     );
 
     public readonly PositionAndColourVertex PositionAndColour;
     public readonly Vector2 TexturePosition;
+    public readonly Vector2 TextureRegionOrigin;
+    public readonly Vector2 TextureRegionSize;
 
-    public TexturedVertex2D(Vector2 position, Vector4 colour, Vector2 texturePosition)
+    public TexturedVertex2D(Vector2 position, Vector4 colour, Vector2 texturePosition, TextureUsage texture)
     {
         PositionAndColour = new PositionAndColourVertex(position, colour);
         TexturePosition = texturePosition;
+        TextureRegionOrigin = new(texture.TextureRegion.Origin.X, texture.TextureRegion.Origin.Y);
+        TextureRegionSize = new(texture.TextureRegion.Size.X, texture.TextureRegion.Size.Y);
     }
 
     public bool Equals(TexturedVertex2D other) => PositionAndColour.Equals(other.PositionAndColour) &&
-                                                  TexturePosition.Equals(other.TexturePosition);
+                                                  TexturePosition.Equals(other.TexturePosition) &&
+                                                  TextureRegionOrigin.Equals(other.TextureRegionOrigin) &&
+                                                  TextureRegionSize.Equals(other.TextureRegionSize);
 }

@@ -1,5 +1,3 @@
-using System.Drawing;
-using System.Numerics;
 using Silk.NET.Maths;
 
 namespace BloomBirb.Renderers.OpenGL.Textures;
@@ -17,12 +15,6 @@ public class TextureUsage
         BackingTexture = backingTexture;
         TextureRegion = textureRegion;
         HasTransparencies = hasTransparencies;
-    }
-
-    public Vector2 ToTextureUsageUV(Vector2 uv)
-    {
-        Vector2 texSize = new(BackingTexture.TextureSize.Width, BackingTexture.TextureSize.Width);
-        return (new Vector2(TextureRegion.Origin.X, TextureRegion.Origin.Y) + (uv * new Vector2(TextureRegion.Size.X, TextureRegion.Size.Y))) / texSize;
     }
 
     public void Bind() => BackingTexture.Bind();

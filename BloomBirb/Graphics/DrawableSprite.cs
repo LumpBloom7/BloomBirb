@@ -28,17 +28,13 @@ public class DrawableSprite : Drawable
     {
         base.Draw(renderer);
         renderer.UseBatch<QuadBatch<DepthWrappingVertex<TexturedVertex2D>>>();
+
         shader.Bind();
         texture.Bind();
 
-        var topLeft = texture.ToTextureUsageUV(new Vector2(0, 1));
-        var bottomLeft = texture.ToTextureUsageUV(new Vector2(0, 0));
-        var bottomRight = texture.ToTextureUsageUV(new Vector2(1, 0));
-        var topRight = texture.ToTextureUsageUV(new Vector2(1, 1));
-
-        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.TopLeft, DrawColour, topLeft), DrawDepth));
-        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.BottomLeft, DrawColour, bottomLeft), DrawDepth));
-        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.BottomRight, DrawColour, bottomRight), DrawDepth));
-        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.TopRight, DrawColour, topRight), DrawDepth));
+        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.TopLeft, DrawColour, new Vector2(0, 1), texture), DrawDepth));
+        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.BottomLeft, DrawColour, new Vector2(0, 0), texture), DrawDepth));
+        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.BottomRight, DrawColour, new Vector2(1, 0), texture), DrawDepth));
+        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.TopRight, DrawColour, new Vector2(1, 1), texture), DrawDepth));
     }
 }

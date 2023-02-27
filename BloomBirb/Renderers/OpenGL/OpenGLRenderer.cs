@@ -105,6 +105,9 @@ public class OpenGLRenderer : IDisposable
         currentVertexBatch?.FlushBatch();
 
         textureUnits[textureUnitIndex] = texture;
+
+        // TODO: THIS IS A QUICK BODGE TO TEST THINGS, SEE RELATED UNIFORM IN SHADERS/SHARED.h
+        Context?.Uniform2(34, new System.Numerics.Vector2(texture.TextureSize.Width, texture.TextureSize.Height));
         Context?.ActiveTexture(textureUnit);
         Context?.BindTexture(TextureTarget.Texture2D, texture.TextureHandle);
     }

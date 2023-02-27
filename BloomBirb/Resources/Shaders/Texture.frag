@@ -1,5 +1,5 @@
 ﻿//Specifying the version like in our vertex shader.
-#version 330 core
+#version 430 core
 
 in vec2 f_uv;
 in vec4 f_col;
