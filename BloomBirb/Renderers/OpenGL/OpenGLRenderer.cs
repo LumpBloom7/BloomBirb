@@ -146,9 +146,10 @@ public class OpenGLRenderer : IDisposable
 
     public void BeginFrame()
     {
+        Context?.DepthMask(true);
+        Context?.Disable(EnableCap.Blend);
         Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         DrawDepth.Reset();
-        Context?.Disable(EnableCap.Blend);
     }
 
     public void QueueDrawable(Drawable drawable, Shader shader, TextureUsage texture, bool IsTranslucent = false)
@@ -165,7 +166,7 @@ public class OpenGLRenderer : IDisposable
             return;
         }
 
-        batchTree.Add(shader, texture.BackingTexture, drawable);
+        drawable.Draw(this);
     }
 
     public void AddVertex<VertexType>(VertexType vertex)
@@ -180,7 +181,9 @@ public class OpenGLRenderer : IDisposable
 
         if (deferredDrawables.Count > 0)
         {
+            currentVertexBatch?.FlushBatch();
             Context?.Enable(EnableCap.Blend);
+            Context?.DepthMask(false);
             while (deferredDrawables.Count > 0)
                 deferredDrawables.Pop().Draw(this);
         }

@@ -31,7 +31,7 @@ public abstract class Drawable
 
     internal float DrawDepth;
 
-    public virtual bool IsTranslucent => DrawColour.W < 1f;
+    public virtual bool IsTranslucent => DrawColour.W < 1f && DrawColour.W > 0.1f;
 
     public virtual void QueueDraw(OpenGLRenderer renderer)
     {
