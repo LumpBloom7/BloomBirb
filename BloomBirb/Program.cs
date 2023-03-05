@@ -124,6 +124,7 @@ namespace BloomBirb
             //Remember to dispose all the instances.
             audioSource?.Dispose();
             textures?.Dispose();
+            shaders?.Dispose();
             gl?.Dispose();
         }
 

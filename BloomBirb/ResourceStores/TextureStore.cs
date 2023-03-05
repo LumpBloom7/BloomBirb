@@ -110,7 +110,7 @@ public class TextureStore : IDisposable
             foreach (var texture in textures)
                 texture.Dispose();
 
-            foreach (var atlas in textures)
+            foreach (var atlas in atlases)
                 atlas.Dispose();
 
             textureCache.Clear();

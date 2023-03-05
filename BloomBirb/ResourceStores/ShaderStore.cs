@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text;
 using BloomBirb.Renderers.OpenGL;
 using Silk.NET.OpenGL;
@@ -7,7 +6,7 @@ using Shader = BloomBirb.Renderers.OpenGL.Shader;
 namespace BloomBirb.ResourceStores;
 
 // TODO: This needs to be platform agnostic at some point
-public class ShaderStore
+public class ShaderStore : IDisposable
 {
     private record shaderParts(uint Vert, uint Frag);
 
@@ -122,5 +121,38 @@ public class ShaderStore
                 }
             }
         }
+    }
+
+    private bool isDisposed;
+
+    protected void Dispose(bool disposing)
+    {
+        if (isDisposed)
+            return;
+
+        if (disposing)
+        {
+            foreach (var shader in shaderCache)
+                shader.Value.Dispose();
+        }
+
+        foreach (var vertPart in vertexParts)
+            renderer.Context?.DeleteShader(vertPart.Value);
+
+        foreach (var fragPart in fragParts)
+            renderer.Context?.DeleteShader(fragPart.Value);
+
+        isDisposed = true;
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    ~ShaderStore()
+    {
+        Dispose();
     }
 }
