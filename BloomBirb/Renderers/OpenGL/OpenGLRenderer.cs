@@ -6,7 +6,6 @@ using BloomBirb.Renderers.OpenGL.Batches;
 using BloomBirb.Renderers.OpenGL.Textures;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-using SixLabors.ImageSharp.PixelFormats;
 using Texture = BloomBirb.Renderers.OpenGL.Textures.Texture;
 
 namespace BloomBirb.Renderers.OpenGL;
@@ -149,6 +148,8 @@ public class OpenGLRenderer : IDisposable
     // All the batches that have been initialized so far
     private Dictionary<Type, IVertexBatch> defaultBatches = new();
 
+    private List<IVertexBatch> usedBatches = new();
+
     // Attempts to initialize or reuse a batch we've already created
     public void UseBatch<BatchType>() where BatchType : IVertexBatch, new()
     {
@@ -158,12 +159,13 @@ public class OpenGLRenderer : IDisposable
         if (!defaultBatches.TryGetValue(typeof(BatchType), out IVertexBatch? batch))
         {
             batch = new BatchType();
-            batch.Initialize(this, 10000, 1000);
+            batch.Initialize(this, 1000, 1000);
             defaultBatches[typeof(BatchType)] = batch;
         }
 
         currentVertexBatch?.FlushBatch();
         currentVertexBatch = batch;
+        usedBatches.Add(batch);
     }
 
     private Stack<Drawable> deferredDrawables = new();
@@ -174,6 +176,13 @@ public class OpenGLRenderer : IDisposable
         Context?.Disable(EnableCap.Blend);
         Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         DrawDepth.Reset();
+
+        foreach (var batch in usedBatches)
+            batch.ResetBatch();
+
+        usedBatches.Clear();
+
+        currentVertexBatch = null;
     }
 
     public void QueueDrawable(Drawable drawable, Shader shader, TextureUsage texture, bool IsTranslucent = false)

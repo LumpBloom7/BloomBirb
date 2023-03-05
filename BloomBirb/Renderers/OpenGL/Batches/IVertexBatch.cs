@@ -11,4 +11,5 @@ public interface IVertexBatch
 {
     void Initialize(OpenGLRenderer renderer, int bufferSize, int maxNumberOfBuffers);
     void FlushBatch();
+    void ResetBatch();
 }

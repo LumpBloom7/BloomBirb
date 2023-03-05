@@ -55,6 +55,8 @@ public abstract class VertexBatch<T> : IVertexBatch<T>, IDisposable where T : un
                 buffers[currentBufferIndex].Initialize();
                 availableBuffers++;
             }
+
+            buffers[currentBufferIndex].Reset();
         }
     }
 
@@ -62,8 +64,12 @@ public abstract class VertexBatch<T> : IVertexBatch<T>, IDisposable where T : un
     {
         if (buffers[currentBufferIndex].Count > 0)
             buffers[currentBufferIndex].DrawBuffer();
+    }
 
+    public void ResetBatch()
+    {
         currentBufferIndex = 0;
+        buffers[0].Reset();
     }
 
     protected abstract VertexBuffer<T> CreateVertexBuffer(int size);

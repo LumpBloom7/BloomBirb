@@ -43,45 +43,44 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
         GLUtils.SetVAO<T>(context);
     }
 
-    public bool IsFull => Count == Size;
+    public bool IsFull => (batchBegin + Count) == Size;
 
     public int Count { get; private set; }
 
-    private int beginBuffer = -1;
-    private int endBuffer = -1;
+    private int batchBegin;
+
+    private int changeBegin = int.MaxValue;
+    private int changeEnd = int.MinValue;
 
     public void AddVertex(ref T vertex)
     {
         ArgumentNullException.ThrowIfNull(vertices);
 
-        if (!vertices[Count].Equals(vertex))
-        {
-            vertices[Count] = vertex;
+        int index = batchBegin + Count;
 
-            if (beginBuffer == -1)
-            {
-                beginBuffer = Count;
-                endBuffer = Count + 1;
-            }
-            else
-            {
-                endBuffer = Count + 1;
-            }
+        if (!vertices[index].Equals(vertex))
+        {
+            vertices[index] = vertex;
+
+            changeBegin = Math.Min(changeBegin, index);
+            changeEnd = Math.Max(changeEnd, index + 1);
         }
 
         ++Count;
     }
 
-    private void reset()
+    public void Reset()
     {
         Count = 0;
-        beginBuffer = -1;
-        endBuffer = -1;
+        batchBegin = 0;
     }
 
     public void BufferData()
     {
-        Renderer?.Context?.BufferSubData(BufferTargetARB.ArrayBuffer, beginBuffer * T.Size, new ReadOnlySpan<T>(vertices, beginBuffer, endBuffer - beginBuffer));
+        Renderer?.Context?.BufferSubData(BufferTargetARB.ArrayBuffer, changeBegin * T.Size, new ReadOnlySpan<T>(vertices, changeBegin, changeEnd - changeBegin));
+
+        changeBegin = int.MaxValue;
+        changeEnd = int.MinValue;
     }
 
     public void Bind()
@@ -95,15 +94,20 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
 
     public unsafe void DrawBuffer()
     {
+        if (Count == 0)
+            return;
+
         Bind();
 
-        if (beginBuffer != -1)
+        if (changeBegin < int.MaxValue)
             BufferData();
 
         int indicesToDraw = Count / VerticesPerPrimitive * IndicesPerPrimitive;
-        context?.DrawElements(PrimitiveType, (uint)indicesToDraw, DrawElementsType.UnsignedInt, (void*)null);
+        int indicesOffset = batchBegin / VerticesPerPrimitive * IndicesPerPrimitive * sizeof(uint);
+        context?.DrawElements(PrimitiveType, (uint)indicesToDraw, DrawElementsType.UnsignedInt, (void*)indicesOffset);
 
-        reset();
+        batchBegin += Count;
+        Count = 0;
     }
 
     private bool isDisposed;
