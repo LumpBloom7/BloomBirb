@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using BloomBirb.Audio;
 using BloomBirb.Graphics;
+using BloomBirb.Graphics.Containers;
 using BloomBirb.Renderers.OpenGL;
 using BloomBirb.ResourceStores;
 using Silk.NET.Input;
@@ -20,8 +21,6 @@ namespace BloomBirb
         private static ShaderStore? shaders;
         private static TextureStore? textures;
         private static AudioStore? audioStore;
-
-        private static DrawableSprite[] sprites = new DrawableSprite[10000];
 
         private static void Main(string[] args)
         {
@@ -43,6 +42,8 @@ namespace BloomBirb
         }
 
         private static AudioSource audioSource = null!;
+
+        private static Container container;
 
         private static void onLoad()
         {
@@ -70,17 +71,24 @@ namespace BloomBirb
             shader.SetUniform("u_Texture0", 0);
 
             Random rng = Random.Shared;
-            for (int i = 0; i < sprites.Length; ++i)
+
+            container = new();
+
+            for (int i = 0; i < 10000; ++i)
             {
                 var tex = textures.Get(randomTexture(rng.Next(5)))!;
-                var sprite = sprites[i] = new DrawableSprite(tex, shader);
-                sprites[i].Position = new Vector2(rng.NextSingle() * 2 - 1, rng.NextSingle() * 2 - 1);
-                sprites[i].Scale = new Vector2(rng.NextSingle() * 0.5f, rng.NextSingle() * 0.5f);
-                sprites[i].Shear = new Vector2(rng.NextSingle(), rng.NextSingle());
-                sprites[i].Rotation = rng.NextSingle() * 360;
-                sprites[i].Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1);
-                sprite.Invalidate();
+                var sprite = new DrawableSprite(tex, shader)
+                {
+                    Position = new Vector2(rng.NextSingle() * 2 - 1, rng.NextSingle() * 2 - 1),
+                    Scale = new Vector2(rng.NextSingle() * 0.5f, rng.NextSingle() * 0.5f),
+                    Shear = new Vector2(rng.NextSingle(), rng.NextSingle()),
+                    Rotation = rng.NextSingle() * 360,
+                    Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1)
+                };
+                container.Add(sprite);
             }
+
+            container.Invalidate();
 
             gl.Context?.Enable(GLEnum.DepthTest);
             gl.Context?.DepthFunc(DepthFunction.Lequal);
@@ -100,16 +108,21 @@ namespace BloomBirb
             //audioSource.Play();
         }
 
+        private static float x = 0;
+
         private static void onRender(double obj)
         {
             gl?.BeginFrame();
 
-            foreach (var sprite in sprites)
-            {
-                sprite.Rotation += (float)(obj * 180);
-                sprite.Invalidate();
-                sprite.QueueDraw(gl!);
-            }
+            x = (x + (float)obj * 30) % 360;
+
+            container.Rotation = x;
+            foreach (var child in container.Children)
+                child.Rotation = -x;
+
+            container.Invalidate();
+            container.QueueDraw(gl!);
+
 
             gl?.EndFrame();
         }

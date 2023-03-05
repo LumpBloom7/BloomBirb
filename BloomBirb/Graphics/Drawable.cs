@@ -8,7 +8,7 @@ namespace BloomBirb.Graphics;
 public abstract class Drawable
 {
     // Used for inheritance
-    protected Drawable? Parent { get; set; } = null;
+    public Drawable? Parent { get; internal set; } = null;
 
     public Vector2 Position { get; set; } = Vector2.Zero;
 
@@ -35,19 +35,18 @@ public abstract class Drawable
 
     public virtual void QueueDraw(OpenGLRenderer renderer)
     {
-
     }
 
     public virtual void Draw(OpenGLRenderer renderer)
     {
     }
 
-    public void Invalidate()
+    public virtual void Invalidate()
     {
         Transformation = Parent?.Transformation ?? Matrix3.Identity;
+        Matrix3Extensions.Translate(ref Transformation, Position);
         Matrix3Extensions.RotateDegrees(ref Transformation, Rotation);
         Matrix3Extensions.Shear(ref Transformation, Shear);
-        Matrix3Extensions.Translate(ref Transformation, Position);
         Matrix3Extensions.Scale(ref Transformation, Scale);
 
         DrawColour = (Parent?.DrawColour ?? Vector4.One) * Colour * new Vector4(1, 1, 1, Alpha);
