@@ -40,7 +40,6 @@ public static class Matrix3Extensions
 
     public static void Translate(ref Matrix3 m, float x, float y)
     {
-        m.M31 += x;
-        m.M32 += y;
+        m.Row3 += (m.Row1 * x) + (m.Row2 * y);
     }
 }
