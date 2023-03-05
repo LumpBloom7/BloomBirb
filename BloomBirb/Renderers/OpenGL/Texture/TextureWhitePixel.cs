@@ -9,7 +9,7 @@ public class TextureWhitePixel : TextureUsage
     {
     }
 
-    private class DummyTexture : ITexture
+    private class DummyTexture : ITexture, IDisposable
     {
         private OpenGLRenderer renderer;
 
@@ -42,6 +42,25 @@ public class TextureWhitePixel : TextureUsage
         {
             if (renderer.GetBoundTexture() is not TextureAtlas)
                 fallbackTexture.Bind();
+        }
+
+        private bool isDisposed;
+
+        protected void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            if (disposing)
+                fallbackTex?.Dispose();
+
+            isDisposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

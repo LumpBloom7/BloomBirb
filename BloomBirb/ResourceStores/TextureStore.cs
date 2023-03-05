@@ -1,12 +1,11 @@
-﻿using System.Reflection;
-using BloomBirb.Renderers.OpenGL;
+﻿using BloomBirb.Renderers.OpenGL;
 using BloomBirb.Renderers.OpenGL.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace BloomBirb.ResourceStores;
 
-public class TextureStore
+public class TextureStore : IDisposable
 {
     private static readonly string[] lookup_extensions =
     {
@@ -97,5 +96,32 @@ public class TextureStore
         atlases.Add(newAtlas);
 
         return newAtlas.AddSubtexture(image)!;
+    }
+
+    private bool isDisposed;
+
+    protected void Dispose(bool disposing)
+    {
+        if (isDisposed)
+            return;
+
+        if (disposing)
+        {
+            foreach (var texture in textures)
+                texture.Dispose();
+
+            foreach (var atlas in textures)
+                atlas.Dispose();
+
+            textureCache.Clear();
+        }
+
+        isDisposed = true;
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 }

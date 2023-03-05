@@ -6,7 +6,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace BloomBirb.Renderers.OpenGL.Textures;
 
-public class Texture : ITexture
+public class Texture : ITexture, IDisposable
 {
     public uint TextureHandle { get; private set; }
 
@@ -119,4 +119,27 @@ public class Texture : ITexture
     public static implicit operator TextureUsage(Texture texture) => texture.AsTextureUsage();
 
     public TextureUsage AsTextureUsage() => new(this, new(0, 0, TextureSize.Width, TextureSize.Height), HasTransparency);
+
+
+    private bool isDisposed;
+
+    protected void Dispose(bool disposing)
+    {
+        if (isDisposed)
+            return;
+
+        renderer.Context?.DeleteTexture(TextureHandle);
+        isDisposed = true;
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    ~Texture()
+    {
+        Dispose(false);
+    }
 }
