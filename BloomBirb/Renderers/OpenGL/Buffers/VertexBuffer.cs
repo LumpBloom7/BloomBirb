@@ -32,10 +32,10 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
     public unsafe void Initialize()
     {
         vaoHandle = context.GenVertexArray();
+        vboHandle = context.GenBuffer();
+
         Bind();
 
-        vboHandle = context.GenBuffer();
-        context.BindBuffer((GLEnum)BufferTargetARB.ArrayBuffer, vboHandle);
         context.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * T.Size), (void**)null, BufferUsageARB.DynamicDraw);
 
         InitializeEBO();
@@ -86,8 +86,8 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
 
     public void Bind()
     {
-        context?.BindVertexArray(vaoHandle);
-        context?.BindBuffer(BufferTargetARB.ArrayBuffer, vboHandle);
+        Renderer.BindVertexArray(vaoHandle);
+        Renderer.BindBuffer(vboHandle);
     }
 
     protected abstract void InitializeEBO();

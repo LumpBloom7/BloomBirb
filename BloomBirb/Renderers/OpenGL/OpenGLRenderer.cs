@@ -84,6 +84,29 @@ public class OpenGLRenderer : IDisposable
 
         return handle;
     }
+    private uint currentVBO;
+
+    public bool BindBuffer(uint buffer)
+    {
+        if (currentVBO == buffer)
+            return false;
+
+        currentVBO = buffer;
+        Context?.BindBuffer(BufferTargetARB.ArrayBuffer, buffer);
+        return true;
+    }
+
+    private uint currentVAO;
+
+    public bool BindVertexArray(uint vaoHandle)
+    {
+        if (currentVAO == vaoHandle)
+            return false;
+
+        currentVAO = vaoHandle;
+        Context?.BindVertexArray(vaoHandle);
+        return true;
+    }
 
     public void BindShader(uint programID)
     {
@@ -111,6 +134,7 @@ public class OpenGLRenderer : IDisposable
         Context?.ActiveTexture(textureUnit);
         Context?.BindTexture(TextureTarget.Texture2D, texture.TextureHandle);
     }
+
     public ITexture? GetBoundTexture(TextureUnit textureUnit = TextureUnit.Texture0) => textureUnits[0];
 
     public void Flush() => Context?.Flush();
