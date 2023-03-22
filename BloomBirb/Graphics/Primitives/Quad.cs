@@ -5,7 +5,7 @@ using BloomBirb.Extensions;
 namespace BloomBirb.Graphics.Primitives;
 
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct Quad
+public readonly record struct Quad
 {
     public static readonly Quad DEFAULT = new(-0.5f, -0.5f, 1, 1);
 

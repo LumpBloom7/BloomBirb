@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace BloomBirb.Graphics.Vertices;
 
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct PositionAndColourVertex : IVertex, IEquatable<PositionAndColourVertex>
+public readonly record struct PositionAndColourVertex : IVertex
 {
     public static int Size { get; } = sizeof(float) * 6;
 
@@ -23,7 +23,4 @@ public readonly struct PositionAndColourVertex : IVertex, IEquatable<PositionAnd
         VertexPosition = position;
         VertexColour = colour;
     }
-
-    public bool Equals(PositionAndColourVertex other) =>
-        VertexPosition.Equals(other.VertexPosition) && VertexColour.Equals(other.VertexColour);
 }

@@ -7,7 +7,7 @@ using BloomBirb.Renderers.OpenGL.Textures;
 namespace BloomBirb.Graphics.Vertices;
 
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct TexturedVertex2D : IVertex, IEquatable<TexturedVertex2D>
+public readonly record struct TexturedVertex2D : IVertex, IEquatable<TexturedVertex2D>
 {
     public static int Size => PositionAndColourVertex.Size + sizeof(float) * 6;
 
@@ -29,9 +29,4 @@ public readonly struct TexturedVertex2D : IVertex, IEquatable<TexturedVertex2D>
         TextureRegionOrigin = new(texture.TextureRegion.Origin.X, texture.TextureRegion.Origin.Y);
         TextureRegionSize = new(texture.TextureRegion.Size.X, texture.TextureRegion.Size.Y);
     }
-
-    public bool Equals(TexturedVertex2D other) => PositionAndColour.Equals(other.PositionAndColour) &&
-                                                  TexturePosition.Equals(other.TexturePosition) &&
-                                                  TextureRegionOrigin.Equals(other.TextureRegionOrigin) &&
-                                                  TextureRegionSize.Equals(other.TextureRegionSize);
 }
