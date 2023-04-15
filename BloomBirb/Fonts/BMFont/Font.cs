@@ -1,5 +1,7 @@
 using System.Text;
 using BloomBirb.Font.BMFont.DescriptorBlocks;
+using BloomBirb.Renderers.OpenGL;
+using BloomBirb.Renderers.OpenGL.Textures;
 
 namespace BloomBirb.Font.BMFont;
 
@@ -11,8 +13,14 @@ public class Font
     public readonly Dictionary<uint, CharacterInfo> Characters = new Dictionary<uint, CharacterInfo>();
     public readonly Dictionary<uint, Dictionary<uint, KerningPair>> KerningPairs = new();
 
-    public Font(Stream stream)
+    private readonly Texture[] pageTextures;
+
+    private readonly OpenGLRenderer renderer;
+
+    public Font(OpenGLRenderer renderer, Stream stream)
     {
+        this.renderer = renderer;
+
         if (!isValidFontStream(stream))
             throw new InvalidDataException("Font provided is not a valid BMF format.");
 
@@ -24,7 +32,7 @@ public class Font
                 break;
 
             byte[] length = new byte[4];
-            stream.ReadExactly(length, 0,4);
+            stream.ReadExactly(length, 0, 4);
             int blockLength = length[0] + (length[1] << 8) + (length[2] << 16) + (length[3] << 24);
             byte[] blockData = new byte[blockLength];
             stream.ReadExactly(blockData, 0, blockLength);
@@ -41,7 +49,7 @@ public class Font
 
                 case 3:
                     PageNames = new string[CommonInfo.Pages];
-                    int stringLength = blockLength / PageNames.Length-1;
+                    int stringLength = blockLength / PageNames.Length - 1;
                     for (int i = 0; i < PageNames.Length; ++i)
                     {
                         int start = PageNames.Length * i;
@@ -78,6 +86,8 @@ public class Font
                 }
             }
         }
+
+        pageTextures = new Texture[CommonInfo.Pages];
     }
 
     private static readonly byte[] valid_header_template = { 66, 77, 70, 3 };

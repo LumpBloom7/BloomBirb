@@ -50,6 +50,7 @@ public abstract class Drawable
         Matrix3Extensions.Scale(ref Transformation, Scale);
 
         DrawColour = (Parent?.DrawColour ?? Vector4.One) * Colour * new Vector4(1, 1, 1, Alpha);
-        DrawQuad = Quad.DEFAULT * Transformation;
+
+        DrawQuad = new Quad(0, 0, Size.X, Size.Y) * Transformation;
     }
 }
