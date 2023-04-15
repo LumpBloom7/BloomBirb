@@ -1,3 +1,6 @@
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using BloomBirb.Graphics.Vertices;
 using Silk.NET.OpenGL;
 
@@ -7,20 +10,18 @@ public static class GLUtils
 {
     public static void SetVAO<T>(GL gl) where T : IVertex
     {
-        int stride = T.Size;
-        int offset = 0;
+        int stride = Unsafe.SizeOf<T>();
 
-        var layout = T.Layout;
-        for (int i = 0; i < layout.Count; ++i)
-        {
-            var currentAttribEntry = layout[i];
+        var vertexMembers = getVertexMembers(typeof(T));
+
+        for(int i = 0 ; i < vertexMembers.Count;++i){
+            (var attribute, nint offset) = vertexMembers[i];
+
             unsafe
             {
-                gl.VertexAttribPointer((uint)i, currentAttribEntry.Count,
-                    (GLEnum)toGLVertexAttribPointerType(currentAttribEntry.Type), false, (uint)stride, (void*)offset);
+                gl.VertexAttribPointer((uint)i, attribute.Count, (GLEnum)toGLVertexAttribPointerType(attribute.AttributeType), false, (uint)stride, (void*)offset);
             }
 
-            offset += currentAttribEntry.Count * sizeOf(currentAttribEntry.Type);
             gl.EnableVertexAttribArray((uint)i);
         }
     }
@@ -28,13 +29,26 @@ public static class GLUtils
     private static VertexAttribPointerType toGLVertexAttribPointerType(VertexAttributeType type)
         => (VertexAttribPointerType)((int)type + (int)VertexAttribPointerType.Byte);
 
-    private static int sizeOf(VertexAttributeType type) => type switch
+    private static List<(VertexMemberAttribute attribute, nint offset)> getVertexMembers(Type type ,nint offset = 0)
     {
-        VertexAttributeType.Byte or VertexAttributeType.UnsignedByte => sizeof(byte),
-        VertexAttributeType.Short or VertexAttributeType.UnsignedShort => sizeof(short),
-        VertexAttributeType.Int or VertexAttributeType.UnsignedInt => sizeof(int),
-        VertexAttributeType.Float => sizeof(float),
-        VertexAttributeType.Double => sizeof(double),
-        _ => 0,
-    };
+        List<(VertexMemberAttribute attribute, nint offset)> entries = new ();
+        var vertexMembers = type.GetFields();
+
+        foreach(var vertexMember in vertexMembers){
+            nint memberOffset = Marshal.OffsetOf(type, vertexMember.Name) + offset;
+
+            if(vertexMember.FieldType.IsAssignableTo(typeof(IVertex)))
+            {
+                entries.AddRange(getVertexMembers(vertexMember.FieldType, memberOffset));
+                continue;
+            }
+
+            var attrib = vertexMember.GetCustomAttribute<VertexMemberAttribute>();
+            // This field has the attribute, use it
+            if(attrib is not null)
+                entries.Add(new (attrib, memberOffset));
+        }
+
+        return entries;
+    }
 }

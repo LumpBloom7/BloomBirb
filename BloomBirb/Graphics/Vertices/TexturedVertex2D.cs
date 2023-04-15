@@ -7,19 +7,18 @@ using BloomBirb.Renderers.OpenGL.Textures;
 namespace BloomBirb.Graphics.Vertices;
 
 [StructLayout(LayoutKind.Sequential)]
-public readonly record struct TexturedVertex2D : IVertex, IEquatable<TexturedVertex2D>
+public readonly record struct TexturedVertex2D : IVertex
 {
-    public static int Size => PositionAndColourVertex.Size + sizeof(float) * 6;
-
-    public static ReadOnlyCollection<VertexLayoutEntry> Layout { get; } = PositionAndColourVertex.Layout.AddRange(
-        new VertexLayoutEntry(VertexAttributeType.Float, 2),
-        new VertexLayoutEntry(VertexAttributeType.Float, 2),
-        new VertexLayoutEntry(VertexAttributeType.Float, 2)
-    );
-
     public readonly PositionAndColourVertex PositionAndColour;
+
+    [VertexMember(VertexAttributeType.Float, 2)]
     public readonly Vector2 TexturePosition;
+
+    [VertexMember(VertexAttributeType.Float, 2)]
     public readonly Vector2 TextureRegionOrigin;
+
+
+    [VertexMember(VertexAttributeType.Float, 2)]
     public readonly Vector2 TextureRegionSize;
 
     public TexturedVertex2D(Vector2 position, Vector4 colour, Vector2 texturePosition, TextureUsage texture)

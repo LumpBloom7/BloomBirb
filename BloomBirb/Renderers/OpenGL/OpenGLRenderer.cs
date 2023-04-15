@@ -15,7 +15,7 @@ public class OpenGLRenderer : IDisposable
     public GL? Context = null;
 
     private static DebugProc debugProcCallback = debugCallback;
-    private static GCHandle debugProcCallbackHandle;
+    private static GCHandle? debugProcCallbackHandle;
 
     private static Texture[] textureUnits = new Texture[1];
     private static uint boundProgram;
@@ -31,11 +31,7 @@ public class OpenGLRenderer : IDisposable
 
         Context ??= GL.GetApi(window);
 
-        debugProcCallbackHandle = GCHandle.Alloc(debugProcCallback);
-
-        Context.DebugMessageCallback(debugProcCallback, nint.Zero);
-        Context.Enable(EnableCap.DebugOutput);
-        Context.Enable(EnableCap.DebugOutputSynchronous);
+        enableDebugMessageCallback();
 
         unsafe
         {
@@ -54,6 +50,15 @@ public class OpenGLRenderer : IDisposable
         BlankTexture = new TextureWhitePixel(this);
 
         isInitialized = true;
+    }
+
+    [Conditional("DEBUG")]
+    private void enableDebugMessageCallback()
+    {
+        debugProcCallbackHandle = GCHandle.Alloc(debugProcCallback);
+        Context.DebugMessageCallback(debugProcCallback, nint.Zero);
+        Context.Enable(EnableCap.DebugOutput);
+        Context.Enable(EnableCap.DebugOutputSynchronous);
     }
 
     private void ensureInitialized()
@@ -242,7 +247,7 @@ public class OpenGLRenderer : IDisposable
         if (isDisposed)
             return;
 
-        debugProcCallbackHandle.Free();
+        debugProcCallbackHandle?.Free();
         isDisposed = true;
         GC.SuppressFinalize(this);
     }

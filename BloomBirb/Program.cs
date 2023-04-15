@@ -28,8 +28,8 @@ namespace BloomBirb
             options.Size = new Vector2D<int>(1024, 768);
             options.Title = "You spin me right round baby right round. Like a record baby right round round round.";
             options.VSync = false;
-            options.PreferredDepthBufferBits = 24;
-            options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.Default, new(4, 0));
+            options.PreferredDepthBufferBits = 16;
+            options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.ForwardCompatible, new(4, 0));
 
             window = Window.Create(options);
 

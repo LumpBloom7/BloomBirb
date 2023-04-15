@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using BloomBirb.Graphics.Vertices;
 using Silk.NET.OpenGL;
 
@@ -22,6 +23,8 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
     protected readonly OpenGLRenderer Renderer;
     private GL context => Renderer.Context!;
 
+    private static int vertexSize = Unsafe.SizeOf<T>();
+
     public VertexBuffer(OpenGLRenderer renderer, int amountOfVertices = 10000)
     {
         Renderer = renderer;
@@ -36,7 +39,7 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
 
         Bind();
 
-        context.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * T.Size), (void**)null, BufferUsageARB.DynamicDraw);
+        context.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * vertexSize), (void**)null, BufferUsageARB.DynamicDraw);
 
         InitializeEBO();
 
@@ -77,7 +80,7 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
 
     public void BufferData()
     {
-        Renderer?.Context?.BufferSubData(BufferTargetARB.ArrayBuffer, changeBegin * T.Size, new ReadOnlySpan<T>(vertices, changeBegin, changeEnd - changeBegin));
+        Renderer?.Context?.BufferSubData(BufferTargetARB.ArrayBuffer, changeBegin * vertexSize, new ReadOnlySpan<T>(vertices, changeBegin, changeEnd - changeBegin));
 
         changeBegin = int.MaxValue;
         changeEnd = int.MinValue;
