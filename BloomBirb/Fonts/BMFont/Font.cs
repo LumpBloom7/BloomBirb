@@ -1,9 +1,11 @@
 using System.Text;
-using BloomBirb.Font.BMFont.DescriptorBlocks;
+using BloomBirb.Fonts.BMFont.DescriptorBlocks;
 using BloomBirb.Renderers.OpenGL;
 using BloomBirb.Renderers.OpenGL.Textures;
+using BloomBirb.ResourceStores;
+using Silk.NET.Maths;
 
-namespace BloomBirb.Font.BMFont;
+namespace BloomBirb.Fonts.BMFont;
 
 public class Font
 {
@@ -13,13 +15,14 @@ public class Font
     public readonly Dictionary<uint, CharacterInfo> Characters = new Dictionary<uint, CharacterInfo>();
     public readonly Dictionary<uint, Dictionary<uint, KerningPair>> KerningPairs = new();
 
-    private readonly Texture[] pageTextures;
+    private readonly TextureStore textures;
 
     private readonly OpenGLRenderer renderer;
 
-    public Font(OpenGLRenderer renderer, Stream stream)
+    public Font(OpenGLRenderer renderer, Stream stream, TextureStore backingTextureStore)
     {
         this.renderer = renderer;
+        textures = backingTextureStore;
 
         if (!isValidFontStream(stream))
             throw new InvalidDataException("Font provided is not a valid BMF format.");
@@ -86,9 +89,32 @@ public class Font
                 }
             }
         }
-
-        pageTextures = new Texture[CommonInfo.Pages];
     }
+
+    public TextureUsage getCharacterTexture(char character)
+    {
+        var charInfo = Characters[character];
+        var page = charInfo.PageNumber;
+
+        var texture = textures.Get(PageNames[page]);
+        return new TextureUsage(texture.BackingTexture,
+            new Rectangle<int>(charInfo.XPosition, charInfo.YPosition, charInfo.Width, charInfo.Height),
+            true);
+    }
+
+    public CharacterInfo getCharacterInfo(char character) => Characters[character];
+
+    public int GetKerningAmount(char firstChar, char secondChar)
+    {
+        if (!KerningPairs.TryGetValue(firstChar, out var dictionary))
+            return 0;
+
+        return !dictionary.TryGetValue(secondChar, out var kerningPair) ? 0 : kerningPair.Amount;
+    }
+
+    public int getLineHeight() => CommonInfo.LineHeight;
+
+    public int getBaseLine() => CommonInfo.Baseline;
 
     private static readonly byte[] valid_header_template = { 66, 77, 70, 3 };
 

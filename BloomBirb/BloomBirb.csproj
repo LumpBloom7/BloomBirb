@@ -9,24 +9,25 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="NAudio.Core" Version="2.1.0"/>
-        <PackageReference Include="NLayer" Version="1.14.0"/>
-        <PackageReference Include="Silk.NET" Version="2.16.0"/>
-        <PackageReference Include="Silk.NET.OpenAL" Version="2.16.0"/>
-        <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3"/>
+        <PackageReference Include="NAudio.Core" Version="2.1.0" />
+        <PackageReference Include="NLayer" Version="1.14.0" />
+        <PackageReference Include="Silk.NET" Version="2.16.0" />
+        <PackageReference Include="Silk.NET.OpenAL" Version="2.16.0" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Resources\**\*"/>
+        <EmbeddedResource Include="Resources\**\*" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Resources\Textures"/>
+        <Folder Include="Resources\Fonts\" />
+        <Folder Include="Resources\Textures" />
     </ItemGroup>
 
     <ItemGroup>
-        <Using Include="Silk.NET.Maths.Matrix4X4&lt;float&gt;" Alias="Matrix4"/>
-        <Using Include="Silk.NET.Maths.Matrix3X3&lt;float&gt;" Alias="Matrix3"/>
+        <Using Include="Silk.NET.Maths.Matrix4X4&lt;float&gt;" Alias="Matrix4" />
+        <Using Include="Silk.NET.Maths.Matrix3X3&lt;float&gt;" Alias="Matrix3" />
     </ItemGroup>
 
 </Project>

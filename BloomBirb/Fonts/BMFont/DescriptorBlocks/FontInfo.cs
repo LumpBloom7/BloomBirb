@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace BloomBirb.Font.BMFont.DescriptorBlocks;
+namespace BloomBirb.Fonts.BMFont.DescriptorBlocks;
 
 public readonly record struct FontInfo
 {
