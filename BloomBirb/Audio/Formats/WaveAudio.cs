@@ -51,7 +51,7 @@ public class WaveAudio : AudioBase
         while (Looping && count < targetBuffer.Length)
         {
             Time = TimeSpan.Zero;
-            count += waveReader.Read(targetBuffer, count * sampleSize, targetBuffer.Length - count);
+            count += waveReader.Read(targetBuffer, count, targetBuffer.Length - count);
         }
 
         if (!shouldConvert) return;
