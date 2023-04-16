@@ -14,6 +14,8 @@ public class WaveAudio : AudioBase
         set => waveReader.CurrentTime = value;
     }
 
+    public override TimeSpan Duration => waveReader.TotalTime;
+
     private readonly int sampleSize;
 
     // Used to indicate that conversion is necessary for OpenAL use
@@ -48,10 +50,20 @@ public class WaveAudio : AudioBase
 
         int count = waveReader.Read(targetBuffer, 0, targetBuffer.Length);
 
-        while (Looping && count < targetBuffer.Length)
+        if (count < targetBuffer.Length)
         {
-            Time = TimeSpan.Zero;
-            count += waveReader.Read(targetBuffer, count, targetBuffer.Length - count);
+            if (Looping)
+            {
+                while (count < targetBuffer.Length)
+                {
+                    Time = TimeSpan.Zero;
+                    count += waveReader.Read(targetBuffer, count, targetBuffer.Length - count);
+                }
+            }
+            else
+            {
+                Array.Fill(targetBuffer, (byte)0, count, targetBuffer.Length - count);
+            }
         }
 
         if (!shouldConvert) return;

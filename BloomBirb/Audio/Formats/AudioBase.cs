@@ -11,6 +11,10 @@ public abstract class AudioBase : IDisposable
 
     public abstract TimeSpan Time { get; set; }
 
+    public abstract TimeSpan Duration { get; }
+
+    public virtual bool Completed => !Looping && Time >= Duration;
+
     public bool Looping { get; set; }
 
     /// <summary>

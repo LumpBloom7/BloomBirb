@@ -11,8 +11,19 @@ public class Mp3Audio : AudioBase
     public override TimeSpan Time
     {
         get => mpegReader.Time;
-        set => mpegReader.Time = value;
+        set
+        {
+            mpegReader.Time = value;
+            completed = value >= Duration;
+        }
     }
+
+    // There's a precision error within mpegReader.Time setter
+    // So we must determine completion ourselves
+    private bool completed;
+    public override bool Completed => completed;
+
+    public override TimeSpan Duration => mpegReader.Duration;
 
     public Mp3Audio(Stream audioStream)
     {
@@ -43,11 +54,22 @@ public class Mp3Audio : AudioBase
 
         int count = mpegReader.ReadSamples(fetchBuffer, 0, numBytes);
 
-        // Implement loopback
-        while (Looping && count < numBytes)
+        // Reached end of file
+        if (count < numBytes)
         {
-            Time = TimeSpan.Zero;
-            count += mpegReader.ReadSamples(fetchBuffer, count, numBytes - count);
+            if (Looping) // Loop if needed
+            {
+                while (count < numBytes)
+                {
+                    Time = TimeSpan.Zero;
+                    count += mpegReader.ReadSamples(fetchBuffer, count, numBytes - count);
+                }
+            }
+            else
+            {
+                completed = true;
+                Array.Fill(fetchBuffer, (byte)0, count, numBytes - count);
+            }
         }
 
         FloatToPcm16(destinationBuffer, fetchBuffer.AsSpan(0, numBytes));

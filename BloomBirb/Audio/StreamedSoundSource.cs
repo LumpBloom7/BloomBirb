@@ -56,14 +56,23 @@ public class StreamedSoundSource : AudioSource
         if (emptyBuffers.IsEmpty)
             return;
 
+        int filledBuffers = 0;
+
         foreach (uint buffer in emptyBuffers)
         {
+            if (Audio.Completed)
+                break;
+
             Audio.ReadNextSamples(loadBuffer);
             OpenAl.Al.BufferData(buffer, Audio.Format, loadBuffer, Audio.SampleRate);
+            filledBuffers++;
         }
 
         fixed (uint* emptyBuffersPtr = emptyBuffers)
-            OpenAl.Al.SourceQueueBuffers(Source, emptyBuffers.Length, emptyBuffersPtr);
+            OpenAl.Al.SourceQueueBuffers(Source, filledBuffers, emptyBuffersPtr);
+
+        if (Audio.Completed)
+            stopped = true;
     }
 
     public override void Play()
