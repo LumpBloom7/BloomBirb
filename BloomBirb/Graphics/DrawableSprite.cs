@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL;
@@ -8,33 +9,38 @@ namespace BloomBirb.Graphics;
 
 public class DrawableSprite : Drawable
 {
-    public override bool IsTranslucent => texture.HasTransparencies || base.IsTranslucent;
+    public override bool IsTranslucent => (Texture?.HasTransparencies ?? false) || base.IsTranslucent;
 
-    private TextureUsage texture { get; set; }
+    public TextureUsage? Texture { get; set; } = null;
     private Shader shader { get; set; }
 
-    public DrawableSprite(TextureUsage texture, Shader shader)
+    public DrawableSprite(Shader shader)
     {
-        this.texture = texture;
         this.shader = shader;
     }
 
     public override void QueueDraw(OpenGLRenderer renderer)
     {
-        renderer.QueueDrawable(this, shader, texture, IsTranslucent);
+        if (Texture is null)
+            return;
+
+        renderer.QueueDrawable(this, shader, Texture, IsTranslucent);
     }
 
     public override void Draw(OpenGLRenderer renderer)
     {
+        if (Texture is null)
+            return;
+
         base.Draw(renderer);
         renderer.UseBatch<QuadBatch<DepthWrappingVertex<TexturedVertex2D>>>();
 
         shader.Bind();
-        texture.Bind();
+        Texture.Bind();
 
-        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.TopLeft, DrawColour, new Vector2(0, 1), texture), DrawDepth));
-        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.BottomLeft, DrawColour, new Vector2(0, 0), texture), DrawDepth));
-        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.BottomRight, DrawColour, new Vector2(1, 0), texture), DrawDepth));
-        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.TopRight, DrawColour, new Vector2(1, 1), texture), DrawDepth));
+        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.TopLeft, DrawColour, new Vector2(0, 1), Texture), DrawDepth));
+        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.BottomLeft, DrawColour, new Vector2(0, 0), Texture), DrawDepth));
+        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.BottomRight, DrawColour, new Vector2(1, 0), Texture), DrawDepth));
+        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.TopRight, DrawColour, new Vector2(1, 1), Texture), DrawDepth));
     }
 }

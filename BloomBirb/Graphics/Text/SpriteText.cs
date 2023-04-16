@@ -16,12 +16,11 @@ public class SpriteText : CompositeDrawable<DrawableSprite>
     private Shader spriteShader;
     public Font Font { get; set; }
 
-    private string text;
+    private string text = "";
 
     public string Text
     {
         get => text;
-
 
         set
         {
@@ -31,49 +30,61 @@ public class SpriteText : CompositeDrawable<DrawableSprite>
         }
     }
 
+    private List<int> cursorPosList = new List<int>();
+
     private List<DrawableSprite> glyphs = new List<DrawableSprite>();
 
-    private void layoutGlyphs(string newText, string? oldText)
+    private void layoutGlyphs(string newText, string oldText)
     {
         int changeBeginIndex = 0;
+        int cursorPos = 0;
 
-        /*// We don't wanna recalculate unchanged parts
-        if (oldText is not null)
+        // Find change start index
+        for (int i = 0; i < newText.Length && i < oldText.Length; ++i)
         {
-            for (int i = 0; i < newText.Length && i < oldText.Length; ++i)
-            {
-                if (newText[i] != oldText[i])
-                    break;
+            if (newText[i] != oldText[i])
+                break;
 
-                changeBeginIndex++;
-            }
-        }*/
-
-        foreach (var glyph in glyphs)
-        {
-            Remove(glyph);
+            changeBeginIndex++;
+            cursorPos = cursorPosList[i];
         }
-        glyphs.Clear();
 
-        int currentPosX = 0;
         int baseLine = Font.GetBaseLine();
-
         int yPos = Font.GetLineHeight() - Font.GetBaseLine();
+
+        // Clear excess sprites
+        for (int i = glyphs.Count - 1; i >= newText.Length-1; --i)
+        {
+            Remove(glyphs[i]);
+            glyphs.RemoveAt(i);
+            cursorPosList.RemoveAt(i);
+        }
+
         for (int i = changeBeginIndex; i < newText.Length; ++i)
         {
+            // need new sprite
+            if (glyphs.Count == i)
+            {
+                var sprite = new DrawableSprite(spriteShader);
+                glyphs.Add(sprite);
+                Add(sprite);
+                cursorPosList.Add(0);
+            }
+
             var glyphTexture = Font.GetCharacterTexture(newText[i]);
             var charInfo = Font.GetCharacterInfo(newText[i]);
-            var kerningAmount = (i > 0) ? Font.GetKerningAmount(newText[i - 1], newText[i]) : 0;
+            int kerningAmount = (i > 0) ? Font.GetKerningAmount(newText[i - 1], newText[i]) : 0;
+            int dip = Math.Max(0, charInfo.Height + charInfo.YOffset - baseLine);
 
-            var dip = Math.Max(0, charInfo.Height + charInfo.YOffset - baseLine);
+            glyphs[i].Texture = glyphTexture;
+            glyphs[i].Position = new Vector2(cursorPos + charInfo.XOffset + kerningAmount, yPos - dip);
+            glyphs[i].Size = new Vector2(charInfo.Width, charInfo.Height);
 
-            var glyph = new DrawableSprite(glyphTexture, spriteShader);
-            //currentPosX += charInfo.XOffset;
-            glyph.Position = new Vector2(currentPosX + charInfo.XOffset + kerningAmount , yPos - dip);
-            glyph.Size = new Vector2(charInfo.Width, charInfo.Height);
-            currentPosX += charInfo.XAdvance + kerningAmount;
-            glyphs.Add(glyph);
-            Add(glyph);
+            cursorPos += charInfo.XAdvance + kerningAmount;
+            cursorPosList[i] = cursorPos;
         }
+
+
+
     }
 }
