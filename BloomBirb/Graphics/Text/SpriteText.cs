@@ -56,13 +56,13 @@ public class SpriteText : CompositeDrawable<DrawableSprite>
         glyphs.Clear();
 
         int currentPosX = 0;
-        int baseLine = Font.getBaseLine();
+        int baseLine = Font.GetBaseLine();
 
-        int yPos = Font.getLineHeight() - Font.getBaseLine();
+        int yPos = Font.GetLineHeight() - Font.GetBaseLine();
         for (int i = changeBeginIndex; i < newText.Length; ++i)
         {
-            var glyphTexture = Font.getCharacterTexture(newText[i]);
-            var charInfo = Font.getCharacterInfo(newText[i]);
+            var glyphTexture = Font.GetCharacterTexture(newText[i]);
+            var charInfo = Font.GetCharacterInfo(newText[i]);
             var kerningAmount = (i > 0) ? Font.GetKerningAmount(newText[i - 1], newText[i]) : 0;
 
             var dip = Math.Max(0, charInfo.Height + charInfo.YOffset - baseLine);

@@ -91,7 +91,7 @@ public class Font
         }
     }
 
-    public TextureUsage getCharacterTexture(char character)
+    public TextureUsage GetCharacterTexture(char character)
     {
         var charInfo = Characters[character];
         var page = charInfo.PageNumber;
@@ -102,7 +102,7 @@ public class Font
             true);
     }
 
-    public CharacterInfo getCharacterInfo(char character) => Characters[character];
+    public CharacterInfo GetCharacterInfo(char character) => Characters[character];
 
     public int GetKerningAmount(char firstChar, char secondChar)
     {
@@ -112,9 +112,9 @@ public class Font
         return !dictionary.TryGetValue(secondChar, out var kerningPair) ? 0 : kerningPair.Amount;
     }
 
-    public int getLineHeight() => CommonInfo.LineHeight;
+    public int GetLineHeight() => CommonInfo.LineHeight;
 
-    public int getBaseLine() => CommonInfo.Baseline;
+    public int GetBaseLine() => CommonInfo.Baseline;
 
     private static readonly byte[] valid_header_template = { 66, 77, 70, 3 };
 
