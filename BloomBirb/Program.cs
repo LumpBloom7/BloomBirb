@@ -112,7 +112,7 @@ namespace BloomBirb
             gl.Context?.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
 
 
-            OpenAL.CreateContext();
+            OpenAl.CreateContext();
 
             audioSource = new StreamedSoundSource(audioStore.Get("blue")!)
             {
@@ -121,7 +121,7 @@ namespace BloomBirb
                 Looping = true,
             };
 
-            //audioSource.Play();
+            audioSource.Play();
         }
 
         private static float x = 0;

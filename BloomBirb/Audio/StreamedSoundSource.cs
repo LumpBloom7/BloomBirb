@@ -1,4 +1,4 @@
-using BloomBirb.Audio.Format;
+using BloomBirb.Audio.Formats;
 using Silk.NET.OpenAL;
 
 namespace BloomBirb.Audio;
@@ -27,7 +27,7 @@ public class StreamedSoundSource : AudioSource
 
     public StreamedSoundSource(AudioBase audio) : base(audio)
     {
-        buffers = OpenAL.AL.GenBuffers(4);
+        buffers = OpenAl.Al.GenBuffers(4);
         freeBuffers = new uint[4];
     }
 
@@ -35,13 +35,13 @@ public class StreamedSoundSource : AudioSource
     {
         while (!stopped)
         {
-            OpenAL.AL.GetSourceProperty(Source, GetSourceInteger.BuffersProcessed, out int count);
+            OpenAl.Al.GetSourceProperty(Source, GetSourceInteger.BuffersProcessed, out int count);
 
             if (count == 0)
                 continue;
 
-            fixed (uint* freeBuffers_ = freeBuffers)
-                OpenAL.AL.SourceUnqueueBuffers(Source, count, freeBuffers_);
+            fixed (uint* freeBuffersPtr = freeBuffers)
+                OpenAl.Al.SourceUnqueueBuffers(Source, count, freeBuffersPtr);
 
             fillAndQueueBuffers(freeBuffers.AsSpan(0, count));
         }
@@ -56,27 +56,29 @@ public class StreamedSoundSource : AudioSource
         if (emptyBuffers.IsEmpty)
             return;
 
-        for (int i = 0; i < emptyBuffers.Length; ++i)
+        foreach (uint buffer in emptyBuffers)
         {
             Audio.ReadNextSamples(loadBuffer);
-            OpenAL.AL.BufferData(emptyBuffers[i], Audio.Format, loadBuffer, Audio.SampleRate);
+            OpenAl.Al.BufferData(buffer, Audio.Format, loadBuffer, Audio.SampleRate);
         }
 
-        fixed (uint* filledBuffers = emptyBuffers)
-            OpenAL.AL.SourceQueueBuffers(Source, emptyBuffers.Length, filledBuffers);
+        fixed (uint* emptyBuffersPtr = emptyBuffers)
+            OpenAl.Al.SourceQueueBuffers(Source, emptyBuffers.Length, emptyBuffersPtr);
     }
 
     public override void Play()
     {
-        if (!stopped && !paused)
-            return;
-
-        if (stopped)
+        switch (stopped)
         {
-            fillAndQueueBuffers(buffers.AsSpan());
+            case false when !paused:
+                return;
 
-            bufferThread = new Thread(bufferLoop);
-            bufferThread.Start();
+            case true:
+                fillAndQueueBuffers(buffers.AsSpan());
+
+                bufferThread = new Thread(bufferLoop);
+                bufferThread.Start();
+                break;
         }
 
         stopped = paused = false;
@@ -109,6 +111,6 @@ public class StreamedSoundSource : AudioSource
         Stop();
         base.Dispose(disposing);
 
-        OpenAL.AL.DeleteBuffers(buffers);
+        OpenAl.Al.DeleteBuffers(buffers);
     }
 }

@@ -1,13 +1,13 @@
 using NAudio.Wave;
 using Silk.NET.OpenAL;
 
-namespace BloomBirb.Audio.Format;
+namespace BloomBirb.Audio.Formats;
 
 public abstract class AudioBase : IDisposable
 {
     public abstract int SampleRate { get; }
 
-    public BufferFormat Format { get; protected set; }
+    public BufferFormat Format { get; protected init; }
 
     public abstract TimeSpan Time { get; set; }
 
@@ -54,21 +54,23 @@ public abstract class AudioBase : IDisposable
         {
             if (bitsPerSample == 8)
                 return BufferFormat.Mono8;
-            else if (bitsPerSample == 16)
+
+            if (bitsPerSample == 16)
                 return BufferFormat.Mono16;
         }
         else if (channels == 2)
         {
             if (bitsPerSample == 8)
                 return BufferFormat.Stereo8;
-            else if (bitsPerSample == 16)
+
+            if (bitsPerSample == 16)
                 return BufferFormat.Stereo16;
         }
 
         throw new Exception("Wave format not supported.");
     }
 
-    protected static void ToPCM16(byte[] destination, Span<byte> pcmSamples, int sampleSize)
+    protected static void ToPcm16(byte[] destination, Span<byte> pcmSamples, int sampleSize)
     {
         for (int i = 0; i < pcmSamples.Length / sampleSize; ++i)
         {
@@ -87,7 +89,7 @@ public abstract class AudioBase : IDisposable
         }
     }
 
-    protected void FloatToPCM16(byte[] destination, Span<byte> floatSamples)
+    protected void FloatToPcm16(byte[] destination, Span<byte> floatSamples)
     {
         for (int i = 0; i < floatSamples.Length / sizeof(float); ++i)
         {
@@ -107,11 +109,12 @@ public abstract class AudioBase : IDisposable
     private float normalizeFloat(float value)
     {
         float maxRange = Math.Abs(value);
-        if (maxFloatDivisor < maxRange)
-        {
-            maxFloatDivisor = maxRange;
-            floatNormalizeFactor = 1 / maxFloatDivisor;
-        }
+
+        if (maxFloatDivisor >= maxRange)
+            return value * floatNormalizeFactor;
+
+        maxFloatDivisor = maxRange;
+        floatNormalizeFactor = 1 / maxFloatDivisor;
 
         return value * floatNormalizeFactor;
     }

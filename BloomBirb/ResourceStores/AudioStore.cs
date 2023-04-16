@@ -1,19 +1,17 @@
-using System.Reflection;
-using BloomBirb.Audio.Format;
+using BloomBirb.Audio.Formats;
 
 namespace BloomBirb.ResourceStores;
 
 public class AudioStore
 {
-    private static readonly string[] lookup_extensions = new string[]
-    {
+    private static readonly string[] lookup_extensions = {
         "",
         ".wav",
         ".mp3"
     };
 
-    private IResourceStore resources;
-    private string prefix;
+    private readonly IResourceStore resources;
+    private readonly string prefix;
 
     public AudioStore(IResourceStore resources, string prefix = "Audio")
     {
@@ -35,7 +33,7 @@ public class AudioStore
                 return new WaveAudio(stream);
 
             if (fullPath.EndsWith(".mp3"))
-                return new MP3Audio(stream);
+                return new Mp3Audio(stream);
         }
 
         throw new FileNotFoundException(path);

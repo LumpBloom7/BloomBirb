@@ -1,4 +1,4 @@
-using BloomBirb.Audio.Format;
+using BloomBirb.Audio.Formats;
 using Silk.NET.OpenAL;
 
 namespace BloomBirb.Audio;
@@ -9,10 +9,10 @@ public class SoundSource : AudioSource
     {
         get
         {
-            OpenAL.AL.GetSourceProperty(Source, SourceFloat.SecOffset, out float seconds);
+            OpenAl.Al.GetSourceProperty(Source, SourceFloat.SecOffset, out float seconds);
             return TimeSpan.FromSeconds(seconds);
         }
-        set => OpenAL.AL.SetSourceProperty(Source, SourceFloat.SecOffset, (float)value.TotalSeconds);
+        set => OpenAl.Al.SetSourceProperty(Source, SourceFloat.SecOffset, (float)value.TotalSeconds);
     }
 
     private bool looping;
@@ -22,10 +22,11 @@ public class SoundSource : AudioSource
         get => looping;
         set
         {
-            if (looping != value)
-                looping = value;
+            if (looping == value)
+                return;
 
-            OpenAL.AL.SetSourceProperty(Source, SourceBoolean.Looping, looping);
+            looping = value;
+            OpenAl.Al.SetSourceProperty(Source, SourceBoolean.Looping, looping);
         }
     }
 
@@ -33,11 +34,11 @@ public class SoundSource : AudioSource
 
     public SoundSource(AudioBase audio) : base(audio)
     {
-        buffer = OpenAL.AL.GenBuffer();
+        buffer = OpenAl.Al.GenBuffer();
 
         byte[] audioData = audio.ReadAllSamples();
 
-        OpenAL.AL.BufferData(buffer, audio.Format, audioData, audio.SampleRate);
+        OpenAl.Al.BufferData(buffer, audio.Format, audioData, audio.SampleRate);
     }
 
     protected override void Dispose(bool disposing)
@@ -46,6 +47,6 @@ public class SoundSource : AudioSource
             return;
 
         base.Dispose(disposing);
-        OpenAL.AL.DeleteBuffer(buffer);
+        OpenAl.Al.DeleteBuffer(buffer);
     }
 }

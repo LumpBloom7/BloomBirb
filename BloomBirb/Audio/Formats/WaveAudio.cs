@@ -1,6 +1,6 @@
 using NAudio.Wave;
 
-namespace BloomBirb.Audio.Format;
+namespace BloomBirb.Audio.Formats;
 
 public class WaveAudio : AudioBase
 {
@@ -14,10 +14,10 @@ public class WaveAudio : AudioBase
         set => waveReader.CurrentTime = value;
     }
 
-    private int sampleSize;
+    private readonly int sampleSize;
 
     // Used to indicate that conversion is necessary for OpenAL use
-    private bool shouldConvert;
+    private readonly bool shouldConvert;
 
     public WaveAudio(Stream audioStream)
     {
@@ -31,7 +31,6 @@ public class WaveAudio : AudioBase
     // A wave file may contain 24 or 32 bit data, which needs to be converted to 16bits
     // This will be used as an intermediate buffer if that is the case.
     private byte[]? fetchBuffer;
-
 
     public override void ReadNextSamples(byte[] destinationBuffer)
     {
@@ -49,19 +48,18 @@ public class WaveAudio : AudioBase
 
         int count = waveReader.Read(targetBuffer, 0, targetBuffer.Length);
 
-        if (Looping && count < targetBuffer.Length)
+        while (Looping && count < targetBuffer.Length)
         {
             Time = TimeSpan.Zero;
-            waveReader.Read(targetBuffer, count * sampleSize, targetBuffer.Length - count);
+            count += waveReader.Read(targetBuffer, count * sampleSize, targetBuffer.Length - count);
         }
 
-        if (shouldConvert)
-        {
-            if (waveReader.WaveFormat.Encoding == WaveFormatEncoding.IeeeFloat)
-                FloatToPCM16(destinationBuffer, targetBuffer.AsSpan());
-            else
-                ToPCM16(destinationBuffer, targetBuffer.AsSpan(), sampleSize);
-        }
+        if (!shouldConvert) return;
+
+        if (waveReader.WaveFormat.Encoding == WaveFormatEncoding.IeeeFloat)
+            FloatToPcm16(destinationBuffer, targetBuffer.AsSpan());
+        else
+            ToPcm16(destinationBuffer, targetBuffer.AsSpan(), sampleSize);
     }
 
     public override void ReadSamples(byte[] destinationBuffer, int begin)

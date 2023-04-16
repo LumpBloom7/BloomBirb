@@ -1,4 +1,4 @@
-using BloomBirb.Audio.Format;
+using BloomBirb.Audio.Formats;
 using Silk.NET.OpenAL;
 
 namespace BloomBirb.Audio;
@@ -14,7 +14,7 @@ public abstract class AudioSource : IDisposable
     public float Volume
     {
         get => volume;
-        set => OpenAL.AL.SetSourceProperty(Source, SourceFloat.Gain, volume = value);
+        set => OpenAl.Al.SetSourceProperty(Source, SourceFloat.Gain, volume = value);
     }
 
     private float speed = 1;
@@ -22,7 +22,7 @@ public abstract class AudioSource : IDisposable
     public float Speed
     {
         get => speed;
-        set => OpenAL.AL.SetSourceProperty(Source, SourceFloat.Pitch, speed = value);
+        set => OpenAl.Al.SetSourceProperty(Source, SourceFloat.Pitch, speed = value);
     }
 
     public abstract TimeSpan Time { get; set; }
@@ -32,14 +32,14 @@ public abstract class AudioSource : IDisposable
     public AudioSource(AudioBase audio)
     {
         Audio = audio;
-        Source = OpenAL.AL.GenSource();
+        Source = OpenAl.Al.GenSource();
     }
 
-    public virtual void Play() => OpenAL.AL.SourcePlay(Source);
+    public virtual void Play() => OpenAl.Al.SourcePlay(Source);
 
-    public virtual void Stop() => OpenAL.AL.SourceStop(Source);
+    public virtual void Stop() => OpenAl.Al.SourceStop(Source);
 
-    public virtual void Pause() => OpenAL.AL.SourcePause(Source);
+    public virtual void Pause() => OpenAl.Al.SourcePause(Source);
 
     protected bool IsDisposed;
 
@@ -53,7 +53,7 @@ public abstract class AudioSource : IDisposable
             Audio.Dispose();
         }
 
-        OpenAL.AL.DeleteSource(Source);
+        OpenAl.Al.DeleteSource(Source);
         IsDisposed = true;
     }
 

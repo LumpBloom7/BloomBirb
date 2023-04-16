@@ -1,12 +1,12 @@
 using NLayer;
 
-namespace BloomBirb.Audio.Format;
+namespace BloomBirb.Audio.Formats;
 
-public class MP3Audio : AudioBase
+public class Mp3Audio : AudioBase
 {
     public override int SampleRate => mpegReader.SampleRate;
 
-    private MpegFile mpegReader;
+    private readonly MpegFile mpegReader;
 
     public override TimeSpan Time
     {
@@ -14,7 +14,7 @@ public class MP3Audio : AudioBase
         set => mpegReader.Time = value;
     }
 
-    public MP3Audio(Stream audioStream)
+    public Mp3Audio(Stream audioStream)
     {
         mpegReader = new MpegFile(audioStream);
         Format = ConvertToBufferFormat(16, mpegReader.Channels);
@@ -44,13 +44,13 @@ public class MP3Audio : AudioBase
         int count = mpegReader.ReadSamples(fetchBuffer, 0, numBytes);
 
         // Implement loopback
-        if (Looping && count < numBytes)
+        while (Looping && count < numBytes)
         {
             Time = TimeSpan.Zero;
-            mpegReader.ReadSamples(fetchBuffer, count, numBytes - count);
+            count += mpegReader.ReadSamples(fetchBuffer, count, numBytes - count);
         }
 
-        FloatToPCM16(destinationBuffer, fetchBuffer.AsSpan(0, numBytes));
+        FloatToPcm16(destinationBuffer, fetchBuffer.AsSpan(0, numBytes));
     }
 
     public override void ReadSamples(byte[] destinationBuffer, int begin)
