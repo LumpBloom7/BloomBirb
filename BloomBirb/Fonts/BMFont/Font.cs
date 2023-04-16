@@ -93,7 +93,9 @@ public class Font
 
     public TextureUsage GetCharacterTexture(char character)
     {
-        var charInfo = Characters[character];
+        if (!Characters.TryGetValue(character, out var charInfo))
+            charInfo = Characters['?'];
+
         var page = charInfo.PageNumber;
 
         var texture = textures.Get(PageNames[page]);
@@ -102,7 +104,13 @@ public class Font
             true);
     }
 
-    public CharacterInfo GetCharacterInfo(char character) => Characters[character];
+    public CharacterInfo GetCharacterInfo(char character)
+    {
+        if (!Characters.TryGetValue(character, out var charInfo))
+            charInfo = Characters['?'];
+
+        return charInfo;
+    }
 
     public int GetKerningAmount(char firstChar, char secondChar)
     {
