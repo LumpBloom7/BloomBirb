@@ -72,7 +72,7 @@ namespace BloomBirb
             audioStore = new AudioStore(resources);
 
             var fontTextures = new TextureStore(gl, resources, "Fonts");
-            var fontStream = typeof(Font).Assembly.GetManifestResourceStream("BloomBirb.Resources.Fonts.test.fnt")!;
+            var fontStream = typeof(Font).Assembly.GetManifestResourceStream("BloomBirb.Resources.Fonts.OpenSans.fnt")!;
             var font = new Font(gl, fontStream, fontTextures);
 
             spriteShader = shaders.Get("Texture", "Texture")!;
@@ -92,8 +92,9 @@ namespace BloomBirb
             for (int i = 0; i < 10000; ++i)
             {
                 var tex = textures.Get(randomTexture(rng.Next(5)))!;
-                var sprite = new DrawableSprite(tex, spriteShader)
+                var sprite = new DrawableSprite(spriteShader)
                 {
+                    Texture = tex,
                     Position = new Vector2(rng.Next(1920), rng.Next(1080)),
                     Size = new Vector2(rng.Next(800), rng.Next(800)),
                     Scale = new Vector2(rng.NextSingle(), rng.NextSingle()),
@@ -126,11 +127,21 @@ namespace BloomBirb
 
         private static float x = 0;
 
+        private static int framesMade = 0;
+        private static double timeElapsed = 0;
         private static void onRender(double obj)
         {
             gl?.BeginFrame();
 
-            text.Text = $"FPS: {(int)(1/obj)}";
+            timeElapsed += obj;
+
+            if(timeElapsed > 0.5)
+            {
+                text.Text = $"Frametime 拼: {((timeElapsed * 1000) / framesMade):F5}";
+                framesMade = 0;
+                timeElapsed = 0;
+            };
+            framesMade++;
 
             x = (x + (float)obj * 30) % 360;
 
