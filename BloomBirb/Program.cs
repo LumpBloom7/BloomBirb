@@ -26,7 +26,7 @@ namespace BloomBirb
         private static TextureStore? textures;
         private static AudioStore? audioStore;
 
-        private static void Main(string[] args)
+        public static void Main(string[] args)
         {
             var options = WindowOptions.Default;
             options.Size = new Vector2D<int>(1024, 768);
@@ -73,7 +73,7 @@ namespace BloomBirb
 
             var fontTextures = new TextureStore(gl, resources, "Fonts");
             var fontStream = typeof(Font).Assembly.GetManifestResourceStream("BloomBirb.Resources.Fonts.OpenSans.fnt")!;
-            var font = new Font(gl, fontStream, fontTextures);
+            var font = new Font(fontStream, fontTextures);
 
             spriteShader = shaders.Get("Texture", "Texture")!;
 
@@ -83,7 +83,6 @@ namespace BloomBirb
             onResize(window.Size);
 
             text = new SpriteText(spriteShader, font);
-            text.Text = "@";
 
             Random rng = Random.Shared;
 

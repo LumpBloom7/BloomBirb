@@ -1,6 +1,5 @@
 using System.Text;
 using BloomBirb.Fonts.BMFont.DescriptorBlocks;
-using BloomBirb.Renderers.OpenGL;
 using BloomBirb.Renderers.OpenGL.Textures;
 using BloomBirb.ResourceStores;
 using Silk.NET.Maths;
@@ -11,17 +10,14 @@ public class Font
 {
     public readonly FontInfo FontInfo;
     public readonly Common CommonInfo;
-    public readonly string[] PageNames;
+    public readonly string[] PageNames = null!;
     public readonly Dictionary<uint, CharacterInfo> Characters = new Dictionary<uint, CharacterInfo>();
     public readonly Dictionary<uint, Dictionary<uint, KerningPair>> KerningPairs = new();
 
     private readonly TextureStore textures;
 
-    private readonly OpenGLRenderer renderer;
-
-    public Font(OpenGLRenderer renderer, Stream stream, TextureStore backingTextureStore)
+    public Font(Stream stream, TextureStore backingTextureStore)
     {
-        this.renderer = renderer;
         textures = backingTextureStore;
 
         if (!isValidFontStream(stream))
@@ -96,7 +92,7 @@ public class Font
         if (!Characters.TryGetValue(character, out var charInfo))
             charInfo = Characters['?'];
 
-        var page = charInfo.PageNumber;
+        ushort page = charInfo.PageNumber;
 
         var texture = textures.Get(PageNames[page]);
         return new TextureUsage(texture.BackingTexture,
@@ -131,7 +127,7 @@ public class Font
         if (!stream.CanRead)
             return false;
 
-        var header = new byte[4];
+        byte[] header = new byte[4];
 
         stream.ReadExactly(header, 0, 4);
 
