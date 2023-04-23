@@ -18,7 +18,7 @@ namespace BloomBirb
     public class Program
     {
         private static IWindow? window;
-        private static OpenGLRenderer? gl;
+        private static OpenGlRenderer? gl;
 
         private static EmbeddedResourceStore? resources;
 
@@ -60,7 +60,7 @@ namespace BloomBirb
                 input.Keyboards[i].KeyDown += onKeyDown;
             }
 
-            gl = new OpenGLRenderer();
+            gl = new OpenGlRenderer();
 
 
             //Instantiating our new abstractions

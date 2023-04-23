@@ -9,7 +9,7 @@ public interface IVertexBatch<T> : IVertexBatch where T : unmanaged, IEquatable<
 
 public interface IVertexBatch
 {
-    void Initialize(OpenGLRenderer renderer, int bufferSize, int maxNumberOfBuffers);
+    void Initialize(OpenGlRenderer renderer, int bufferSize, int maxNumberOfBuffers);
     void FlushBatch();
     void ResetBatch();
 }

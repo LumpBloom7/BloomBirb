@@ -1,5 +1,6 @@
 using BloomBirb.Graphics;
 using BloomBirb.Renderers.OpenGL;
+using BloomBirb.Renderers.OpenGL.Textures;
 
 namespace BloomBirb.Renderers;
 
@@ -20,7 +21,7 @@ public class DrawableBatchTree
         node.Add(texture, drawable);
     }
 
-    public void DrawAll(OpenGLRenderer renderer)
+    public void DrawAll(OpenGlRenderer renderer)
     {
         while (list.TryDequeue(out var shaderNode))
             shaderNode.DrawAll(renderer);
@@ -46,7 +47,7 @@ public class ShaderNode
         node.Add(drawable);
     }
 
-    public void DrawAll(OpenGLRenderer renderer)
+    public void DrawAll(OpenGlRenderer renderer)
     {
         while (list.TryDequeue(out var textureNode))
             textureNode.DrawAll(renderer);
@@ -61,7 +62,7 @@ public class TextureNode
 
     public void Add(Drawable drawable) => drawableQueue.Enqueue(drawable);
 
-    public void DrawAll(OpenGLRenderer renderer)
+    public void DrawAll(OpenGlRenderer renderer)
     {
         while (drawableQueue.TryDequeue(out var drawable))
             drawable.Draw(renderer);

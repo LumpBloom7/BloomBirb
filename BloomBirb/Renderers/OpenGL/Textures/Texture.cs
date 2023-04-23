@@ -10,7 +10,7 @@ public class Texture : ITexture, IDisposable
 {
     public uint TextureHandle { get; private set; }
 
-    private readonly OpenGLRenderer renderer;
+    private readonly OpenGlRenderer renderer;
 
     public bool HasTransparency { get; private set; }
 
@@ -18,7 +18,7 @@ public class Texture : ITexture, IDisposable
 
     protected int MipMapLevels { get; private set; }
 
-    public Texture(OpenGLRenderer renderer, int mipLevels = 4)
+    public Texture(OpenGlRenderer renderer, int mipLevels = 4)
     {
         this.renderer = renderer;
         MipMapLevels = mipLevels;
@@ -42,7 +42,7 @@ public class Texture : ITexture, IDisposable
 
     public void SetPixel(int offsetX, int offsetY, Rgba32 pixel)
     {
-        renderer.Context?.TexSubImage2D(TextureTarget.Texture2D, 0, offsetX, offsetY, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, in pixel);
+        renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, offsetX, offsetY, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, in pixel);
     }
 
     protected void PaintRectangle(Rectangle<int> rect, Rgba32 pixel)
@@ -57,7 +57,7 @@ public class Texture : ITexture, IDisposable
         unsafe
         {
             fixed (void* data = pixels)
-                renderer.Context?.TexSubImage2D(TextureTarget.Texture2D, 0, rect.Origin.X, rect.Origin.Y, (uint)rect.Size.X, (uint)rect.Size.Y, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+                renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, rect.Origin.X, rect.Origin.Y, (uint)rect.Size.X, (uint)rect.Size.Y, PixelFormat.Rgba, PixelType.UnsignedByte, data);
         }
     }
 
@@ -93,7 +93,7 @@ public class Texture : ITexture, IDisposable
                 }
 
                 fixed (void* data = paddedRow)
-                    renderer.Context?.TexSubImage2D(TextureTarget.Texture2D, 0, paddedOffsetX, paddedOffsetY + i, (uint)paddedWidth, 1, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+                    renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, paddedOffsetX, paddedOffsetY + i, (uint)paddedWidth, 1, PixelFormat.Rgba, PixelType.UnsignedByte, data);
             }
         });
 
@@ -103,16 +103,16 @@ public class Texture : ITexture, IDisposable
     private void setParameters()
     {
         // Set some parameters
-        renderer.Context?.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);
-        renderer.Context?.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
-        renderer.Context?.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);
+        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
+        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
             (int)GLEnum.LinearMipmapLinear);
-        renderer.Context?.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
-        renderer.Context?.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
-        renderer.Context?.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, MipMapLevels);
+        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
+        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
+        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, MipMapLevels);
     }
 
-    private void generateMipmap() => renderer.Context?.GenerateMipmap(TextureTarget.Texture2D);
+    private void generateMipmap() => renderer.Context.GenerateMipmap(TextureTarget.Texture2D);
 
     public void Bind() => renderer.BindTexture(this);
 
@@ -128,7 +128,7 @@ public class Texture : ITexture, IDisposable
         if (isDisposed)
             return;
 
-        renderer.Context?.DeleteTexture(TextureHandle);
+        renderer.Context.DeleteTexture(TextureHandle);
         isDisposed = true;
     }
 

@@ -4,14 +4,14 @@ namespace BloomBirb.Renderers.OpenGL.Textures;
 
 public class TextureWhitePixel : TextureUsage
 {
-    public TextureWhitePixel(OpenGLRenderer renderer)
+    public TextureWhitePixel(OpenGlRenderer renderer)
         : base(new DummyTexture(renderer), new(0, 0, 1, 1), false)
     {
     }
 
     private class DummyTexture : ITexture, IDisposable
     {
-        private OpenGLRenderer renderer;
+        private OpenGlRenderer renderer;
 
         private static Texture? fallbackTex;
         private ITexture fallbackTexture
@@ -29,7 +29,7 @@ public class TextureWhitePixel : TextureUsage
             }
         }
 
-        public DummyTexture(OpenGLRenderer renderer)
+        public DummyTexture(OpenGlRenderer renderer)
         {
             this.renderer = renderer;
         }

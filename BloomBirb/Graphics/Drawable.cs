@@ -33,11 +33,11 @@ public abstract class Drawable
 
     public virtual bool IsTranslucent => DrawColour.W < 1f && DrawColour.W > 0.1f;
 
-    public virtual void QueueDraw(OpenGLRenderer renderer)
+    public virtual void QueueDraw(OpenGlRenderer renderer)
     {
     }
 
-    public virtual void Draw(OpenGLRenderer renderer)
+    public virtual void Draw(OpenGlRenderer renderer)
     {
     }
 

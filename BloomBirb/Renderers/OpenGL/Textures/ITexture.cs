@@ -1,6 +1,6 @@
 using SixLabors.ImageSharp;
 
-namespace BloomBirb.Renderers.OpenGL;
+namespace BloomBirb.Renderers.OpenGL.Textures;
 
 public interface ITexture
 {

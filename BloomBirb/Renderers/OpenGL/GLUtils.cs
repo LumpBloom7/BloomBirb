@@ -6,9 +6,9 @@ using Silk.NET.OpenGL;
 
 namespace BloomBirb.Renderers.OpenGL;
 
-public static class GLUtils
+public static class GlUtils
 {
-    public static void SetVAO<T>(GL gl) where T : IVertex
+    public static void SetVao<T>(GL gl) where T : IVertex
     {
         int stride = Unsafe.SizeOf<T>();
 
@@ -19,14 +19,14 @@ public static class GLUtils
 
             unsafe
             {
-                gl.VertexAttribPointer((uint)i, attribute.Count, (GLEnum)toGLVertexAttribPointerType(attribute.AttributeType), false, (uint)stride, (void*)offset);
+                gl.VertexAttribPointer((uint)i, attribute.Count, (GLEnum)toGlVertexAttribPointerType(attribute.AttributeType), false, (uint)stride, (void*)offset);
             }
 
             gl.EnableVertexAttribArray((uint)i);
         }
     }
 
-    private static VertexAttribPointerType toGLVertexAttribPointerType(VertexAttributeType type)
+    private static VertexAttribPointerType toGlVertexAttribPointerType(VertexAttributeType type)
         => (VertexAttribPointerType)((int)type + (int)VertexAttribPointerType.Byte);
 
     private static List<(VertexMemberAttribute attribute, nint offset)> getVertexMembers(Type type ,nint offset = 0)

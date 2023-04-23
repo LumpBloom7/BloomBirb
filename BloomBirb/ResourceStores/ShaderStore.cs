@@ -8,20 +8,20 @@ namespace BloomBirb.ResourceStores;
 // TODO: This needs to be platform agnostic at some point
 public class ShaderStore : IDisposable
 {
-    private record shaderParts(uint Vert, uint Frag);
+    private record ShaderParts(uint Vert, uint Frag);
 
     private readonly string prefix;
 
-    private readonly Dictionary<shaderParts, Shader> shaderCache = new();
+    private readonly Dictionary<ShaderParts, Shader> shaderCache = new();
 
     private readonly Dictionary<string, uint> vertexParts = new();
     private readonly Dictionary<string, uint> fragParts = new();
 
     private readonly IResourceStore resources;
 
-    private readonly OpenGLRenderer renderer;
+    private readonly OpenGlRenderer renderer;
 
-    public ShaderStore(OpenGLRenderer renderer, IResourceStore resources, string prefix = "Shaders")
+    public ShaderStore(OpenGlRenderer renderer, IResourceStore resources, string prefix = "Shaders")
     {
         this.renderer = renderer;
         this.resources = resources;
@@ -33,7 +33,7 @@ public class ShaderStore : IDisposable
         uint vertHandle = getShaderPart(ShaderType.VertexShader, vertexPart);
         uint fragHandle = getShaderPart(ShaderType.FragmentShader, vertexPart);
 
-        shaderParts parts = new(vertHandle, fragHandle);
+        ShaderParts parts = new(vertHandle, fragHandle);
 
         if (!shaderCache.TryGetValue(parts, out var shader))
         {

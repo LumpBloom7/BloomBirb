@@ -10,17 +10,17 @@ using Texture = BloomBirb.Renderers.OpenGL.Textures.Texture;
 
 namespace BloomBirb.Renderers.OpenGL;
 
-public class OpenGLRenderer : IDisposable
+public class OpenGlRenderer : IDisposable
 {
-    public GL? Context = null;
+    public GL Context { get; private set; } = null!;
 
-    private static DebugProc debugProcCallback = debugCallback;
+    private static readonly DebugProc debug_proc_callback = debugCallback;
     private static GCHandle? debugProcCallbackHandle;
 
-    private static Texture[] textureUnits = new Texture[1];
+    private static readonly Texture?[] texture_units = new Texture[1];
     private static uint boundProgram;
 
-    private bool isInitialized = false;
+    private bool isInitialized;
 
     public TextureWhitePixel BlankTexture { get; private set; } = null!;
 
@@ -29,23 +29,20 @@ public class OpenGLRenderer : IDisposable
         if (isInitialized)
             return;
 
-        Context ??= GL.GetApi(window);
+        Context = GL.GetApi(window);
 
         enableDebugMessageCallback();
 
-        unsafe
-        {
-            Console.WriteLine($"GL Version: {Context.GetStringS(GLEnum.Version)}");
-            Console.WriteLine($"GL Vendor: {Context.GetStringS(GLEnum.Vendor)}");
-            Console.WriteLine($"GL Renderer: {Context.GetStringS(GLEnum.Renderer)}");
+        Console.WriteLine($"GL Version: {Context.GetStringS(GLEnum.Version)}");
+        Console.WriteLine($"GL Vendor: {Context.GetStringS(GLEnum.Vendor)}");
+        Console.WriteLine($"GL Renderer: {Context.GetStringS(GLEnum.Renderer)}");
 
-            int numExtensions = Context.GetInteger(GLEnum.NumExtensions);
-            Console.Write("GL Extensions: ");
-            for (int i = 0; i < numExtensions; ++i)
-                Console.Write($"{Context.GetStringS(GLEnum.Extensions, (uint)i)} ");
+        int numExtensions = Context.GetInteger(GLEnum.NumExtensions);
+        Console.Write("GL Extensions: ");
+        for (int i = 0; i < numExtensions; ++i)
+            Console.Write($"{Context.GetStringS(GLEnum.Extensions, (uint)i)} ");
 
-            Console.WriteLine();
-        }
+        Console.WriteLine();
 
         BlankTexture = new TextureWhitePixel(this);
 
@@ -55,8 +52,8 @@ public class OpenGLRenderer : IDisposable
     [Conditional("DEBUG")]
     private void enableDebugMessageCallback()
     {
-        debugProcCallbackHandle = GCHandle.Alloc(debugProcCallback);
-        Context.DebugMessageCallback(debugProcCallback, nint.Zero);
+        debugProcCallbackHandle = GCHandle.Alloc(debug_proc_callback);
+        Context.DebugMessageCallback(debug_proc_callback, nint.Zero);
         Context.Enable(EnableCap.DebugOutput);
         Context.Enable(EnableCap.DebugOutputSynchronous);
     }
@@ -67,14 +64,13 @@ public class OpenGLRenderer : IDisposable
             throw new InvalidOperationException("OpenGLRenderer is not initialized");
     }
 
-    public void Clear(ClearBufferMask bufferMask) => Context?.Clear((uint)bufferMask);
+    private void clear(ClearBufferMask bufferMask) => Context.Clear((uint)bufferMask);
 
     public Shader CreateShader(params uint[] shaderParts) => new(this, shaderParts);
 
     public uint CreateShaderPart(ShaderType type, string source)
     {
         ensureInitialized();
-        Debug.Assert(Context is not null);
 
         uint handle = Context.CreateShader(type);
 
@@ -88,84 +84,83 @@ public class OpenGLRenderer : IDisposable
 
         return handle;
     }
-    private uint currentVBO;
+
+    private uint currentVbo;
 
     public bool BindBuffer(uint buffer)
     {
-        if (currentVBO == buffer)
+        if (currentVbo == buffer)
             return false;
 
-        currentVBO = buffer;
-        Context?.BindBuffer(BufferTargetARB.ArrayBuffer, buffer);
+        currentVbo = buffer;
+        Context.BindBuffer(BufferTargetARB.ArrayBuffer, buffer);
         return true;
     }
 
-    private uint currentVAO;
+    private uint currentVao;
 
     public bool BindVertexArray(uint vaoHandle)
     {
-        if (currentVAO == vaoHandle)
+        if (currentVao == vaoHandle)
             return false;
 
-        currentVAO = vaoHandle;
-        Context?.BindVertexArray(vaoHandle);
+        currentVao = vaoHandle;
+        Context.BindVertexArray(vaoHandle);
         return true;
     }
 
-    public void BindShader(uint programID)
+    public void BindShader(uint programId)
     {
-        if (boundProgram == programID)
+        if (boundProgram == programId)
             return;
 
         currentVertexBatch?.FlushBatch();
 
-        boundProgram = programID;
-        Context?.UseProgram(programID);
+        boundProgram = programId;
+        Context.UseProgram(programId);
     }
 
     public void BindTexture(Texture texture, TextureUnit textureUnit = TextureUnit.Texture0)
     {
         int textureUnitIndex = textureUnit - TextureUnit.Texture0;
-        if (textureUnits[textureUnitIndex] == texture)
+        if (texture_units[textureUnitIndex] == texture)
             return;
 
         currentVertexBatch?.FlushBatch();
 
-        textureUnits[textureUnitIndex] = texture;
+        texture_units[textureUnitIndex] = texture;
 
         // TODO: THIS IS A QUICK BODGE TO TEST THINGS, SEE RELATED UNIFORM IN SHADERS/SHARED.h
-        Context?.Uniform2(34, new System.Numerics.Vector2(texture.TextureSize.Width, texture.TextureSize.Height));
-        Context?.ActiveTexture(textureUnit);
-        Context?.BindTexture(TextureTarget.Texture2D, texture.TextureHandle);
+        Context.Uniform2(34, new System.Numerics.Vector2(texture.TextureSize.Width, texture.TextureSize.Height));
+        Context.ActiveTexture(textureUnit);
+        Context.BindTexture(TextureTarget.Texture2D, texture.TextureHandle);
     }
 
-    public ITexture? GetBoundTexture(TextureUnit textureUnit = TextureUnit.Texture0) => textureUnits[0];
+    public ITexture? GetBoundTexture(TextureUnit textureUnit = TextureUnit.Texture0) => texture_units[0];
 
-    public void Flush() => Context?.Flush();
 
     // <Render>
-
-    private DrawableBatchTree batchTree = new();
+    private readonly DrawableBatchTree batchTree = new();
 
     // This is the current active batch that the next vertex will be submitted to
     private IVertexBatch? currentVertexBatch;
 
     // All the batches that have been initialized so far
-    private Dictionary<Type, IVertexBatch> defaultBatches = new();
+    private readonly Dictionary<Type, IVertexBatch> defaultBatches = new();
 
-    private List<IVertexBatch> usedBatches = new();
+    private readonly List<IVertexBatch> usedBatches = new();
 
     // Attempts to initialize or reuse a batch we've already created
-    public void UseBatch<BatchType>() where BatchType : IVertexBatch, new()
+    public void UseBatch<TBatchType>() where TBatchType : IVertexBatch, new()
     {
-        if (currentVertexBatch is BatchType)
+        if (currentVertexBatch is TBatchType)
             return;
 
-        if (!defaultBatches.TryGetValue(typeof(BatchType), out IVertexBatch? batch))
+        if (!defaultBatches.TryGetValue(typeof(TBatchType), out IVertexBatch? batch))
         {
-            batch = new BatchType();
+            batch = new TBatchType();
             batch.Initialize(this, 1000, 1000);
-            defaultBatches[typeof(BatchType)] = batch;
+            defaultBatches[typeof(TBatchType)] = batch;
         }
 
         currentVertexBatch?.FlushBatch();
@@ -173,13 +168,13 @@ public class OpenGLRenderer : IDisposable
         usedBatches.Add(batch);
     }
 
-    private Stack<Drawable> deferredDrawables = new();
+    private readonly Stack<Drawable> deferredDrawables = new();
 
     public void BeginFrame()
     {
-        Context?.DepthMask(true);
-        Context?.Disable(EnableCap.Blend);
-        Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        Context.DepthMask(true);
+        Context.Disable(EnableCap.Blend);
+        clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         DrawDepth.Reset();
 
         foreach (var batch in usedBatches)
@@ -190,15 +185,15 @@ public class OpenGLRenderer : IDisposable
         currentVertexBatch = null;
     }
 
-    public void QueueDrawable(Drawable drawable, Shader shader, TextureUsage texture, bool IsTranslucent = false)
+    public void QueueDrawable(Drawable drawable)
     {
         drawable.DrawDepth = DrawDepth.NextDepth;
         DrawDepth.Increment();
 
-        if (DrawDepth.NextDepth == 1.001f)
+        if (Math.Abs(DrawDepth.NextDepth - 1.001f) < float.Epsilon)
             batchTree.DrawAll(this);
 
-        if (IsTranslucent || DrawDepth.NextDepth > 1)
+        if (drawable.IsTranslucent || DrawDepth.NextDepth > 1)
         {
             deferredDrawables.Push(drawable);
             return;
@@ -207,10 +202,10 @@ public class OpenGLRenderer : IDisposable
         drawable.Draw(this);
     }
 
-    public void AddVertex<VertexType>(VertexType vertex)
-        where VertexType : unmanaged, IEquatable<VertexType>, IVertex
+    public void AddVertex<TVertexType>(TVertexType vertex)
+        where TVertexType : unmanaged, IEquatable<TVertexType>, IVertex
     {
-        ((IVertexBatch<VertexType>)currentVertexBatch!).AddVertex(vertex);
+        ((IVertexBatch<TVertexType>)currentVertexBatch!).AddVertex(vertex);
     }
 
     public void EndFrame()
@@ -220,8 +215,8 @@ public class OpenGLRenderer : IDisposable
         if (deferredDrawables.Count > 0)
         {
             currentVertexBatch?.FlushBatch();
-            Context?.Enable(EnableCap.Blend);
-            Context?.DepthMask(false);
+            Context.Enable(EnableCap.Blend);
+            Context.DepthMask(false);
             while (deferredDrawables.Count > 0)
                 deferredDrawables.Pop().Draw(this);
         }
@@ -231,7 +226,8 @@ public class OpenGLRenderer : IDisposable
 
     // </render>
 
-    private static void debugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
+    private static void debugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message,
+        nint userParam)
     {
         string messageString = Marshal.PtrToStringAnsi(message, length);
         Console.WriteLine($"{severity} {type} | {messageString}");
@@ -252,7 +248,7 @@ public class OpenGLRenderer : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    ~OpenGLRenderer()
+    ~OpenGlRenderer()
     {
         Dispose();
     }

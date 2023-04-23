@@ -18,15 +18,15 @@ public class DrawableSprite : Drawable
         this.shader = shader;
     }
 
-    public override void QueueDraw(OpenGLRenderer renderer)
+    public override void QueueDraw(OpenGlRenderer renderer)
     {
         if (Texture is null)
             return;
 
-        renderer.QueueDrawable(this, shader, Texture, IsTranslucent);
+        renderer.QueueDrawable(this);
     }
 
-    public override void Draw(OpenGLRenderer renderer)
+    public override void Draw(OpenGlRenderer renderer)
     {
         if (Texture is null)
             return;

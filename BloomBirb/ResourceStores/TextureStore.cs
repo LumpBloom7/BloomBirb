@@ -24,11 +24,11 @@ public class TextureStore : IDisposable
 
     private readonly string prefix;
 
-    private readonly OpenGLRenderer renderer;
+    private readonly OpenGlRenderer renderer;
 
     private readonly int mipMapLevels;
 
-    public TextureStore(OpenGLRenderer renderer, IResourceStore resourceStore, string prefix = "Textures", int mipLevels = 4)
+    public TextureStore(OpenGlRenderer renderer, IResourceStore resourceStore, string prefix = "Textures", int mipLevels = 4)
     {
         this.renderer = renderer;
         resources = resourceStore;
@@ -66,7 +66,7 @@ public class TextureStore : IDisposable
             return texture;
         }
 
-        return renderer.BlankTexture!;
+        return renderer.BlankTexture;
     }
 
     private TextureUsage addLargeTexture(Image<Rgba32> image)
@@ -74,7 +74,7 @@ public class TextureStore : IDisposable
         var texture = new Texture(renderer, mipMapLevels);
         texture.Initialize(image.Size());
 
-        texture.BufferImageData(image, 0, 0);
+        texture.BufferImageData(image);
 
         textures.Add(texture);
         return texture;

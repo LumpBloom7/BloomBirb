@@ -40,7 +40,7 @@ public class FilesystemResourceStore : IResourceStore
     {
         if (splitted.Length == 1)
         {
-            string? final = current + splitted[0];
+            string final = current + splitted[0];
             if (!File.Exists(final))
                 return null;
 

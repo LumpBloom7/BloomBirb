@@ -6,47 +6,44 @@ namespace BloomBirb.Renderers.OpenGL.Buffers;
 
 public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, IEquatable<T>, IVertex
 {
-    protected uint[]? Indices;
-
-    private T[] vertices;
+    private readonly T[] vertices;
 
     private uint vboHandle;
 
     private uint vaoHandle;
 
-    protected readonly int Size;
+    private readonly int size;
 
     protected abstract PrimitiveType PrimitiveType { get; }
     protected abstract int IndicesPerPrimitive { get; }
     protected abstract int VerticesPerPrimitive { get; }
 
-    protected readonly OpenGLRenderer Renderer;
-    private GL context => Renderer.Context!;
+    protected readonly OpenGlRenderer Renderer;
 
-    private static int vertexSize = Unsafe.SizeOf<T>();
+    private static readonly int vertex_size = Unsafe.SizeOf<T>();
 
-    public VertexBuffer(OpenGLRenderer renderer, int amountOfVertices = 10000)
+    protected VertexBuffer(OpenGlRenderer renderer, int amountOfVertices = 10000)
     {
         Renderer = renderer;
-        Size = amountOfVertices;
+        size = amountOfVertices;
         vertices = new T[amountOfVertices];
     }
 
-    public unsafe void Initialize()
+    public void Initialize()
     {
-        vaoHandle = context.GenVertexArray();
-        vboHandle = context.GenBuffer();
+        vaoHandle = Renderer.Context.GenVertexArray();
+        vboHandle = Renderer.Context.GenBuffer();
 
-        Bind();
+        bind();
 
-        context.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(Size * vertexSize), (void**)null, BufferUsageARB.DynamicDraw);
+        Renderer.Context.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(size * vertex_size), null, BufferUsageARB.DynamicDraw);
 
-        InitializeEBO();
+        InitializeEbo();
 
-        GLUtils.SetVAO<T>(context);
+        GlUtils.SetVao<T>(Renderer.Context);
     }
 
-    public bool IsFull => (batchBegin + Count) == Size;
+    public bool IsFull => (batchBegin + Count) == size;
 
     public int Count { get; private set; }
 
@@ -78,36 +75,35 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
         batchBegin = 0;
     }
 
-    public void BufferData()
+    private void bufferData()
     {
-        Renderer?.Context?.BufferSubData(BufferTargetARB.ArrayBuffer, changeBegin * vertexSize, new ReadOnlySpan<T>(vertices, changeBegin, changeEnd - changeBegin));
+        Renderer.Context.BufferSubData(BufferTargetARB.ArrayBuffer, changeBegin * vertex_size, new ReadOnlySpan<T>(vertices, changeBegin, changeEnd - changeBegin));
 
         changeBegin = int.MaxValue;
         changeEnd = int.MinValue;
     }
 
-    public void Bind()
+    private void bind()
     {
         Renderer.BindVertexArray(vaoHandle);
         Renderer.BindBuffer(vboHandle);
     }
 
-    protected abstract void InitializeEBO();
+    protected abstract void InitializeEbo();
 
-
-    public unsafe void DrawBuffer()
+    public void DrawBuffer()
     {
         if (Count == 0)
             return;
 
-        Bind();
+        bind();
 
         if (changeBegin < int.MaxValue)
-            BufferData();
+            bufferData();
 
         int indicesToDraw = Count / VerticesPerPrimitive * IndicesPerPrimitive;
         int indicesOffset = batchBegin / VerticesPerPrimitive * IndicesPerPrimitive * sizeof(uint);
-        context?.DrawElements(PrimitiveType, (uint)indicesToDraw, DrawElementsType.UnsignedInt, (void*)indicesOffset);
+        Renderer.Context.DrawElements(PrimitiveType, (uint)indicesToDraw, DrawElementsType.UnsignedInt, (void*)indicesOffset);
 
         batchBegin += Count;
         Count = 0;
@@ -115,13 +111,13 @@ public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, 
 
     private bool isDisposed;
 
-    protected virtual void Dispose(bool disposing)
+    protected void Dispose(bool disposing)
     {
         if (isDisposed)
             return;
 
-        context.DeleteVertexArray(vaoHandle);
-        context.DeleteBuffer(vboHandle);
+        Renderer.Context.DeleteVertexArray(vaoHandle);
+        Renderer.Context.DeleteBuffer(vboHandle);
         isDisposed = true;
     }
 

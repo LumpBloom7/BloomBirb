@@ -7,7 +7,7 @@ namespace BloomBirb.Renderers.OpenGL.Textures;
 
 public class TextureAtlas : Texture
 {
-    public TextureAtlas(OpenGLRenderer renderer, int mipLevels)
+    public TextureAtlas(OpenGlRenderer renderer, int mipLevels)
         : base(renderer) { }
 
     public override void Initialize(Size size)
@@ -22,7 +22,7 @@ public class TextureAtlas : Texture
         maxY = 1 + paddingAmount;
     }
 
-    public unsafe TextureUsage? AddSubtexture(Image<Rgba32> image)
+    public TextureUsage? AddSubtexture(Image<Rgba32> image)
     {
         int width = image.Width, height = image.Height;
 
@@ -39,11 +39,13 @@ public class TextureAtlas : Texture
             for (int i = 0; i < accessor.Height; i++)
             {
                 foreach (var pix in accessor.GetRowSpan(i))
+                {
                     if (pix.A < 255 && pix.A > 25)
                     {
                         transparent = true;
                         break;
                     }
+                }
             }
         });
 
@@ -53,7 +55,7 @@ public class TextureAtlas : Texture
     }
 
     private Vector2D<int> currentCoord = Vector2D<int>.Zero;
-    private int maxY = 0;
+    private int maxY;
 
 
     private bool findFittingRect(int desiredSizeX, int desiredSizeY, [NotNullWhen(true)] out Rectangle<int>? rectangle)

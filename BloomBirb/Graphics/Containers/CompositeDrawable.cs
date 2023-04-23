@@ -23,7 +23,7 @@ public abstract class CompositeDrawable<T> : Drawable where T : Drawable
             drawable.Parent = null;
     }
 
-    public override void QueueDraw(OpenGLRenderer renderer)
+    public override void QueueDraw(OpenGlRenderer renderer)
     {
         for (int i = 0; i < children.Count; ++i)
             children[^(i + 1)].QueueDraw(renderer);
