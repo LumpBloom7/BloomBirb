@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Numerics;
 using BloomBirb.Graphics.Vertices;
 using BloomBirb.Renderers.OpenGL;

@@ -10,7 +10,7 @@ public class SpriteText : CompositeDrawable<DrawableSprite>
     public SpriteText(Shader shader, Font font)
     {
         spriteShader = shader;
-        this.Font = font;
+        Font = font;
     }
 
     private Shader spriteShader;

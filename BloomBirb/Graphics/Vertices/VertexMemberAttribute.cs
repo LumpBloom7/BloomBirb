@@ -1,14 +1,11 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace BloomBirb.Graphics.Vertices;
 
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class VertexMemberAttribute : Attribute
 {
-    public required VertexAttributeType AttributeType { get; init; }
-    public required int Count { get; set; } = 1;
+    public readonly VertexAttributeType AttributeType;
+    public readonly int Count;
 
-    [SetsRequiredMembers]
     public VertexMemberAttribute(VertexAttributeType attributeType, int count = 1)
     {
         AttributeType = attributeType;

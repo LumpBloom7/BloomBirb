@@ -1,7 +1,5 @@
-using System.Collections.ObjectModel;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using BloomBirb.Extensions;
 using BloomBirb.Renderers.OpenGL.Textures;
 
 namespace BloomBirb.Graphics.Vertices;

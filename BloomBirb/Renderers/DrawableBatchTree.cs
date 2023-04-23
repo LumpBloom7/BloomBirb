@@ -1,6 +1,5 @@
 using BloomBirb.Graphics;
 using BloomBirb.Renderers.OpenGL;
-using BloomBirb.Renderers.OpenGL.Textures;
 
 namespace BloomBirb.Renderers;
 

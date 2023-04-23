@@ -35,7 +35,7 @@ public class Texture : ITexture, IDisposable
         Bind();
 
         renderer.Context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, (uint)size.Width, (uint)size.Height, 0,
-                PixelFormat.Rgba, PixelType.UnsignedByte, (void*)null);
+                PixelFormat.Rgba, PixelType.UnsignedByte, null);
 
         setParameters();
     }
