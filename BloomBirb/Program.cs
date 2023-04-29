@@ -47,7 +47,7 @@ namespace BloomBirb
 
         private static AudioSource audioSource = null!;
 
-        private static Container container;
+        private static Container? container;
 
         private static Shader spriteShader;
         private static SpriteText? text;
@@ -80,27 +80,26 @@ namespace BloomBirb
             spriteShader.Bind();
 
             spriteShader.SetUniform("u_Texture0", 0);
-            onResize(window.Size);
 
-            text = new SpriteText(spriteShader, font);
+            text = new SpriteText(spriteShader, font)
+            {
+                Scale = new (0.5f),
+            };
 
             Random rng = Random.Shared;
 
-            container = new()
-            {
-                Size = new(1f),
-                Position = new(-0.5f)
-            };
-
+            container = new Container();
+            onResize(window.Size);
 
             container.Add(new DrawableSprite(spriteShader)
             {
                 Texture = textures.Get("sdfgh"),
-                Size = new (.5f),
+                Size = new (500f),
                 Anchor = Anchor.MiddleCentre,
-                Origin = Anchor.Right
+                Origin = Anchor.MiddleCentre
             });
 
+            container.Add(text);
 
             gl.Context?.Enable(GLEnum.DepthTest);
             gl.Context?.DepthFunc(DepthFunction.Lequal);
@@ -153,12 +152,12 @@ namespace BloomBirb
         {
             gl?.Context?.Viewport(size);
 
-            // HACK, IMPROVE LATER
-            Matrix3 projectionMatrix = Matrix3.Identity;
-            //Matrix3Extensions.Translate(ref projectionMatrix, -1, -1);
-            //Matrix3Extensions.Scale(ref projectionMatrix, 1f / size.X, 1f / size.Y);
-
-            spriteShader?.SetUniform("u_projMatrix", projectionMatrix);
+            if(container != null)
+            {
+                container.Size = new(size.X, size.Y);
+                container.Scale = new Vector2(2f / size.X, 2f / size.Y);
+                container.Position = new Vector2(-1f);
+            }
         }
 
         private static void onClose()

@@ -30,6 +30,7 @@ public abstract class Drawable
         set
         {
             if (anchor == value) return;
+
             Invalidate();
             anchor = value;
         }
@@ -161,14 +162,14 @@ public abstract class Drawable
     public virtual void QueueDraw(OpenGlRenderer renderer)
     {
         if (invalidated)
-            revalidate();
+            Revalidate();
     }
 
     public virtual void Draw(OpenGlRenderer renderer)
     {
     }
 
-    private void revalidate()
+    protected virtual void Revalidate()
     {
         Transformation = Parent?.Transformation ?? Matrix3.Identity;
 
@@ -212,7 +213,6 @@ public abstract class Drawable
         DrawQuad = new Quad(0, 0, Size.X, Size.Y) * Transformation;
         invalidated = false;
     }
-
 
     public virtual void Invalidate()
     {
