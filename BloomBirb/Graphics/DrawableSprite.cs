@@ -22,6 +22,7 @@ public class DrawableSprite : Drawable
     {
         if (Texture is null)
             return;
+        base.QueueDraw(renderer);
 
         renderer.QueueDrawable(this);
     }

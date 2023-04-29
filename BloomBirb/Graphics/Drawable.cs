@@ -9,6 +9,7 @@ public abstract class Drawable
 {
     // Used for inheritance
     private Drawable? parent;
+
     public Drawable? Parent
     {
         get => parent;
@@ -21,7 +22,35 @@ public abstract class Drawable
         }
     }
 
+    private Anchor anchor = Anchor.BottomLeft;
+
+    public Anchor Anchor
+    {
+        get => anchor;
+        set
+        {
+            if (anchor == value) return;
+            Invalidate();
+            anchor = value;
+        }
+    }
+
+    private Anchor origin = Anchor.BottomLeft;
+
+    public Anchor Origin
+    {
+        get => origin;
+        set
+        {
+            if (origin == value) return;
+
+            Invalidate();
+            origin = value;
+        }
+    }
+
     private Vector2 position = Vector2.Zero;
+
     public Vector2 Position
     {
         get => position;
@@ -35,6 +64,7 @@ public abstract class Drawable
     }
 
     private float alpha = 1;
+
     public float Alpha
     {
         get => alpha;
@@ -48,6 +78,7 @@ public abstract class Drawable
     }
 
     private Vector4 colour = Vector4.One;
+
     public Vector4 Colour
     {
         get => colour;
@@ -61,6 +92,7 @@ public abstract class Drawable
     }
 
     private Vector2 size = Vector2.One;
+
     public Vector2 Size
     {
         get => size;
@@ -74,6 +106,7 @@ public abstract class Drawable
     }
 
     private Vector2 scale = Vector2.One;
+
     public Vector2 Scale
     {
         get => scale;
@@ -87,6 +120,7 @@ public abstract class Drawable
     }
 
     private Vector2 shear = Vector2.Zero;
+
     public Vector2 Shear
     {
         get => shear;
@@ -100,6 +134,7 @@ public abstract class Drawable
     }
 
     private float rotation;
+
     public float Rotation
     {
         get => rotation;
@@ -125,21 +160,52 @@ public abstract class Drawable
 
     public virtual void QueueDraw(OpenGlRenderer renderer)
     {
+        if (invalidated)
+            revalidate();
     }
 
     public virtual void Draw(OpenGlRenderer renderer)
     {
-        if (invalidated)
-            revalidate();
     }
 
     private void revalidate()
     {
         Transformation = Parent?.Transformation ?? Matrix3.Identity;
-        Matrix3Extensions.Translate(ref Transformation, Position);
+
+        Vector2 parentSize = Parent?.size ?? Vector2.Zero;
+
+        float anchorOffsetX = 0, anchorOffsetY = 0;
+
+        if (Anchor.HasFlag(Anchor.Top))
+            anchorOffsetY = parentSize.Y;
+        else if (Anchor.HasFlag(Anchor.Middle))
+            anchorOffsetY = parentSize.Y / 2;
+
+        if (Anchor.HasFlag(Anchor.Centre))
+            anchorOffsetX = parentSize.X / 2;
+        else if (Anchor.HasFlag(Anchor.Right))
+            anchorOffsetX = parentSize.X;
+
+        var drawPos = Position + new Vector2(anchorOffsetX, anchorOffsetY);
+
+        Matrix3Extensions.Translate(ref Transformation, drawPos);
         Matrix3Extensions.RotateDegrees(ref Transformation, Rotation);
         Matrix3Extensions.Shear(ref Transformation, Shear);
         Matrix3Extensions.Scale(ref Transformation, Scale);
+
+        float originOffsetX = 0, originOffsetY = 0;
+
+        if (Origin.HasFlag(Anchor.Top))
+            originOffsetY = -Size.Y;
+        else if (Origin.HasFlag(Anchor.Middle))
+            originOffsetY = -Size.Y / 2;
+
+        if (Origin.HasFlag(Anchor.Centre))
+            originOffsetX = -Size.X / 2;
+        else if (Origin.HasFlag(Anchor.Right))
+            originOffsetX = -Size.X;
+
+        Matrix3Extensions.Translate(ref Transformation, originOffsetX, originOffsetY);
 
         DrawColour = (Parent?.DrawColour ?? Vector4.One) * Colour * new Vector4(1, 1, 1, Alpha);
 

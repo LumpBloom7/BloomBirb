@@ -86,23 +86,21 @@ namespace BloomBirb
 
             Random rng = Random.Shared;
 
-            container = new();
-
-            for (int i = 0; i < 10000; ++i)
+            container = new()
             {
-                var tex = textures.Get(randomTexture(rng.Next(5)))!;
-                var sprite = new DrawableSprite(spriteShader)
-                {
-                    Texture = tex,
-                    Position = new Vector2(rng.Next(1920), rng.Next(1080)),
-                    Size = new Vector2(rng.Next(800), rng.Next(800)),
-                    Scale = new Vector2(rng.NextSingle(), rng.NextSingle()),
-                    Shear = new Vector2(rng.NextSingle(), rng.NextSingle()),
-                    Rotation = rng.NextSingle() * 360,
-                    Colour = new Vector4(rng.NextSingle(),rng.NextSingle(),rng.NextSingle(), 1)
-                };
-                container.Add(sprite);
-            }
+                Size = new(1f),
+                Position = new(-0.5f)
+            };
+
+
+            container.Add(new DrawableSprite(spriteShader)
+            {
+                Texture = textures.Get("sdfgh"),
+                Size = new (.5f),
+                Anchor = Anchor.MiddleCentre,
+                Origin = Anchor.Right
+            });
+
 
             gl.Context?.Enable(GLEnum.DepthTest);
             gl.Context?.DepthFunc(DepthFunction.Lequal);
@@ -133,7 +131,7 @@ namespace BloomBirb
 
             if(timeElapsed > 0.5)
             {
-                text.Text = $"Frametime 拼: {((timeElapsed * 1000) / framesMade):F5}";
+                text.Text = $"Frametime: {((timeElapsed * 1000) / framesMade):F5}";
                 framesMade = 0;
                 timeElapsed = 0;
             };
@@ -141,11 +139,11 @@ namespace BloomBirb
 
             x = (x + (float)obj * 30) % 360;
 
-            container.Rotation = x;
-            foreach (var child in container.Children)
-                child.Rotation += x/3000;
+           // container.Rotation = x;
+            //foreach (var child in container.Children)
+                //child.Rotation += x/3000;
 
-            text.QueueDraw(gl!);
+            //text.QueueDraw(gl!);
             container.QueueDraw(gl!);
 
             gl?.EndFrame();
@@ -157,8 +155,8 @@ namespace BloomBirb
 
             // HACK, IMPROVE LATER
             Matrix3 projectionMatrix = Matrix3.Identity;
-            Matrix3Extensions.Translate(ref projectionMatrix, -1, -1);
-            Matrix3Extensions.Scale(ref projectionMatrix, 1f / size.X, 1f / size.Y);
+            //Matrix3Extensions.Translate(ref projectionMatrix, -1, -1);
+            //Matrix3Extensions.Scale(ref projectionMatrix, 1f / size.X, 1f / size.Y);
 
             spriteShader?.SetUniform("u_projMatrix", projectionMatrix);
         }

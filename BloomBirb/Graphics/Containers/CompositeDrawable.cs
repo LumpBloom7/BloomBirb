@@ -25,9 +25,12 @@ public abstract class CompositeDrawable<T> : Drawable where T : Drawable
 
     public override void QueueDraw(OpenGlRenderer renderer)
     {
+        base.QueueDraw(renderer);
+
         for (int i = 0; i < children.Count; ++i)
             children[^(i + 1)].QueueDraw(renderer);
     }
+
 
     public override void Invalidate()
     {
