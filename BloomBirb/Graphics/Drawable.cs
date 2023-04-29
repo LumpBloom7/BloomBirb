@@ -8,21 +8,109 @@ namespace BloomBirb.Graphics;
 public abstract class Drawable
 {
     // Used for inheritance
-    public Drawable? Parent { get; internal set; } = null;
+    private Drawable? parent;
+    public Drawable? Parent
+    {
+        get => parent;
+        internal set
+        {
+            if (parent == value) return;
 
-    public Vector2 Position { get; set; } = Vector2.Zero;
+            Invalidate();
+            parent = value;
+        }
+    }
 
-    public float Alpha { get; set; } = 1;
+    private Vector2 position = Vector2.Zero;
+    public Vector2 Position
+    {
+        get => position;
+        set
+        {
+            if (position == value) return;
 
-    public Vector4 Colour { get; set; } = Vector4.One;
+            Invalidate();
+            position = value;
+        }
+    }
 
-    public Vector2 Size { get; set; } = Vector2.One;
+    private float alpha = 1;
+    public float Alpha
+    {
+        get => alpha;
+        set
+        {
+            if (Math.Abs(alpha - value) < 0.01) return;
 
-    public Vector2 Scale { get; set; } = Vector2.One;
+            Invalidate();
+            alpha = value;
+        }
+    }
 
-    public Vector2 Shear { get; set; } = Vector2.Zero;
+    private Vector4 colour = Vector4.One;
+    public Vector4 Colour
+    {
+        get => colour;
+        set
+        {
+            if (colour == value) return;
 
-    public float Rotation { get; set; } = 0;
+            Invalidate();
+            colour = value;
+        }
+    }
+
+    private Vector2 size = Vector2.One;
+    public Vector2 Size
+    {
+        get => size;
+        set
+        {
+            if (size == value) return;
+
+            Invalidate();
+            size = value;
+        }
+    }
+
+    private Vector2 scale = Vector2.One;
+    public Vector2 Scale
+    {
+        get => scale;
+        set
+        {
+            if (scale == value) return;
+
+            Invalidate();
+            scale = value;
+        }
+    }
+
+    private Vector2 shear = Vector2.Zero;
+    public Vector2 Shear
+    {
+        get => shear;
+        set
+        {
+            if (shear == value) return;
+
+            Invalidate();
+            shear = value;
+        }
+    }
+
+    private float rotation;
+    public float Rotation
+    {
+        get => rotation;
+        set
+        {
+            if (Math.Abs(rotation - value) < 0.01) return;
+
+            Invalidate();
+            rotation = value;
+        }
+    }
 
     // Draw info
     protected Matrix3 Transformation = Matrix3.Identity;
@@ -33,15 +121,19 @@ public abstract class Drawable
 
     public virtual bool IsTranslucent => DrawColour.W < 1f && DrawColour.W > 0.1f;
 
+    private bool invalidated = true;
+
     public virtual void QueueDraw(OpenGlRenderer renderer)
     {
     }
 
     public virtual void Draw(OpenGlRenderer renderer)
     {
+        if (invalidated)
+            revalidate();
     }
 
-    public virtual void Invalidate()
+    private void revalidate()
     {
         Transformation = Parent?.Transformation ?? Matrix3.Identity;
         Matrix3Extensions.Translate(ref Transformation, Position);
@@ -52,5 +144,12 @@ public abstract class Drawable
         DrawColour = (Parent?.DrawColour ?? Vector4.One) * Colour * new Vector4(1, 1, 1, Alpha);
 
         DrawQuad = new Quad(0, 0, Size.X, Size.Y) * Transformation;
+        invalidated = false;
+    }
+
+
+    public virtual void Invalidate()
+    {
+        invalidated = true;
     }
 }

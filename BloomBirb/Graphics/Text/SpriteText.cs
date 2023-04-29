@@ -17,7 +17,6 @@ public class SpriteText : CompositeDrawable<DrawableSprite>
     public Font Font { get; set; }
 
     private string text = "";
-
     public string Text
     {
         get => text;
@@ -25,6 +24,7 @@ public class SpriteText : CompositeDrawable<DrawableSprite>
         set
         {
             if (value.Equals(text)) return;
+
             layoutGlyphs(value, text);
             text = value;
         }

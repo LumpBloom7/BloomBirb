@@ -104,13 +104,10 @@ namespace BloomBirb
                 container.Add(sprite);
             }
 
-            container.Invalidate();
-
             gl.Context?.Enable(GLEnum.DepthTest);
             gl.Context?.DepthFunc(DepthFunction.Lequal);
             gl.Context?.Enable(GLEnum.Blend);
             gl.Context?.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
-
 
             OpenAl.CreateContext();
 
@@ -144,14 +141,11 @@ namespace BloomBirb
 
             x = (x + (float)obj * 30) % 360;
 
-            //container.Rotation = x;
+            container.Rotation = x;
             foreach (var child in container.Children)
                 child.Rotation += x/3000;
 
-            text.Invalidate();
             text.QueueDraw(gl!);
-
-            container.Invalidate();
             container.QueueDraw(gl!);
 
             gl?.EndFrame();
