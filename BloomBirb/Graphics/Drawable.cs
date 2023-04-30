@@ -50,6 +50,34 @@ public abstract class Drawable
         }
     }
 
+    private Axes relativeSizeAxes = Axes.None;
+
+    public Axes RelativeSizeAxes
+    {
+        get => relativeSizeAxes;
+        set
+        {
+            if (relativeSizeAxes == value) return;
+
+            Invalidate();
+            relativeSizeAxes = value;
+        }
+    }
+
+    private Axes relativePositionAxes = Axes.None;
+
+    public Axes RelativePositionAxes
+    {
+        get => relativePositionAxes;
+        set
+        {
+            if (relativePositionAxes == value) return;
+
+            Invalidate();
+            relativePositionAxes = value;
+        }
+    }
+
     private Vector2 position = Vector2.Zero;
 
     public Vector2 Position
@@ -187,30 +215,46 @@ public abstract class Drawable
         else if (Anchor.HasFlag(Anchor.Right))
             anchorOffsetX = parentSize.X;
 
-        var drawPos = Position + new Vector2(anchorOffsetX, anchorOffsetY);
+        float posX = position.X, posY = position.Y;
 
-        Matrix3Extensions.Translate(ref Transformation, drawPos);
+        if (relativePositionAxes.HasFlag(Axes.X))
+            posX *= parentSize.X;
+
+        if (relativePositionAxes.HasFlag(Axes.Y))
+            posY *= parentSize.Y;
+
+        posX += anchorOffsetX;
+        posY += anchorOffsetY;
+
+        Matrix3Extensions.Translate(ref Transformation, posX, posY);
         Matrix3Extensions.RotateDegrees(ref Transformation, Rotation);
         Matrix3Extensions.Shear(ref Transformation, Shear);
         Matrix3Extensions.Scale(ref Transformation, Scale);
 
         float originOffsetX = 0, originOffsetY = 0;
 
+        float sizeX = size.X, sizeY = size.Y;
+
+        if (RelativeSizeAxes.HasFlag(Axes.X))
+            sizeX *= parentSize.X;
+        if (RelativeSizeAxes.HasFlag(Axes.Y))
+            sizeY *= parentSize.Y;
+
         if (Origin.HasFlag(Anchor.Top))
-            originOffsetY = -Size.Y;
+            originOffsetY = -sizeY;
         else if (Origin.HasFlag(Anchor.Middle))
-            originOffsetY = -Size.Y / 2;
+            originOffsetY = -sizeY / 2;
 
         if (Origin.HasFlag(Anchor.Centre))
-            originOffsetX = -Size.X / 2;
+            originOffsetX = -sizeX / 2;
         else if (Origin.HasFlag(Anchor.Right))
-            originOffsetX = -Size.X;
+            originOffsetX = -sizeX;
 
         Matrix3Extensions.Translate(ref Transformation, originOffsetX, originOffsetY);
 
         DrawColour = (Parent?.DrawColour ?? Vector4.One) * Colour * new Vector4(1, 1, 1, Alpha);
 
-        DrawQuad = new Quad(0, 0, Size.X, Size.Y) * Transformation;
+        DrawQuad = new Quad(0, 0, sizeX, sizeY) * Transformation;
         invalidated = false;
     }
 

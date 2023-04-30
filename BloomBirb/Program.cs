@@ -30,7 +30,7 @@ namespace BloomBirb
         {
             var options = WindowOptions.Default;
             options.Size = new Vector2D<int>(1024, 768);
-            options.Title = "You spin me right round baby right round. Like a record baby right round round round.";
+            options.Title = "YOU COME INTO MY HOUSE, SUCK MY DICK, CALL ME GAY!";
             options.VSync = false;
             options.PreferredDepthBufferBits = 16;
             options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.ForwardCompatible, new(4, 0));
@@ -84,6 +84,9 @@ namespace BloomBirb
             text = new SpriteText(spriteShader, font)
             {
                 Scale = new (0.5f),
+                Colour = new(0,1,0.7f,1),
+                RelativePositionAxes = Axes.Both,
+                Position = new(0.05f)
             };
 
             Random rng = Random.Shared;
@@ -94,9 +97,12 @@ namespace BloomBirb
             container.Add(new DrawableSprite(spriteShader)
             {
                 Texture = textures.Get("sdfgh"),
-                Size = new (500f),
+                Size = new (0.6f),
                 Anchor = Anchor.MiddleCentre,
-                Origin = Anchor.MiddleCentre
+                Origin = Anchor.MiddleCentre,
+                RelativeSizeAxes = Axes.Both,
+                Colour = new Vector4(1f,0,0.3f,1)
+
             });
 
             container.Add(text);
