@@ -49,5 +49,21 @@ public class BlackLotusGame : GameBase
         {
             Scale = new Vector2(0.33f)
         });
+
+        contentLayer.Add(new DrawableSprite(textureShader)
+        {
+            Texture = textures.Get("Backgrounds.BG1"),
+            RelativeSizeAxes = Axes.Both
+        });
+        contentLayer.Add(new DrawableSprite(textureShader)
+        {
+            Texture = textures.Get("Backgrounds.BG2"),
+            RelativeSizeAxes = Axes.Both
+        });
+        contentLayer.Add(new DrawableSprite(textureShader)
+        {
+            Texture = textures.Get("Backgrounds.BG3"),
+            RelativeSizeAxes = Axes.Both
+        });
     }
 }
