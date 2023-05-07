@@ -5,30 +5,30 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "BloomBirb (Debug)",
+            "name": "BloomFramework (Debug)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "Build (Debug)",
-            "program": "${workspaceFolder}/BloomBirb/bin/Debug/net7.0/BloomBirb.dll",
+            "program": "${workspaceFolder}/BloomFramework/bin/Debug/net7.0/BloomFramework.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/BloomBirb",
+            "cwd": "${workspaceFolder}/BloomFramework",
             "stopAtEntry": false
         },
         {
-            "name": "BloomBirb (Release)",
+            "name": "BloomFramework (Release)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "Build (Release)",
-            "program": "${workspaceFolder}/BloomBirb/bin/Release/net7.0/BloomBirb.dll",
+            "program": "${workspaceFolder}/BloomFramework/bin/Release/net7.0/BloomFramework.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/BloomBirb",
+            "cwd": "${workspaceFolder}/BloomFramework",
             "stopAtEntry": false
         },
         {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach",
-            "processName": "BloomBirb.exe"
+            "processName": "BloomFramework.exe"
         },
     ]
 }

@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "BloomBirb",
+                "BloomFramework",
                 "/p:Configuration=Debug",
                 "/m",
                 "/verbosity:m"
@@ -21,7 +21,7 @@
             "type": "process",
             "args": [
                 "build",
-                "BloomBirb",
+                "BloomFramework",
                 "/p:Configuration=Release",
                 "/m",
                 "/verbosity:m"
@@ -35,7 +35,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "BloomBirb"
+                "BloomFramework"
             ],
             "problemMatcher": "$msCompile",
             "group": "build"
@@ -48,7 +48,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/BloomBirb/BloomBirb.csproj"
+                "${workspaceFolder}/BloomFramework/BloomFramework.csproj"
             ],
             "problemMatcher": "$msCompile",
             "group": "test"
