@@ -176,6 +176,35 @@ public abstract class Drawable : IDisposable
         }
     }
 
+    private FillMode fillMode = FillMode.None;
+
+    public FillMode FillMode
+    {
+        get => fillMode;
+        set
+        {
+            if (fillMode == value)
+                return;
+
+            Invalidate();
+            fillMode = value;
+        }
+    }
+
+    private float fillRatio = 1;
+
+    public float FillRatio
+    {
+        get => fillRatio;
+        set
+        {
+            if (Math.Abs(fillRatio - value) < float.Epsilon) return;
+
+            Invalidate();
+            fillRatio = value;
+        }
+    }
+
     // Draw info
     protected Matrix3 Transformation = Matrix3.Identity;
     protected Quad DrawQuad = Quad.DEFAULT;
@@ -234,6 +263,8 @@ public abstract class Drawable : IDisposable
     {
     }
 
+    // Used to keep track of the dimension in screen space pixels
+    // So that relative sized children know their screen space size as well
     private Vector2 absoluteSize;
 
     protected virtual void Revalidate()
@@ -254,49 +285,69 @@ public abstract class Drawable : IDisposable
         else if (Anchor.HasFlag(Anchor.Right))
             anchorOffsetX = parentSize.X;
 
-        float posX = position.X, posY = position.Y;
+        float x = position.X, y = position.Y;
 
         if (relativePositionAxes.HasFlag(Axes.X))
-            posX *= parentSize.X;
+            x *= parentSize.X;
 
         if (relativePositionAxes.HasFlag(Axes.Y))
-            posY *= parentSize.Y;
+            y *= parentSize.Y;
 
-        posX += anchorOffsetX;
-        posY += anchorOffsetY;
+        x += anchorOffsetX;
+        y += anchorOffsetY;
 
-        Matrix3Extensions.Translate(ref Transformation, posX, posY);
+        Matrix3Extensions.Translate(ref Transformation, x, y);
         Matrix3Extensions.RotateDegrees(ref Transformation, Rotation);
         Matrix3Extensions.Shear(ref Transformation, Shear);
         Matrix3Extensions.Scale(ref Transformation, Scale);
 
         float originOffsetX = 0, originOffsetY = 0;
 
-        float sizeX = size.X, sizeY = size.Y;
+        float width = size.X, height = size.Y;
 
         if (RelativeSizeAxes.HasFlag(Axes.X))
-            sizeX *= parentSize.X;
+            width *= parentSize.X;
         if (RelativeSizeAxes.HasFlag(Axes.Y))
-            sizeY *= parentSize.Y;
+            height *= parentSize.Y;
 
-        absoluteSize = new Vector2(sizeX, sizeY);
+        var fillModeScale = computeFillModeSize(width, height);
+
+        width = fillModeScale.X;
+        height = fillModeScale.Y;
+
+        absoluteSize = new Vector2(width, height);
 
         if (Origin.HasFlag(Anchor.Top))
-            originOffsetY = -sizeY;
+            originOffsetY = -height;
         else if (Origin.HasFlag(Anchor.Middle))
-            originOffsetY = -sizeY / 2;
+            originOffsetY = -height / 2;
 
         if (Origin.HasFlag(Anchor.Centre))
-            originOffsetX = -sizeX / 2;
+            originOffsetX = -width / 2;
         else if (Origin.HasFlag(Anchor.Right))
-            originOffsetX = -sizeX;
+            originOffsetX = -width;
 
         Matrix3Extensions.Translate(ref Transformation, originOffsetX, originOffsetY);
 
         DrawColour = (Parent?.DrawColour ?? Vector4.One) * Colour * new Vector4(1, 1, 1, Alpha);
 
-        DrawQuad = new Quad(0, 0, sizeX, sizeY) * Transformation;
+        DrawQuad = new Quad(0, 0, width, height) * Transformation;
         invalidated = false;
+    }
+
+    // Computes the size of the drawable AFTER applying appropriate fill modes
+    private Vector2 computeFillModeSize(float width, float height)
+    {
+        if (fillMode is FillMode.None)
+            return new Vector2(width, height);
+
+        Vector2 result = Vector2.One;
+        if (fillMode is FillMode.Fill)
+            result = new Vector2(Math.Max(width, height * fillRatio));
+        else if (FillMode is FillMode.Fit)
+            result = new Vector2(Math.Min(width, height * fillRatio));
+
+        return result with { Y = result.Y / fillRatio };
     }
 
     public virtual void Invalidate()
