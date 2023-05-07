@@ -40,7 +40,7 @@ public class BlackLotusGame : GameBase
         {
             contentLayer = new Container
             {
-                RelativeSizeAxes = Axes.Both
+                RelativeSizeAxes = Axes.Both,
             },
             overlayLayer = new Container
             {
@@ -59,7 +59,17 @@ public class BlackLotusGame : GameBase
             new DrawableSprite(textureShader)
             {
                 Texture = textures.Get("Backgrounds.BG1"),
-                RelativeSizeAxes = Axes.Both
+                RelativeSizeAxes = Axes.Both,
+                FillMode = FillMode.Fit,
+                FillRatio = 320f/192f,
+                Anchor = Anchor.MiddleCentre,
+                Origin = Anchor.MiddleCentre
+            },
+            new DrawableSprite(textureShader)
+            {
+                RelativeSizeAxes = Axes.Both,
+                Alpha = 0.4f,
+                Colour = new Vector4(1,0,0,1f)
             },
             sunLayer = new Container()
             {
@@ -71,7 +81,11 @@ public class BlackLotusGame : GameBase
             new DrawableSprite(textureShader)
             {
                 Texture = textures.Get("Backgrounds.BG2"),
-                RelativeSizeAxes = Axes.Both
+                RelativeSizeAxes = Axes.Both,
+                FillMode = FillMode.Fit,
+                FillRatio = 320f/192f,
+                Anchor = Anchor.MiddleCentre,
+                Origin = Anchor.MiddleCentre
             },
             kittyLayer = new Container()
             {
@@ -82,7 +96,11 @@ public class BlackLotusGame : GameBase
             new DrawableSprite(textureShader)
             {
                 Texture = textures.Get("Backgrounds.BG3"),
-                RelativeSizeAxes = Axes.Both
+                RelativeSizeAxes = Axes.Both,
+                FillMode = FillMode.Fit,
+                FillRatio = 320f/192f,
+                Anchor = Anchor.MiddleCentre,
+                Origin = Anchor.MiddleCentre
             }
         });
 
