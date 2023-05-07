@@ -58,6 +58,7 @@ public class Shader : IDisposable
 
     public void SetUniform<T>(string name, ref T value) where T : unmanaged
     {
+        Bind();
         //Setting a uniform on a shader using a name.
         if (!uniforms.TryGetValue(name, out var info))
             throw new Exception($"{name} uniform not found on shader.");

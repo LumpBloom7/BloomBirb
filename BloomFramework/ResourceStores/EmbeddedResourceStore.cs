@@ -4,18 +4,19 @@ namespace BloomFramework.ResourceStores;
 
 public class EmbeddedResourceStore : IResourceStore
 {
-    private Assembly assembly;
+    private readonly Assembly assembly;
 
-    private string prefix = "BloomFramework.Resources";
+    private readonly string prefix;
 
     public EmbeddedResourceStore()
-        : this(typeof(EmbeddedResourceStore).GetTypeInfo().Assembly)
+        : this(typeof(EmbeddedResourceStore).GetTypeInfo().Assembly, "BloomFramework.Resources")
     {
     }
 
-    public EmbeddedResourceStore(Assembly assembly)
+    public EmbeddedResourceStore(Assembly assembly, string prefix)
     {
         this.assembly = assembly;
+        this.prefix = prefix;
 
         Console.WriteLine("Resources available:");
         Console.WriteLine("-------------------");

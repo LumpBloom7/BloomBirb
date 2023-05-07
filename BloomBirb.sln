@@ -5,6 +5,8 @@ VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BloomFramework", "BloomFramework\BloomFramework.csproj", "{930C89A9-0F6F-4194-8920-7D6469ABCDFA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackLotus", "BlackLotus\BlackLotus.csproj", "{F72CAC73-2876-448B-8438-2022AA06A73D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{930C89A9-0F6F-4194-8920-7D6469ABCDFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{930C89A9-0F6F-4194-8920-7D6469ABCDFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{930C89A9-0F6F-4194-8920-7D6469ABCDFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F72CAC73-2876-448B-8438-2022AA06A73D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F72CAC73-2876-448B-8438-2022AA06A73D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F72CAC73-2876-448B-8438-2022AA06A73D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F72CAC73-2876-448B-8438-2022AA06A73D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
