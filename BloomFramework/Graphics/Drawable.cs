@@ -234,11 +234,13 @@ public abstract class Drawable : IDisposable
     {
     }
 
+    private Vector2 absoluteSize;
+
     protected virtual void Revalidate()
     {
         Transformation = Parent?.Transformation ?? Matrix3.Identity;
 
-        Vector2 parentSize = Parent?.size ?? Vector2.Zero;
+        Vector2 parentSize = Parent?.absoluteSize ?? Vector2.Zero;
 
         float anchorOffsetX = 0, anchorOffsetY = 0;
 
@@ -276,6 +278,8 @@ public abstract class Drawable : IDisposable
             sizeX *= parentSize.X;
         if (RelativeSizeAxes.HasFlag(Axes.Y))
             sizeY *= parentSize.Y;
+
+        absoluteSize = new Vector2(sizeX, sizeY);
 
         if (Origin.HasFlag(Anchor.Top))
             originOffsetY = -sizeY;
