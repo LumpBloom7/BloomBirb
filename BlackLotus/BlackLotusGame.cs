@@ -17,12 +17,11 @@ public class BlackLotusGame : GameBase
     private ShaderStore shaders = null!;
     private TextureStore textures = null!;
 
+    private Container contentLayer = null!;
+    private Container overlayLayer = null!;
 
-    private Container contentLayer;
-    private Container overlayLayer;
-
-    private Container sunLayer;
-    private Drawable kitty;
+    private Container sunLayer = null!;
+    private Drawable kitty = null!;
 
     protected override void Load()
     {
@@ -93,7 +92,6 @@ public class BlackLotusGame : GameBase
             Colour = new Vector4(1, 0.4f, 0.4f, 1),
             Anchor = Anchor.TopCentre,
             Origin = Anchor.MiddleCentre,
-            Texture = textures.Get("sdfghjk")
         });
 
         kittyLayer.Add(kitty = new DrawableSprite(textureShader)
