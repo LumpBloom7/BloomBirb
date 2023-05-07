@@ -17,10 +17,32 @@ public abstract class CompositeDrawable<T> : Drawable where T : Drawable
         children.Add(drawable);
     }
 
+    public void AddRange(T[] drawables)
+    {
+        foreach (var drawable in drawables)
+            Add(drawable);
+    }
+
     public void Remove(T drawable)
     {
-        if (children.Remove(drawable))
-            drawable.Parent = null;
+        children.Remove(drawable);
+        drawable.Parent = null;
+    }
+
+    internal override void LoadInternal()
+    {
+        base.LoadInternal();
+
+        foreach (var child in children)
+            child.LoadInternal();
+    }
+
+    internal override void UpdateInternal(double dt)
+    {
+        base.UpdateInternal(dt);
+
+        foreach (var child in children)
+            child.UpdateInternal(dt);
     }
 
     public override void QueueDraw(OpenGlRenderer renderer)

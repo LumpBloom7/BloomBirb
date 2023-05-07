@@ -5,7 +5,7 @@ using BloomBirb.Renderers.OpenGL;
 
 namespace BloomBirb.Graphics;
 
-public abstract class Drawable
+public abstract class Drawable : IDisposable
 {
     // Used for inheritance
     private Drawable? parent;
@@ -187,8 +187,45 @@ public abstract class Drawable
 
     private bool invalidated = true;
 
+    private LoadState loadState = LoadState.NotLoaded;
+
+    internal virtual void LoadInternal()
+    {
+        if (loadState is LoadState.Loaded or LoadState.Ready)
+            return;
+
+        loadState = LoadState.Loading;
+
+        Load();
+
+        loadState = LoadState.Loaded;
+    }
+
+    protected virtual void Load()
+    {
+    }
+
+    internal virtual void UpdateInternal(double dt)
+    {
+        if (loadState is LoadState.NotLoaded)
+        {
+            LoadInternal();
+        }
+
+        Update(dt);
+
+        loadState = LoadState.Ready;
+    }
+
+    protected virtual void Update(double dt)
+    {
+    }
+
     public virtual void QueueDraw(OpenGlRenderer renderer)
     {
+        if (loadState != LoadState.Ready)
+            return;
+
         if (invalidated)
             Revalidate();
     }
@@ -261,5 +298,26 @@ public abstract class Drawable
     public virtual void Invalidate()
     {
         invalidated = true;
+    }
+
+    public bool Disposed { get; private set; }
+
+    protected virtual void Dispose(bool isDisposing)
+    {
+    }
+
+    public void Dispose()
+    {
+        if (Disposed)
+            return;
+
+        Dispose(true);
+
+        Disposed = true;
+    }
+
+    ~Drawable()
+    {
+        Dispose(false);
     }
 }

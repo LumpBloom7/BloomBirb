@@ -175,6 +175,7 @@ public class OpenGlRenderer : IDisposable
         Context.DepthMask(true);
         Context.Disable(EnableCap.Blend);
         clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
         DrawDepth.Reset();
 
         foreach (var batch in usedBatches)
