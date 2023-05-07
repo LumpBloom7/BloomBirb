@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using BloomFramework.Graphics.Textures;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using SixLabors.ImageSharp;
@@ -18,8 +19,11 @@ public class Texture : ITexture, IDisposable
 
     protected int MipMapLevels { get; private set; }
 
-    public Texture(OpenGlRenderer renderer, int mipLevels = 4)
+    private readonly FilterMode filterMode;
+
+    public Texture(OpenGlRenderer renderer, FilterMode filterMode = FilterMode.Linear, int mipLevels = 4)
     {
+        this.filterMode = filterMode;
         this.renderer = renderer;
         MipMapLevels = mipLevels;
     }
@@ -34,15 +38,17 @@ public class Texture : ITexture, IDisposable
 
         Bind();
 
-        renderer.Context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, (uint)size.Width, (uint)size.Height, 0,
-                PixelFormat.Rgba, PixelType.UnsignedByte, null);
+        renderer.Context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, (uint)size.Width,
+            (uint)size.Height, 0,
+            PixelFormat.Rgba, PixelType.UnsignedByte, null);
 
         setParameters();
     }
 
     public void SetPixel(int offsetX, int offsetY, Rgba32 pixel)
     {
-        renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, offsetX, offsetY, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, in pixel);
+        renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, offsetX, offsetY, 1, 1, PixelFormat.Rgba,
+            PixelType.UnsignedByte, in pixel);
     }
 
     protected void PaintRectangle(Rectangle<int> rect, Rgba32 pixel)
@@ -57,7 +63,8 @@ public class Texture : ITexture, IDisposable
         unsafe
         {
             fixed (void* data = pixels)
-                renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, rect.Origin.X, rect.Origin.Y, (uint)rect.Size.X, (uint)rect.Size.Y, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+                renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, rect.Origin.X, rect.Origin.Y,
+                    (uint)rect.Size.X, (uint)rect.Size.Y, PixelFormat.Rgba, PixelType.UnsignedByte, data);
         }
     }
 
@@ -68,8 +75,10 @@ public class Texture : ITexture, IDisposable
         {
             int paddedOffsetX = Math.Max(offsetX - padding, 0);
             int paddedOffsetY = Math.Max(offsetY - padding, 0);
-            int paddedWidth = image.Width + (offsetX - paddedOffsetX) + Math.Clamp(TextureSize.Width - (offsetX + image.Width), 0, padding);
-            int paddedHeight = image.Height + (offsetY - paddedOffsetY) + Math.Clamp(TextureSize.Height - (offsetY + image.Height), 0, padding);
+            int paddedWidth = image.Width + (offsetX - paddedOffsetX) +
+                              Math.Clamp(TextureSize.Width - (offsetX + image.Width), 0, padding);
+            int paddedHeight = image.Height + (offsetY - paddedOffsetY) +
+                               Math.Clamp(TextureSize.Height - (offsetY + image.Height), 0, padding);
 
             Span<Rgba32> paddedRow = stackalloc Rgba32[paddedWidth];
 
@@ -93,7 +102,8 @@ public class Texture : ITexture, IDisposable
                 }
 
                 fixed (void* data = paddedRow)
-                    renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, paddedOffsetX, paddedOffsetY + i, (uint)paddedWidth, 1, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+                    renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, paddedOffsetX, paddedOffsetY + i,
+                        (uint)paddedWidth, 1, PixelFormat.Rgba, PixelType.UnsignedByte, data);
             }
         });
 
@@ -103,11 +113,17 @@ public class Texture : ITexture, IDisposable
     private void setParameters()
     {
         // Set some parameters
-        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);
-        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
-        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-            (int)GLEnum.LinearMipmapLinear);
-        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
+        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS,
+            (int)GLEnum.ClampToEdge);
+        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT,
+            (int)GLEnum.ClampToEdge);
+
+        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(
+            filterMode == FilterMode.Linear ? GLEnum.LinearMipmapLinear : GLEnum.NearestMipmapNearest));
+
+        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+            (int)(filterMode == FilterMode.Linear ? GLEnum.Linear : GLEnum.Nearest));
+
         renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
         renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, MipMapLevels);
     }
@@ -118,7 +134,8 @@ public class Texture : ITexture, IDisposable
 
     public static implicit operator TextureUsage(Texture texture) => texture.AsTextureUsage();
 
-    public TextureUsage AsTextureUsage() => new(this, new(0, 0, TextureSize.Width, TextureSize.Height), HasTransparency);
+    public TextureUsage AsTextureUsage() =>
+        new(this, new(0, 0, TextureSize.Width, TextureSize.Height), HasTransparency);
 
 
     private bool isDisposed;

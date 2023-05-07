@@ -1,4 +1,5 @@
-﻿using BloomFramework.Renderers.OpenGL;
+﻿using BloomFramework.Graphics.Textures;
+using BloomFramework.Renderers.OpenGL;
 using BloomFramework.Renderers.OpenGL.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -28,8 +29,12 @@ public class TextureStore : IDisposable
 
     private readonly int mipMapLevels;
 
-    public TextureStore(OpenGlRenderer renderer, IResourceStore resourceStore, string prefix = "Textures", int mipLevels = 4)
+    private readonly FilterMode filterMode;
+
+    public TextureStore(OpenGlRenderer renderer, IResourceStore resourceStore, string prefix = "Textures",
+        FilterMode filterMode = FilterMode.Linear, int mipLevels = 4)
     {
+        this.filterMode = filterMode;
         this.renderer = renderer;
         resources = resourceStore;
         this.prefix = prefix;
@@ -56,7 +61,6 @@ public class TextureStore : IDisposable
                         newTexture = addLargeTexture(image);
                     else
                         newTexture = addRegularTexture(image);
-
                 }
 
                 textureCache.Add(actualFilename, newTexture);
@@ -71,7 +75,7 @@ public class TextureStore : IDisposable
 
     private TextureUsage addLargeTexture(Image<Rgba32> image)
     {
-        var texture = new Texture(renderer, mipMapLevels);
+        var texture = new Texture(renderer, filterMode, mipMapLevels);
         texture.Initialize(image.Size());
 
         texture.BufferImageData(image);
@@ -90,7 +94,7 @@ public class TextureStore : IDisposable
         }
 
         // No fitting atlas, create new
-        var newAtlas = new TextureAtlas(renderer, mipMapLevels);
+        var newAtlas = new TextureAtlas(renderer,filterMode, mipMapLevels);
         newAtlas.Initialize(new Size(4096, 4096));
 
         atlases.Add(newAtlas);

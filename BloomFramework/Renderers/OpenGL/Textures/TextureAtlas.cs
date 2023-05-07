@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using BloomFramework.Graphics.Textures;
 using Silk.NET.Maths;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -7,8 +8,8 @@ namespace BloomFramework.Renderers.OpenGL.Textures;
 
 public class TextureAtlas : Texture
 {
-    public TextureAtlas(OpenGlRenderer renderer, int mipLevels)
-        : base(renderer) { }
+    public TextureAtlas(OpenGlRenderer renderer, FilterMode filterMode, int mipLevels)
+        : base(renderer, filterMode, mipLevels) { }
 
     public override void Initialize(Size size)
     {
