@@ -80,7 +80,7 @@ public class Texture : ITexture, IDisposable
 
                 if (!HasTransparency)
                     foreach (var pix in rowSpan)
-                        if (pix.A < 255 && pix.A > 25)
+                        if (pix.A < 255)
                         {
                             HasTransparency = true;
                             break;

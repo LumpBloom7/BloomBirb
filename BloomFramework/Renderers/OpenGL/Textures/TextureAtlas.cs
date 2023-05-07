@@ -40,7 +40,7 @@ public class TextureAtlas : Texture
             {
                 foreach (var pix in accessor.GetRowSpan(i))
                 {
-                    if (pix.A < 255 && pix.A > 25)
+                    if (pix.A < 255)
                     {
                         transparent = true;
                         break;
