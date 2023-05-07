@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 using BloomFramework.Graphics.Vertices;
 using BloomFramework.Renderers.OpenGL;
@@ -20,8 +21,8 @@ public class DrawableSprite : Drawable
 
     public override void QueueDraw(OpenGlRenderer renderer)
     {
-        if (Texture is null)
-            return;
+        Texture ??= renderer.BlankTexture;
+
         base.QueueDraw(renderer);
 
         renderer.QueueDrawable(this);
@@ -29,8 +30,7 @@ public class DrawableSprite : Drawable
 
     public override void Draw(OpenGlRenderer renderer)
     {
-        if (Texture is null)
-            return;
+        Debug.Assert(Texture is not null);
 
         base.Draw(renderer);
         renderer.UseBatch<QuadBatch<DepthWrappingVertex<TexturedVertex2D>>>();
