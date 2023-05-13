@@ -1,8 +1,11 @@
 ﻿//Specifying the version like in our vertex shader.
 #version 430 core
 
-in vec2 f_uv;
-in vec4 f_col;
+in FragData 
+{
+    vec2 f_uv;
+    vec4 f_col;
+};
 
 uniform sampler2D u_Texture0;
 
