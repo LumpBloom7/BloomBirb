@@ -60,7 +60,7 @@ public class BlackLotusGame : GameBase
                 Texture = textures.Get("Backgrounds.BG1"),
                 RelativeSizeAxes = Axes.Both,
                 FillMode = FillMode.Fit,
-                FillRatio = 320f/192f,
+                FillRatio = 320f / 192f,
                 Anchor = Anchor.MiddleCentre,
                 Origin = Anchor.MiddleCentre
             },
@@ -76,7 +76,7 @@ public class BlackLotusGame : GameBase
                 Texture = textures.Get("Backgrounds.BG2"),
                 RelativeSizeAxes = Axes.Both,
                 FillMode = FillMode.Fit,
-                FillRatio = 320f/192f,
+                FillRatio = 320f / 192f,
                 Anchor = Anchor.MiddleCentre,
                 Origin = Anchor.MiddleCentre
             },
@@ -91,10 +91,10 @@ public class BlackLotusGame : GameBase
                 Texture = textures.Get("Backgrounds.BG3"),
                 RelativeSizeAxes = Axes.Both,
                 FillMode = FillMode.Fit,
-                FillRatio = 320f/192f,
+                FillRatio = 320f / 192f,
                 Anchor = Anchor.MiddleCentre,
                 Origin = Anchor.MiddleCentre
-            }
+            },
         });
 
         sunLayer.Add(new DrawableSprite(textureShader)
@@ -110,9 +110,26 @@ public class BlackLotusGame : GameBase
             Size = new Vector2(200),
             Anchor = Anchor.MiddleRight,
             Origin = Anchor.MiddleRight,
-            Texture = textures.Get("kitty"),
+            Texture = textures.Get("funnyface"),
             RelativePositionAxes = Axes.Y
         });
+
+
+        var dinoFrames = new[]
+        {
+            textures.Get("Dino0.idle0"),
+            textures.Get("Dino0.idle1"),
+            textures.Get("Dino0.idle2"),
+            textures.Get("Dino0.idle3"),
+        };
+
+        contentLayer.Add(
+            new AnimatedSprite(textureShader, dinoFrames, 3)
+            {
+                Size = new(100),
+                Anchor = Anchor.MiddleCentre,
+                Origin = Anchor.MiddleCentre
+            });
     }
 
     private double kitrTime = 0;
@@ -124,6 +141,6 @@ public class BlackLotusGame : GameBase
         kitrTime += dt * 0.5;
 
         sunLayer.Rotation += (float)(dt * 50);
-        kitty.Position = new Vector2(0, (float)Math.Sin(kitrTime)/10);
+        kitty.Position = new Vector2(0, (float)Math.Sin(kitrTime) / 10);
     }
 }
