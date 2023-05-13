@@ -129,16 +129,13 @@ public class OpenGlRenderer : IDisposable
         currentVertexBatch?.FlushBatch();
 
         texture_units[textureUnitIndex] = texture;
-
-        // TODO: THIS IS A QUICK BODGE TO TEST THINGS, SEE RELATED UNIFORM IN SHADERS/SHARED.h
-        Context.Uniform2(34, new System.Numerics.Vector2(texture.TextureSize.Width, texture.TextureSize.Height));
+;
         Context.ActiveTexture(textureUnit);
         Context.BindTexture(TextureTarget.Texture2D, texture.TextureHandle);
     }
 
     public ITexture? GetBoundTexture(TextureUnit textureUnit = TextureUnit.Texture0) => texture_units[0];
-
-
+    
     // <Render>
     private readonly DrawableBatchTree batchTree = new();
 

@@ -8,6 +8,6 @@ void main()
 {
     gl_Position =  vec4((u_projMatrix * vec3(v_pos, 1)).xy, v_depth, 1);
 
-    f_uv = (v_texRegionOrigin + (v_uv * v_texRegionSize))/u_textureSize;
+    f_uv = v_uv;
     f_col = v_col;
 }

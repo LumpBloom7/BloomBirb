@@ -28,6 +28,8 @@ public class Texture : ITexture, IDisposable
         MipMapLevels = mipLevels;
     }
 
+    public TextureUsage TextureUsage { get; private set; }
+
     public virtual unsafe void Initialize(Size size)
     {
         Debug.Assert(renderer.Context is not null);
@@ -136,7 +138,6 @@ public class Texture : ITexture, IDisposable
 
     public TextureUsage AsTextureUsage() =>
         new(this, new(0, 0, TextureSize.Width, TextureSize.Height), HasTransparency);
-
 
     private bool isDisposed;
 

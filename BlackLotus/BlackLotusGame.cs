@@ -34,7 +34,6 @@ public class BlackLotusGame : GameBase
         var font = new Font(resourceStore.Get("Fonts.Monogram.fnt")!, fontTextures);
 
         var textureShader = shaders.Get("Texture", "Texture");
-        textureShader.SetUniform("u_Texture0", 0);
 
         AddRange(new Drawable[]
         {
@@ -64,12 +63,6 @@ public class BlackLotusGame : GameBase
                 FillRatio = 320f/192f,
                 Anchor = Anchor.MiddleCentre,
                 Origin = Anchor.MiddleCentre
-            },
-            new DrawableSprite(textureShader)
-            {
-                RelativeSizeAxes = Axes.Both,
-                Alpha = 0.4f,
-                Colour = new Vector4(1,0,0,1f)
             },
             sunLayer = new Container()
             {
