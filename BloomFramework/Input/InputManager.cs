@@ -8,6 +8,7 @@ namespace BloomFramework.Input;
 public partial class InputManager
 {
     private readonly IInputContext input;
+    private readonly IWindow window;
 
     private readonly HashSet<IKeyboardHandler> keyboardHandlers = new();
     private HashSet<IMouseHandler> mouseHandlers = new();
@@ -19,10 +20,14 @@ public partial class InputManager
 
     public InputManager(IWindow window)
     {
+        this.window = window;
         input = window.CreateInput();
 
-        foreach (var keyboard in input.Keyboards)
-            deviceConnected(keyboard);
+        foreach (var keyboard in Keyboards)
+            onKeyboardConnected(keyboard);
+
+        foreach (var mouse in Mice)
+            onMouseConnected(mouse);
 
         input.ConnectionChanged += onConnectionChanged;
     }
@@ -44,6 +49,7 @@ public partial class InputManager
                 onKeyboardConnected(keyboard);
                 break;
             case IMouse mouse:
+                onMouseConnected(mouse);
                 break;
             case IJoystick joystick:
                 break;
@@ -59,6 +65,7 @@ public partial class InputManager
                 onKeyboardDisconnected(keyboard);
                 break;
             case IMouse mouse:
+                onMouseDisconnected(mouse);
                 break;
             case IJoystick joystick:
                 break;
@@ -68,34 +75,26 @@ public partial class InputManager
     // Maybe declaring scope would be helpful, so that we don't send event to drawables that don't care
     public void RegisterInputConsumer<T>(T drawable) where T : class
     {
-        switch (drawable)
-        {
-            case IKeyboardHandler kh:
-                keyboardHandlers.Add(kh);
-                break;
-            case IMouseHandler mh:
-                mouseHandlers.Add(mh);
-                break;
-            case IJoystickHandler jh:
-                joystickHandlers.Add(jh);
-                break;
-        }
+        if (drawable is IKeyboardHandler kh)
+            keyboardHandlers.Add(kh);
+
+        if (drawable is IMouseHandler mh)
+            mouseHandlers.Add(mh);
+
+        if (drawable is IJoystickHandler jh)
+            joystickHandlers.Add(jh);
     }
 
     public void UnregisterInputConsumer<T>(T drawable) where T : class
     {
-        switch (drawable)
-        {
-            case IKeyboardHandler kh:
-                keyboardHandlers.Remove(kh);
-                break;
-            case IMouseHandler mh:
-                mouseHandlers.Remove(mh);
-                break;
-            case IJoystickHandler jh:
-                joystickHandlers.Remove(jh);
-                break;
-        }
+        if (drawable is IKeyboardHandler kh)
+            keyboardHandlers.Remove(kh);
+
+        if (drawable is IMouseHandler mh)
+            mouseHandlers.Remove(mh);
+
+        if (drawable is IJoystickHandler jh)
+            joystickHandlers.Remove(jh);
     }
 
     //public bool IsInputConsumer<T>(Drawable drawable) => consumers.Contains(drawable);
