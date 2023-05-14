@@ -5,11 +5,13 @@ using BloomFramework.Fonts.BMFont;
 using BloomFramework.Graphics;
 using BloomFramework.Graphics.Containers;
 using BloomFramework.Graphics.Textures;
+using BloomFramework.Input.Handlers;
 using BloomFramework.ResourceStores;
+using Silk.NET.Input;
 
 namespace BlackLotus;
 
-public class BlackLotusGame : GameBase
+public class BlackLotusGame : GameBase, IKeyboardHandler
 {
     private IResourceStore resourceStore =
         new FallbackResourceStore(new EmbeddedResourceStore(typeof(BlackLotusGame).Assembly, "BlackLotus.Resources"));
@@ -23,14 +25,18 @@ public class BlackLotusGame : GameBase
     private Container sunLayer = null!;
     private Drawable kitty = null!;
 
+    private Drawable dino = null!;
+
     protected override void Load()
     {
         base.Load();
 
-        shaders = new ShaderStore(renderer, resourceStore);
-        textures = new TextureStore(renderer, resourceStore, filterMode: FilterMode.Nearest);
+        Input.RegisterInputConsumer(this);
 
-        var fontTextures = new TextureStore(renderer, resourceStore, "Fonts");
+        shaders = new ShaderStore(Renderer, resourceStore);
+        textures = new TextureStore(Renderer, resourceStore, filterMode: FilterMode.Nearest);
+
+        var fontTextures = new TextureStore(Renderer, resourceStore, "Fonts");
         var font = new Font(resourceStore.Get("Fonts.Monogram.fnt")!, fontTextures);
 
         var textureShader = shaders.Get("Texture", "Texture");
@@ -114,22 +120,15 @@ public class BlackLotusGame : GameBase
             RelativePositionAxes = Axes.Y
         });
 
-
-        var dinoFrames = new[]
-        {
-            textures.Get("Dino0.idle0"),
-            textures.Get("Dino0.idle1"),
-            textures.Get("Dino0.idle2"),
-            textures.Get("Dino0.idle3"),
-        };
-
         contentLayer.Add(
-            new AnimatedSprite(textureShader, dinoFrames, 3)
+            dino = new TestDino(textureShader, textures)
             {
                 Size = new(100),
                 Anchor = Anchor.MiddleCentre,
                 Origin = Anchor.MiddleCentre
             });
+
+        Input.RegisterInputConsumer(dino);
     }
 
     private double kitrTime = 0;
