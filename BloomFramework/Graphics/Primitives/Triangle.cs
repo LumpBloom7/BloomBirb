@@ -24,7 +24,7 @@ public readonly record struct Triangle
         float area2 = computeArea(point, B, C);
         float area3 = computeArea(point, A, C);
 
-        return Math.Abs(area1 + area2 + area3 - Area) < float.Epsilon;
+        return Math.Abs(area1 + area2 + area3 - Area) < 0.01;
     }
 
     private static float computeArea( Vector2 a, Vector2 b, Vector2 c)
