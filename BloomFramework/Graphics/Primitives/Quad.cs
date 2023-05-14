@@ -36,4 +36,10 @@ public readonly record struct Quad
         quad.BottomRight.Transform(transformation),
         quad.TopRight.Transform(transformation)
     );
+
+    public bool Contains(Vector2 point)
+    {
+        return new Triangle(TopLeft, BottomLeft, BottomRight).Contains(point)
+               || new Triangle(TopLeft, TopRight, BottomRight).Contains(point);
+    }
 }
