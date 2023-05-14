@@ -1,6 +1,7 @@
 using System.Numerics;
 using BloomFramework.Audio;
 using BloomFramework.Graphics.Containers;
+using BloomFramework.Input;
 using BloomFramework.Renderers.OpenGL;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
@@ -11,12 +12,14 @@ namespace BloomFramework;
 public class GameBase : Container
 {
     private IWindow window;
-    protected OpenGlRenderer renderer { get; private init; }
+    protected OpenGlRenderer Renderer { get; private init; }
+    protected InputManager Input { get; private set; }
 
     public GameBase()
     {
         window = Window.Create(CreateWindowOptions());
-        renderer = new OpenGlRenderer();
+
+        Renderer = new OpenGlRenderer();
 
         window.Load += LoadInternal;
         window.Update += UpdateInternal;
@@ -32,10 +35,12 @@ public class GameBase : Container
 
     protected override void Load()
     {
-        renderer.Initialize(window);
-        renderer.Context?.Enable(EnableCap.DepthTest);
-        renderer.Context?.DepthFunc(DepthFunction.Lequal);
-        renderer.Context?.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        Input = new InputManager(window);
+
+        Renderer.Initialize(window);
+        Renderer.Context?.Enable(EnableCap.DepthTest);
+        Renderer.Context?.DepthFunc(DepthFunction.Lequal);
+        Renderer.Context?.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         onResize(window.Size); // Make sure we start off in a good state
 
@@ -58,16 +63,16 @@ public class GameBase : Container
 
     private void render()
     {
-        renderer.BeginFrame();
+        Renderer.BeginFrame();
 
-        QueueDraw(renderer);
+        QueueDraw(Renderer);
 
-        renderer.EndFrame();
+        Renderer.EndFrame();
     }
 
     private void onResize(Vector2D<int> size)
     {
-        renderer.Context?.Viewport(size);
+        Renderer.Context?.Viewport(size);
         Size = new Vector2(size.X, size.Y);
         Scale = new Vector2(2f / size.X, 2f / size.Y);
     }

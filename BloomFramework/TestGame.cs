@@ -27,12 +27,12 @@ public class TestGame : GameBase
         // Load resources based on what we need
         // In this case audio store is optional
         resources = new EmbeddedResourceStore();
-        shaders = new ShaderStore(renderer, resources);
-        textures = new TextureStore(renderer, resources);
+        shaders = new ShaderStore(Renderer, resources);
+        textures = new TextureStore(Renderer, resources);
         audioStore = new AudioStore(resources);
 
         // Load a font from our resources
-        var fontTextures = new TextureStore(renderer, resources, "Fonts");
+        var fontTextures = new TextureStore(Renderer, resources, "Fonts");
         font = new Font(resources.Get("Fonts.OpenSans.fnt")!, fontTextures);
 
         // Declare required shader for sprites (This may be automated soon with this as the default)
