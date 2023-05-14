@@ -1,4 +1,5 @@
 using System.Numerics;
+using BloomFramework.Extensions;
 using BloomFramework.Graphics;
 using BloomFramework.Input.Handlers;
 using BloomFramework.Renderers.OpenGL;
@@ -8,13 +9,14 @@ using Silk.NET.Input;
 
 namespace BlackLotus.Components;
 
-public class TestDino : DrawableSprite, IKeyboardHandler
+public class TestDino : DrawableSprite, IKeyboardHandler, IMouseHandler
 {
     private enum DinoAnimSet
     {
         idle,
         walk,
         kick,
+        hurt,
     }
 
     private record AnimationSet(TextureUsage[] Frames, int Fps, bool Looping)
@@ -35,6 +37,7 @@ public class TestDino : DrawableSprite, IKeyboardHandler
         animationSets.Add(DinoAnimSet.idle, loadAnimSet(textures, "Dino0.idle", 4, 3));
         animationSets.Add(DinoAnimSet.walk, loadAnimSet(textures, "Dino0.walk", 6, 6));
         animationSets.Add(DinoAnimSet.kick, loadAnimSet(textures, "Dino0.kick", 3, 6));
+        animationSets.Add(DinoAnimSet.hurt, loadAnimSet(textures, "Dino0.hurt", 4, 4));
 
         animationSet = animationSets[DinoAnimSet.idle];
     }
@@ -48,7 +51,7 @@ public class TestDino : DrawableSprite, IKeyboardHandler
         // Update position
 
         const float moveSpeed = 500;
-        if (currentSet == DinoAnimSet.kick)
+        if (currentSet is DinoAnimSet.kick or DinoAnimSet.hurt)
             return;
 
         var normalizedMovement =
@@ -59,6 +62,7 @@ public class TestDino : DrawableSprite, IKeyboardHandler
 
     private Vector2 movementDirection = Vector2.Zero;
     private bool kicking;
+    private bool bullied;
 
     private void updateAnimation(double dt)
     {
@@ -77,13 +81,19 @@ public class TestDino : DrawableSprite, IKeyboardHandler
             timeElapsed -= animationSet.Frametime;
         }
 
-        if (kicking)
+        if (bullied)
+        {
+            trySwitchSet(DinoAnimSet.hurt);
+            bullied = false;
+        }
+
+        else if (kicking)
         {
             trySwitchSet(DinoAnimSet.kick);
         }
         else
         {
-            if(currentSet != DinoAnimSet.kick)
+            if(currentSet is not (DinoAnimSet.kick or DinoAnimSet.hurt))
             {
                 trySwitchSet(movementDirection.LengthSquared() == 0 ? DinoAnimSet.idle : DinoAnimSet.walk);
             }
@@ -162,5 +172,11 @@ public class TestDino : DrawableSprite, IKeyboardHandler
         }
 
         return new AnimationSet(frames, fps, looping);
+    }
+
+    public void OnClick(IMouse mouse, MouseButton button, Vector2 position)
+    {
+        if (DrawQuad.Contains(position))
+            bullied = true;
     }
 }
