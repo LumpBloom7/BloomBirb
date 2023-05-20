@@ -22,7 +22,7 @@ public class FrametimeCounter : SpriteText
 
         if (!(accumulator >= 0.5)) return;
 
-        Text = $"Frametime: {((accumulator / frames) * 1000):F2}ms";
+        Text = $"Frametime: {((accumulator / frames) * 1000):F2} | {Math.Floor(frames / accumulator):F0} FPS";
         accumulator = 0;
         frames = 0;
     }
