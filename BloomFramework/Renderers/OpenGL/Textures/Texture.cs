@@ -17,6 +17,8 @@ public class Texture : ITexture, IDisposable
 
     protected readonly TextureParameters TextureParameters;
 
+    private bool invalidated = false;
+
     public Texture(OpenGlRenderer renderer, int width, int height)
         : this(renderer, width, height, new TextureParameters())
     {
@@ -31,6 +33,8 @@ public class Texture : ITexture, IDisposable
 
         // Expectation, GL is ready at this point
         initialize();
+
+        invalidated = true;
     }
 
     private unsafe void initialize()
@@ -45,7 +49,16 @@ public class Texture : ITexture, IDisposable
         setTextureParameters();
     }
 
-    public void Bind(TextureUnit textureUnit = TextureUnit.Texture0) => Renderer.BindTexture(this, textureUnit);
+    public void Bind(TextureUnit textureUnit = TextureUnit.Texture0)
+    {
+        Renderer.BindTexture(this, textureUnit);
+
+        // Regenerate mipmaps if necessary
+        if (!invalidated) return;
+
+        generateMipmaps();
+        invalidated = false;
+    }
 
     private void setTextureParameters()
     {
@@ -65,7 +78,8 @@ public class Texture : ITexture, IDisposable
             TextureParameters.MaxMipLevel);
     }
 
-    public ITextureUsage UploadData(Image<Rgba32> image, int padding = 0) => UploadData(image, new Vector2D<int>(), padding);
+    public ITextureUsage UploadData(Image<Rgba32> image, int padding = 0) =>
+        UploadData(image, new Vector2D<int>(), padding);
 
     public unsafe ITextureUsage UploadData(Image<Rgba32> image, Vector2D<int> targetOffset, int padding = 0)
     {
@@ -87,6 +101,8 @@ public class Texture : ITexture, IDisposable
 
                 var rowSpan = p.GetRowSpan(Math.Clamp(i, 0, image.Height - 1))[..targetWidth];
 
+                invalidated = invalidated || rowSpan.Length > 0;
+
                 hasTransparencies = hasTransparencies || hasTransparentPixels(rowSpan);
 
                 padPixelRow(rowSpan, paddedRowSpan, leftSpace);
@@ -97,8 +113,6 @@ public class Texture : ITexture, IDisposable
                         (uint)paddedRowSpan.Length, 1, PixelFormat.Rgba, PixelType.UnsignedByte, data);
             }
         });
-
-        generateMipmaps();
 
         return new TextureUsage(this, new Rectangle<int>(targetOffset, targetWidth, targetHeight),
             hasTransparencies);
