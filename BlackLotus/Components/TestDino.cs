@@ -19,7 +19,7 @@ public class TestDino : DrawableSprite, IKeyboardHandler, IMouseHandler
         hurt,
     }
 
-    private record AnimationSet(TextureUsage[] Frames, int Fps, bool Looping)
+    private record AnimationSet(ITextureUsage[] Frames, int Fps, bool Looping)
     {
         public readonly double Frametime = 1f / Fps;
     };
@@ -164,7 +164,7 @@ public class TestDino : DrawableSprite, IKeyboardHandler, IMouseHandler
 
     private static AnimationSet loadAnimSet(TextureStore textures, string prefix, int frameCount, int fps, bool looping = true)
     {
-        TextureUsage[] frames = new TextureUsage[frameCount];
+        ITextureUsage[] frames = new ITextureUsage[frameCount];
 
         for (int i = 0; i < frameCount; ++i)
         {

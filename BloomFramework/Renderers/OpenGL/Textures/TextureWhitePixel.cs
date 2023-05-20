@@ -1,66 +1,53 @@
+using System.Numerics;
+using Silk.NET.Maths;
+using Silk.NET.OpenGL;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace BloomFramework.Renderers.OpenGL.Textures;
 
-public class TextureWhitePixel : TextureUsage
+public class TextureWhitePixel : ITextureUsage
 {
+    // Intentionally null due to the dynamic nature
+    public ITexture BackingTexture => null!;
+    public bool HasTransparencies => false;
+    public Vector2 RegionOrigin { get; } = Vector2.Zero;
+    public Vector2 RegionSize { get; private set; }
+
+    private Vector2D<int> backingTextureSize = new (1, 1);
+
+    private readonly OpenGlRenderer renderer;
+
     public TextureWhitePixel(OpenGlRenderer renderer)
-        : base(new DummyTexture(renderer), new(0, 0, 1, 1), false)
     {
+        this.renderer = renderer;
     }
 
-    private class DummyTexture : ITexture, IDisposable
+    private Texture? fallbackTexture;
+
+    public void Bind(TextureUnit textureUnit = TextureUnit.Texture0)
     {
-        private OpenGlRenderer renderer;
+        var currentlyBoundTexture = renderer.GetBoundTexture(textureUnit);
 
-        private static Texture? fallbackTex;
-        private ITexture fallbackTexture
+        if (currentlyBoundTexture is not TextureAtlas)
         {
-            get
-            {
-                if (fallbackTex is null)
-                {
-                    fallbackTex = new Texture(renderer);
-                    fallbackTex.Initialize(new(1, 1));
-                    fallbackTex.SetPixel(0, 0, new Rgba32(255, 255, 255));
-                }
-
-                return fallbackTex;
-            }
+            currentlyBoundTexture = fallbackTexture ??= createFallbackTexture();
+            currentlyBoundTexture.Bind(textureUnit);
         }
 
-        public DummyTexture(OpenGlRenderer renderer)
-        {
-            this.renderer = renderer;
-        }
+        if (backingTextureSize.Equals(currentlyBoundTexture.TextureSize))
+            return;
 
-        public uint TextureHandle => renderer.GetBoundTexture()?.TextureHandle ?? fallbackTexture.TextureHandle;
+        backingTextureSize = currentlyBoundTexture.TextureSize;
+        RegionSize = new Vector2(1f / backingTextureSize.X, 1f / backingTextureSize.Y);
+    }
 
-        public SixLabors.ImageSharp.Size TextureSize => renderer.GetBoundTexture()?.TextureSize ?? fallbackTexture.TextureSize;
+    private Texture createFallbackTexture()
+    {
+        var texture = new Texture(renderer, 1, 1);
+        renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, 1, 1, PixelFormat.Rgba,
+            PixelType.UnsignedByte, new Rgba32(1f, 1f, 1f));
 
-        public void Bind()
-        {
-            if (renderer.GetBoundTexture() is not TextureAtlas)
-                fallbackTexture.Bind();
-        }
-
-        private bool isDisposed;
-
-        protected void Dispose(bool disposing)
-        {
-            if (isDisposed)
-                return;
-
-            if (disposing)
-                fallbackTex?.Dispose();
-
-            isDisposed = true;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        return texture;
     }
 }

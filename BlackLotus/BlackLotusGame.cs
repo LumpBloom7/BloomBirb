@@ -6,8 +6,8 @@ using BloomFramework.Graphics;
 using BloomFramework.Graphics.Containers;
 using BloomFramework.Graphics.Textures;
 using BloomFramework.Input.Handlers;
+using BloomFramework.Renderers.OpenGL.Textures;
 using BloomFramework.ResourceStores;
-using Silk.NET.Input;
 
 namespace BlackLotus;
 
@@ -34,7 +34,7 @@ public class BlackLotusGame : GameBase, IKeyboardHandler
         Input.RegisterInputConsumer(this);
 
         shaders = new ShaderStore(Renderer, resourceStore);
-        textures = new TextureStore(Renderer, resourceStore, filterMode: FilterMode.Nearest);
+        textures = new TextureStore(Renderer, resourceStore, parameters: TextureParameters.PIXEL_ART);
 
         var fontTextures = new TextureStore(Renderer, resourceStore, "Fonts");
         var font = new Font(resourceStore.Get("Fonts.Monogram.fnt")!, fontTextures);
@@ -90,7 +90,7 @@ public class BlackLotusGame : GameBase, IKeyboardHandler
             {
                 RelativeSizeAxes = Axes.Both,
                 Anchor = Anchor.MiddleCentre,
-                Origin = Anchor.MiddleCentre
+                Origin = Anchor.MiddleCentre,
             },
             new DrawableSprite(textureShader)
             {
@@ -116,7 +116,7 @@ public class BlackLotusGame : GameBase, IKeyboardHandler
             Size = new Vector2(200),
             Anchor = Anchor.MiddleRight,
             Origin = Anchor.MiddleRight,
-            Texture = textures.Get("funnyface"),
+            Texture = textures.Get("kitty"),
             RelativePositionAxes = Axes.Y
         });
 

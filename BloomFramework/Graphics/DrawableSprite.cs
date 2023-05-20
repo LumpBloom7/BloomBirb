@@ -11,7 +11,7 @@ public class DrawableSprite : Drawable
 {
     public override bool IsTranslucent => (Texture?.HasTransparencies ?? false) || base.IsTranslucent;
 
-    public TextureUsage? Texture { get; set; } = null;
+    public ITextureUsage? Texture { get; set; } = null;
     private Shader shader { get; set; }
 
     public DrawableSprite(Shader shader)

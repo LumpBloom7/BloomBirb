@@ -6,7 +6,6 @@ using BloomFramework.Renderers.OpenGL.Batches;
 using BloomFramework.Renderers.OpenGL.Textures;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-using Texture = BloomFramework.Renderers.OpenGL.Textures.Texture;
 
 namespace BloomFramework.Renderers.OpenGL;
 
@@ -17,7 +16,7 @@ public class OpenGlRenderer : IDisposable
     private static readonly DebugProc debug_proc_callback = debugCallback;
     private static GCHandle? debugProcCallbackHandle;
 
-    private static readonly Texture?[] texture_units = new Texture[1];
+    private static readonly Dictionary<TextureUnit, ITexture> texture_units = new();
     private static uint boundProgram;
 
     private bool isInitialized;
@@ -120,22 +119,26 @@ public class OpenGlRenderer : IDisposable
         Context.UseProgram(programId);
     }
 
-    public void BindTexture(Texture texture, TextureUnit textureUnit = TextureUnit.Texture0)
+    public void BindTexture(ITexture texture, TextureUnit textureUnit = TextureUnit.Texture0)
     {
-        int textureUnitIndex = textureUnit - TextureUnit.Texture0;
-        if (texture_units[textureUnitIndex] == texture)
+        if (texture_units.TryGetValue(textureUnit, out ITexture? previousTexture) && previousTexture.Equals(texture))
             return;
 
         currentVertexBatch?.FlushBatch();
 
-        texture_units[textureUnitIndex] = texture;
-;
+        texture_units[textureUnit] = texture;
+
         Context.ActiveTexture(textureUnit);
         Context.BindTexture(TextureTarget.Texture2D, texture.TextureHandle);
     }
 
-    public ITexture? GetBoundTexture(TextureUnit textureUnit = TextureUnit.Texture0) => texture_units[0];
-    
+    public ITexture? GetBoundTexture(TextureUnit textureUnit = TextureUnit.Texture0)
+    {
+        texture_units.TryGetValue(textureUnit, out ITexture? previousTexture);
+
+        return previousTexture;
+    }
+
     // <Render>
     private readonly DrawableBatchTree batchTree = new();
 

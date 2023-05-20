@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using BloomFramework.Graphics.Textures;
 using Silk.NET.Maths;
+using Silk.NET.OpenGL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -8,80 +8,72 @@ namespace BloomFramework.Renderers.OpenGL.Textures;
 
 public class TextureAtlas : Texture
 {
-    public TextureAtlas(OpenGlRenderer renderer, FilterMode filterMode, int mipLevels)
-        : base(renderer, filterMode, mipLevels) { }
-
-    public override void Initialize(Size size)
+    public TextureAtlas(OpenGlRenderer renderer, int width, int height)
+        : this(renderer, width, height, new TextureParameters())
     {
-        base.Initialize(size);
-        int halfPad = paddingAmount / 2;
-        for (int i = 0; i < halfPad + 1; ++i)
-            for (int j = 0; j < halfPad + 1; ++j)
-                SetPixel(i, j, new Rgba32(255, 255, 255));
-
-        currentCoord = new Vector2D<int>(1 + paddingAmount, 0);
-        maxY = 1 + paddingAmount;
     }
 
-    public TextureUsage? AddSubtexture(Image<Rgba32> image)
+    public TextureAtlas(OpenGlRenderer renderer, int width, int height, TextureParameters parameters)
+        : base(renderer, width, height, parameters)
     {
-        int width = image.Width, height = image.Height;
-
-        if (!findFittingRect(width, height, out var rect))
-            return null;
-
-        int offsetX = rect.Value.Origin.X;
-        int offsetY = rect.Value.Origin.Y;
-
-        bool transparent = false;
-
-        image.ProcessPixelRows(accessor =>
-        {
-            for (int i = 0; i < accessor.Height; i++)
-            {
-                foreach (var pix in accessor.GetRowSpan(i))
-                {
-                    if (pix.A < 255)
-                    {
-                        transparent = true;
-                        break;
-                    }
-                }
-            }
-        });
-
-        BufferImageData(image, offsetX, offsetY, paddingAmount / 2);
-
-        return new TextureUsage(this, rect.Value, transparent);
+        // Prepare a white dot for use in blank textures
+        initialize();
     }
 
-    private Vector2D<int> currentCoord = Vector2D<int>.Zero;
-    private int maxY;
-
-
-    private bool findFittingRect(int desiredSizeX, int desiredSizeY, [NotNullWhen(true)] out Rectangle<int>? rectangle)
+    private unsafe void initialize()
     {
-        var nextCoord = currentCoord;
-        int newMaxY = maxY;
+        int width = 1 + paddingAmount;
+        Span<Rgba32> whitePixels = stackalloc Rgba32[width * width];
 
-        if (desiredSizeX > TextureSize.Width - nextCoord.X)
-        {
-            nextCoord = new Vector2D<int>(0, nextCoord.Y + maxY);
-            newMaxY = 0;
-        }
+        whitePixels.Fill(new Rgba32(1f, 1f, 1f));
 
-        if ((desiredSizeY > TextureSize.Height - nextCoord.Y) || (desiredSizeX > TextureSize.Width))
+        fixed (void* data = whitePixels)
+            Renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, (uint)width, (uint)width,
+                PixelFormat.Rgba, PixelType.UnsignedByte, data);
+
+        cursorX = nextRowY = 1 + paddingAmount * 2;
+    }
+
+    public bool TryAddSubtexture(Image<Rgba32> image, [NotNullWhen(true)] out ITextureUsage? textureUsage)
+    {
+        var target = findFittingPosition(image.Width, image.Height);
+        if (target is not { } offset)
         {
-            rectangle = null;
+            textureUsage = null;
             return false;
         }
 
-        rectangle = new(nextCoord, desiredSizeX, desiredSizeY);
-        maxY = Math.Max(newMaxY, desiredSizeY + paddingAmount);
-        currentCoord = new(nextCoord.X + desiredSizeX + paddingAmount, nextCoord.Y);
+        textureUsage = UploadData(image, offset, paddingAmount);
         return true;
     }
 
-    // This is the amount of padding between two textures
-    private int paddingAmount => 2 << MipMapLevels;
+    private int paddingAmount => 1 << TextureParameters.MaxMipLevel;
+
+    private int cursorX, cursorY;
+    private int nextRowY;
+
+    private Vector2D<int>? findFittingPosition(int width, int height)
+    {
+        // This definitely can't fit in the atlas
+        if (width > Width || height > Height)
+            return null;
+
+        // Not enough vertical space
+        if (cursorY + height > Height)
+            return null;
+
+        // Can't possibly find a position to fit rect
+        if (cursorX + width > Width && nextRowY + height > Height)
+            return null;
+
+        if (cursorX + width > Width)
+            (cursorX, cursorY) = (0, nextRowY);
+
+        var result = new Vector2D<int>(cursorX, cursorY);
+
+        cursorX += width + paddingAmount * 2;
+        nextRowY = Math.Max(nextRowY, cursorY + height + paddingAmount * 2);
+
+        return result;
+    }
 }

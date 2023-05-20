@@ -1,4 +1,4 @@
-﻿using BloomFramework.Graphics.Textures;
+﻿using System.Diagnostics;
 using BloomFramework.Renderers.OpenGL;
 using BloomFramework.Renderers.OpenGL.Textures;
 using SixLabors.ImageSharp;
@@ -19,7 +19,7 @@ public class TextureStore : IDisposable
     private readonly List<TextureAtlas> atlases = new();
     private readonly List<Texture> textures = new();
 
-    private readonly Dictionary<string, TextureUsage> textureCache = new();
+    private readonly Dictionary<string, ITextureUsage> textureCache = new();
 
     private readonly IResourceStore resources;
 
@@ -27,79 +27,79 @@ public class TextureStore : IDisposable
 
     private readonly OpenGlRenderer renderer;
 
-    private readonly int mipMapLevels;
+    private readonly TextureParameters textureParameters;
 
-    private readonly FilterMode filterMode;
-
-    public TextureStore(OpenGlRenderer renderer, IResourceStore resourceStore, string prefix = "Textures",
-        FilterMode filterMode = FilterMode.Linear, int mipLevels = 4)
+    public TextureStore(OpenGlRenderer renderer, IResourceStore resourceStore, string prefix = "Textures")
+        : this(renderer, resourceStore, new TextureParameters(), prefix)
     {
-        this.filterMode = filterMode;
+    }
+
+    public TextureStore(OpenGlRenderer renderer, IResourceStore resourceStore, TextureParameters parameters,
+        string prefix = "Textures")
+    {
         this.renderer = renderer;
         resources = resourceStore;
         this.prefix = prefix;
-        mipMapLevels = mipLevels;
+        textureParameters = parameters;
     }
 
-    public TextureUsage Get(string filename)
+    public ITextureUsage Get(string filename)
     {
         foreach (string fallbackExt in lookup_extensions)
         {
             string actualFilename = $"{filename}{fallbackExt}";
-            if (!textureCache.TryGetValue(actualFilename, out var texture))
+            if (textureCache.TryGetValue(actualFilename, out var texture)) return texture;
+
+            var stream = resources.Get($"{prefix}.{actualFilename}");
+
+            if (stream is null)
+                continue;
+
+            ITextureUsage newTexture;
+
+            using (var image = Image.Load<Rgba32>(stream))
             {
-                var stream = resources.Get($"{prefix}.{actualFilename}");
-
-                if (stream is null)
-                    continue;
-
-                TextureUsage newTexture;
-
-                using (var image = Image.Load<Rgba32>(stream))
-                {
-                    if (image.Width >= 2048 || image.Height >= 2048)
-                        newTexture = addLargeTexture(image);
-                    else
-                        newTexture = addRegularTexture(image);
-                }
-
-                textureCache.Add(actualFilename, newTexture);
-                return newTexture;
+                if (image.Width >= 2048 || image.Height >= 2048)
+                    newTexture = addLargeTexture(image);
+                else
+                    newTexture = addRegularTexture(image);
             }
 
-            return texture;
+            textureCache.Add(actualFilename, newTexture);
+            return newTexture;
+
         }
 
         return renderer.BlankTexture;
     }
 
-    private TextureUsage addLargeTexture(Image<Rgba32> image)
+    private ITextureUsage addLargeTexture(Image<Rgba32> image)
     {
-        var texture = new Texture(renderer, filterMode, mipMapLevels);
-        texture.Initialize(image.Size());
-
-        texture.BufferImageData(image);
+        var texture = new Texture(renderer, image.Width, image.Height, textureParameters);
+        var usage = texture.UploadData(image);
 
         textures.Add(texture);
-        return texture;
+        return usage;
     }
 
-    private TextureUsage addRegularTexture(Image<Rgba32> image)
+    private ITextureUsage addRegularTexture(Image<Rgba32> image)
     {
         foreach (var textureAtlas in atlases)
         {
-            var textureUsage = textureAtlas.AddSubtexture(image);
-            if (textureUsage is not null)
+            if (textureAtlas.TryAddSubtexture(image, out ITextureUsage? textureUsage))
                 return textureUsage;
         }
 
         // No fitting atlas, create new
-        var newAtlas = new TextureAtlas(renderer,filterMode, mipMapLevels);
-        newAtlas.Initialize(new Size(4096, 4096));
+        var newAtlas = new TextureAtlas(renderer, 4096, 4096, textureParameters);
 
         atlases.Add(newAtlas);
 
-        return newAtlas.AddSubtexture(image)!;
+        newAtlas.TryAddSubtexture(image, out ITextureUsage? textureUsage2);
+
+        Debug.Assert(textureUsage2 is not null);
+
+        return textureUsage2;
     }
 
     private bool isDisposed;

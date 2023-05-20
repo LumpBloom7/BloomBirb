@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using BloomFramework.Graphics.Textures;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using SixLabors.ImageSharp;
@@ -9,155 +7,132 @@ namespace BloomFramework.Renderers.OpenGL.Textures;
 
 public class Texture : ITexture, IDisposable
 {
+    protected readonly OpenGlRenderer Renderer;
+
     public uint TextureHandle { get; private set; }
 
-    private readonly OpenGlRenderer renderer;
+    protected readonly int Width, Height;
 
-    public bool HasTransparency { get; private set; }
+    public Vector2D<int> TextureSize => new(Width, Height);
 
-    public Size TextureSize { get; private set; }
+    protected readonly TextureParameters TextureParameters;
 
-    protected int MipMapLevels { get; private set; }
-
-    private readonly FilterMode filterMode;
-
-    public Texture(OpenGlRenderer renderer, FilterMode filterMode = FilterMode.Linear, int mipLevels = 4)
+    public Texture(OpenGlRenderer renderer, int width, int height)
+        : this(renderer, width, height, new TextureParameters())
     {
-        this.filterMode = filterMode;
-        this.renderer = renderer;
-        MipMapLevels = mipLevels;
     }
 
-    public TextureUsage TextureUsage { get; private set; }
-
-    public virtual unsafe void Initialize(Size size)
+    public Texture(OpenGlRenderer renderer, int width, int height,
+        TextureParameters parameters)
     {
-        Debug.Assert(renderer.Context is not null);
+        Renderer = renderer;
+        TextureParameters = parameters;
+        (Width, Height) = (width, height);
 
-        TextureSize = size;
+        // Expectation, GL is ready at this point
+        initialize();
+    }
 
-        TextureHandle = renderer.Context.GenTexture();
+    private unsafe void initialize()
+    {
+        TextureHandle = Renderer.Context.GenTexture();
 
         Bind();
 
-        renderer.Context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, (uint)size.Width,
-            (uint)size.Height, 0,
+        Renderer.Context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, (uint)Width, (uint)Height, 0,
             PixelFormat.Rgba, PixelType.UnsignedByte, null);
 
-        setParameters();
+        setTextureParameters();
     }
 
-    public void SetPixel(int offsetX, int offsetY, Rgba32 pixel)
+    public void Bind(TextureUnit textureUnit = TextureUnit.Texture0) => Renderer.BindTexture(this, textureUnit);
+
+    private void setTextureParameters()
     {
-        renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, offsetX, offsetY, 1, 1, PixelFormat.Rgba,
-            PixelType.UnsignedByte, in pixel);
+        Renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS,
+            (int)TextureParameters.TextureWrapX);
+        Renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT,
+            (int)TextureParameters.TextureWrapY);
+
+        Renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+            (int)TextureParameters.TextureMinFilter);
+        Renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+            (int)TextureParameters.TextureMagFilter);
+
+        Renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel,
+            TextureParameters.BaseMipLevel);
+        Renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel,
+            TextureParameters.MaxMipLevel);
     }
 
-    protected void PaintRectangle(Rectangle<int> rect, Rgba32 pixel)
+    public ITextureUsage UploadData(Image<Rgba32> image, int padding = 0) => UploadData(image, new Vector2D<int>(), padding);
+
+    public unsafe ITextureUsage UploadData(Image<Rgba32> image, Vector2D<int> targetOffset, int padding = 0)
     {
-        if (rect.Size.X * rect.Size.Y <= 0)
-            return;
+        int targetWidth = Math.Min(image.Width, Width - targetOffset.X);
+        int targetHeight = Math.Min(image.Height, Height - targetOffset.Y);
+        bool hasTransparencies = false;
 
-        Span<Rgba32> pixels = new Rgba32[rect.Size.X * rect.Size.Y];
+        int leftSpace = Math.Clamp(targetOffset.X, 0, padding);
+        int rightSpace = Math.Clamp(Width - (targetOffset.X + targetWidth), 0, padding);
 
-        pixels.Fill(pixel);
-
-        unsafe
+        image.ProcessPixelRows(p =>
         {
-            fixed (void* data = pixels)
-                renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, rect.Origin.X, rect.Origin.Y,
-                    (uint)rect.Size.X, (uint)rect.Size.Y, PixelFormat.Rgba, PixelType.UnsignedByte, data);
-        }
-    }
+            Span<Rgba32> paddedRowSpan = stackalloc Rgba32[leftSpace + targetWidth + rightSpace];
 
-    public unsafe void BufferImageData(Image<Rgba32> image, int offsetX = 0, int offsetY = 0, int padding = 0)
-    {
-        Bind();
-        image.ProcessPixelRows(accessor =>
-        {
-            int paddedOffsetX = Math.Max(offsetX - padding, 0);
-            int paddedOffsetY = Math.Max(offsetY - padding, 0);
-            int paddedWidth = image.Width + (offsetX - paddedOffsetX) +
-                              Math.Clamp(TextureSize.Width - (offsetX + image.Width), 0, padding);
-            int paddedHeight = image.Height + (offsetY - paddedOffsetY) +
-                               Math.Clamp(TextureSize.Height - (offsetY + image.Height), 0, padding);
-
-            Span<Rgba32> paddedRow = stackalloc Rgba32[paddedWidth];
-
-            for (int i = 0; i < paddedHeight; i++)
+            for (int i = -padding; i < targetHeight + padding; ++i)
             {
-                int rowIndex = Math.Clamp(paddedOffsetY - offsetY + i, 0, accessor.Height - 1);
-                var rowSpan = accessor.GetRowSpan(rowIndex);
+                if ((targetOffset.Y + i < 0) || (targetOffset.Y + i >= Height))
+                    continue;
 
-                if (!HasTransparency)
-                    foreach (var pix in rowSpan)
-                        if (pix.A < 255)
-                        {
-                            HasTransparency = true;
-                            break;
-                        }
+                var rowSpan = p.GetRowSpan(Math.Clamp(i, 0, image.Height - 1))[..targetWidth];
 
-                for (int j = 0; j < paddedWidth; ++j)
-                {
-                    int colIndex = Math.Clamp(paddedOffsetX - offsetX + j, 0, accessor.Width - 1);
-                    paddedRow[j] = rowSpan[colIndex];
-                }
+                hasTransparencies = hasTransparencies || hasTransparentPixels(rowSpan);
 
-                fixed (void* data = paddedRow)
-                    renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, paddedOffsetX, paddedOffsetY + i,
-                        (uint)paddedWidth, 1, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+                padPixelRow(rowSpan, paddedRowSpan, leftSpace);
+
+                fixed (void* data = paddedRowSpan)
+                    Renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, targetOffset.X - leftSpace,
+                        i + targetOffset.Y,
+                        (uint)paddedRowSpan.Length, 1, PixelFormat.Rgba, PixelType.UnsignedByte, data);
             }
         });
 
-        generateMipmap();
+        generateMipmaps();
+
+        return new TextureUsage(this, new Rectangle<int>(targetOffset, targetWidth, targetHeight),
+            hasTransparencies);
     }
 
-    private void setParameters()
+    private void generateMipmaps() => Renderer.Context.GenerateTextureMipmap(TextureHandle);
+
+    private static void padPixelRow(Span<Rgba32> original, Span<Rgba32> outputSpan, int leftPadding)
     {
-        // Set some parameters
-        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS,
-            (int)GLEnum.ClampToEdge);
-        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT,
-            (int)GLEnum.ClampToEdge);
-
-        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(
-            filterMode == FilterMode.Linear ? GLEnum.LinearMipmapLinear : GLEnum.NearestMipmapNearest));
-
-        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-            (int)(filterMode == FilterMode.Linear ? GLEnum.Linear : GLEnum.Nearest));
-
-        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
-        renderer.Context.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, MipMapLevels);
+        for (int i = 0; i < outputSpan.Length; ++i)
+            outputSpan[i] = original[Math.Clamp(i - leftPadding, 0, original.Length - 1)];
     }
 
-    private void generateMipmap() => renderer.Context.GenerateMipmap(TextureTarget.Texture2D);
-
-    public void Bind() => renderer.BindTexture(this);
-
-    public static implicit operator TextureUsage(Texture texture) => texture.AsTextureUsage();
-
-    public TextureUsage AsTextureUsage() =>
-        new(this, new(0, 0, TextureSize.Width, TextureSize.Height), HasTransparency);
-
-    private bool isDisposed;
-
-    protected void Dispose(bool disposing)
+    private static bool hasTransparentPixels<T>(Span<T> pixelSpan) where T : unmanaged, IPixel<T>
     {
-        if (isDisposed)
-            return;
+        Rgba32 tmp = new Rgba32();
+        foreach (var pixel in pixelSpan)
+        {
+            pixel.ToRgba32(ref tmp);
+            if (tmp.A < 255)
+                return true;
+        }
 
-        renderer.Context.DeleteTexture(TextureHandle);
-        isDisposed = true;
+        return false;
     }
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
+        Renderer.Context.DeleteTexture(TextureHandle);
+        TextureHandle = 0;
     }
 
     ~Texture()
     {
-        Dispose(false);
+        Dispose();
     }
 }

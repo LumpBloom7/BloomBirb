@@ -12,7 +12,7 @@ public readonly record struct TexturedVertex2D : IVertex
     [VertexMember(VertexAttributeType.Float, 2)]
     public readonly Vector2 TexturePosition;
 
-    public TexturedVertex2D(Vector2 position, Vector4 colour, Vector2 uvPos, TextureUsage texture)
+    public TexturedVertex2D(Vector2 position, Vector4 colour, Vector2 uvPos, ITextureUsage texture)
     {
         PositionAndColour = new PositionAndColourVertex(position, colour);
 

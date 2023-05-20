@@ -87,7 +87,7 @@ public class Font
         }
     }
 
-    public TextureUsage GetCharacterTexture(char character)
+    public ITextureUsage GetCharacterTexture(char character)
     {
         if (!Characters.TryGetValue(character, out var charInfo))
             charInfo = Characters['?'];
