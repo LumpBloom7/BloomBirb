@@ -10,9 +10,9 @@ public readonly record struct TextureParameters()
         TextureMagFilter = TextureMagFilter.Nearest
     };
 
-    public TextureWrapMode TextureWrapX { get; init; } = TextureWrapMode.Repeat;
-    public TextureWrapMode TextureWrapY { get; init; } = TextureWrapMode.Repeat;
-    public TextureWrapMode TextureWrapZ { get; init; } = TextureWrapMode.Repeat;
+    public TextureWrapMode TextureWrapX { get; init; } = TextureWrapMode.ClampToEdge;
+    public TextureWrapMode TextureWrapY { get; init; } = TextureWrapMode.ClampToEdge;
+    public TextureWrapMode TextureWrapZ { get; init; } = TextureWrapMode.ClampToEdge;
 
     public TextureMinFilter TextureMinFilter { get; init; } = TextureMinFilter.LinearMipmapLinear;
     public TextureMagFilter TextureMagFilter { get; init; } = TextureMagFilter.Linear;
