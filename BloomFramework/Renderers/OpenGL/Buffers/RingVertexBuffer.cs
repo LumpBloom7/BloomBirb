@@ -1,11 +1,16 @@
 using System.Runtime.CompilerServices;
 using BloomFramework.Graphics.Vertices;
-using BloomFramework.Renderers.OpenGL;
-using BloomFramework.Renderers.OpenGL.Buffers;
 using BloomFramework.Renderers.OpenGL.Buffers.ElementBuffers;
 using Silk.NET.OpenGL;
 
-namespace Namespace;
+namespace BloomFramework.Renderers.OpenGL.Buffers;
+
+/// <summary>
+/// A single persistent mapped buffer, using fences for synchronization. <br/>
+/// In my testing it is a magnitude slower than the regular VertexBuffer, which uses invalidations to speed things up
+/// </summary>
+/// <typeparam name="TVertex">The vertex type</typeparam>
+/// <typeparam name="TElementBuffer">The primitive type</typeparam>
 public unsafe class RingVertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
     where TVertex : unmanaged, IVertex, IEquatable<TVertex>
     where TElementBuffer : IElementBuffer
