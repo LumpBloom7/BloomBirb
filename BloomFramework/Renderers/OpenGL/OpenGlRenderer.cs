@@ -140,7 +140,6 @@ public class OpenGlRenderer : IDisposable
     }
 
     // <Render>
-    private readonly DrawableBatchTree batchTree = new();
 
     // This is the current active batch that the next vertex will be submitted to
     private IVertexBuffer? currentVertexBuffer;
@@ -158,7 +157,7 @@ public class OpenGlRenderer : IDisposable
 
         if (!defaultBuffers.TryGetValue(typeof(TVertexBuffer), out IVertexBuffer? buffer))
         {
-            buffer = TVertexBuffer.Create(this, 1000);
+            buffer = TVertexBuffer.Create(this, 100000);
             buffer.Initialize();
             defaultBuffers[typeof(TVertexBuffer)] = buffer;
         }
@@ -190,28 +189,21 @@ public class OpenGlRenderer : IDisposable
         drawable.DrawDepth = DrawDepth.NextDepth;
         DrawDepth.Increment();
 
-        if (Math.Abs(DrawDepth.NextDepth - 1.001f) < float.Epsilon)
-            batchTree.DrawAll(this);
-
         if (drawable.IsTranslucent || DrawDepth.NextDepth > 1)
         {
             deferredDrawables.Push(drawable);
             return;
         }
-
         drawable.Draw(this);
     }
 
-    public void AddVertex<TVertex>(TVertex vertex)
-        where TVertex : unmanaged, IEquatable<TVertex>, IVertex
+    public void AddVertex<TVertex>(TVertex vertex) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
     {
         ((IVertexBuffer<TVertex>)currentVertexBuffer!).AddVertex(ref vertex);
     }
 
     public void EndFrame()
     {
-        batchTree.DrawAll(this);
-
         if (deferredDrawables.Count > 0)
         {
             currentVertexBuffer?.Draw();
