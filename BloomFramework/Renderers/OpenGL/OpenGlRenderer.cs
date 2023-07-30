@@ -114,6 +114,7 @@ public class OpenGlRenderer : IDisposable
             return;
 
         currentVertexBuffer?.Draw();
+        WaitForFences();
 
         boundProgram = programId;
         Context.UseProgram(programId);
@@ -125,6 +126,7 @@ public class OpenGlRenderer : IDisposable
             return;
 
         currentVertexBuffer?.Draw();
+        WaitForFences();
 
         texture_units[textureUnit] = texture;
 
@@ -137,6 +139,20 @@ public class OpenGlRenderer : IDisposable
         texture_units.TryGetValue(textureUnit, out ITexture? previousTexture);
 
         return previousTexture;
+    }
+
+    private GLFence? lastFence;
+
+    public GLFence CreateFence() => lastFence = new GLFence(this);
+
+    public void WaitForFences()
+    {
+        if (lastFence is null)
+            return;
+
+        while(!lastFence.IsSignalled)
+        {
+        }
     }
 
     // <Render>

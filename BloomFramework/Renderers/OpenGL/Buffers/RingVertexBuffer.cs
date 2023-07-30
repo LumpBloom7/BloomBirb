@@ -40,7 +40,8 @@ public unsafe class RingVertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TV
         renderer.Context.BufferStorage(BufferStorageTarget.ArrayBuffer, (nuint)(vertex_size * maxVertices), null,
                                         BufferStorageMask.MapWriteBit | BufferStorageMask.MapPersistentBit | BufferStorageMask.MapCoherentBit);
 
-        data = (TVertex*)renderer.Context.MapBufferRange(BufferTargetARB.ArrayBuffer, 0, (nuint)(vertex_size * maxVertices), MapBufferAccessMask.WriteBit | MapBufferAccessMask.PersistentBit | MapBufferAccessMask.CoherentBit);
+        data = (TVertex*)renderer.Context.MapBufferRange(BufferTargetARB.ArrayBuffer, 0, (nuint)(vertex_size * maxVertices),
+                                                            MapBufferAccessMask.WriteBit | MapBufferAccessMask.PersistentBit | MapBufferAccessMask.CoherentBit);
 
         // Set the VAO for this object
         GlUtils.SetVao<TVertex>(renderer.Context);
@@ -49,7 +50,7 @@ public unsafe class RingVertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TV
         TElementBuffer.Bind(renderer, maxVertices);
     }
 
-    private int startIndex = int.MaxValue;
+    private int startIndex;
     private int currentIndex;
 
     private Queue<FencePoint> fences = new();
@@ -61,15 +62,10 @@ public unsafe class RingVertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TV
             if (fences.Peek().BufferIndex == currentIndex)
             {
                 var fencePoint = fences.Dequeue();
-                while (true)
+                while (!fencePoint.Fence.IsSignalled)
                 {
-                    var result = renderer.Context.ClientWaitSync(fencePoint.FenceHandle, SyncObjectMask.Bit, 1000);
-                    if (result is GLEnum.ConditionSatisfied or GLEnum.AlreadySignaled)
-                        break;
-
-                    Console.WriteLine("Long running sync point");
+                    Console.WriteLine($"Long running sync point @ : {currentIndex}");
                 }
-                renderer.Context.DeleteSync(fencePoint.FenceHandle);
             }
         }
 
@@ -91,20 +87,20 @@ public unsafe class RingVertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TV
         int count = currentIndex - startIndex;
 
         renderer.Context.DrawRangeElements(PrimitiveType.Triangles,
-                                            (uint)TElementBuffer.ToIndicesCount(startIndex),
-                                            (uint)TElementBuffer.ToIndicesCount(currentIndex),
+                                            (uint)startIndex,
+                                            (uint)currentIndex - 1,
                                             (uint)TElementBuffer.ToIndicesCount(count),
                                             DrawElementsType.UnsignedInt,
-                                            (void*)null);
+                                            (void*)(TElementBuffer.ToIndicesCount(startIndex) * sizeof(uint)));
 
         Reset();
     }
 
     public void Reset()
     {
-        nint fenceHandle = renderer.Context.FenceSync(SyncCondition.SyncGpuCommandsComplete, SyncBehaviorFlags.None);
+        var fence = renderer.CreateFence();
 
-        fences.Enqueue(new(startIndex, fenceHandle));
+        fences.Enqueue(new(startIndex, fence));
 
         if (currentIndex == maxVertices)
             currentIndex = 0;
@@ -126,7 +122,5 @@ public unsafe class RingVertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TV
         throw new NotImplementedException();
     }
 
-
-
-    private record struct FencePoint(int BufferIndex, nint FenceHandle);
+    private record struct FencePoint(int BufferIndex, GLFence Fence);
 }
