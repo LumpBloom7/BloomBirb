@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using BloomFramework.Graphics;
 using BloomFramework.Graphics.Vertices;
-using BloomFramework.Renderers.OpenGL.Batches;
+using BloomFramework.Renderers.OpenGL.Buffers;
 using BloomFramework.Renderers.OpenGL.Textures;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
@@ -113,7 +113,7 @@ public class OpenGlRenderer : IDisposable
         if (boundProgram == programId)
             return;
 
-        currentVertexBatch?.FlushBatch();
+        currentVertexBuffer?.Draw();
 
         boundProgram = programId;
         Context.UseProgram(programId);
@@ -124,7 +124,7 @@ public class OpenGlRenderer : IDisposable
         if (texture_units.TryGetValue(textureUnit, out ITexture? previousTexture) && previousTexture.Equals(texture))
             return;
 
-        currentVertexBatch?.FlushBatch();
+        currentVertexBuffer?.Draw();
 
         texture_units[textureUnit] = texture;
 
@@ -143,29 +143,29 @@ public class OpenGlRenderer : IDisposable
     private readonly DrawableBatchTree batchTree = new();
 
     // This is the current active batch that the next vertex will be submitted to
-    private IVertexBatch? currentVertexBatch;
+    private IVertexBuffer? currentVertexBuffer;
 
     // All the batches that have been initialized so far
-    private readonly Dictionary<Type, IVertexBatch> defaultBatches = new();
+    private readonly Dictionary<Type, IVertexBuffer> defaultBuffers = new();
 
-    private readonly List<IVertexBatch> usedBatches = new();
+    private readonly List<IVertexBuffer> usedBuffers = new();
 
     // Attempts to initialize or reuse a batch we've already created
-    public void UseBatch<TBatchType>() where TBatchType : IVertexBatch, new()
+    public void UseBuffer<TVertexBuffer>() where TVertexBuffer : IVertexBuffer
     {
-        if (currentVertexBatch is TBatchType)
+        if (currentVertexBuffer is TVertexBuffer)
             return;
 
-        if (!defaultBatches.TryGetValue(typeof(TBatchType), out IVertexBatch? batch))
+        if (!defaultBuffers.TryGetValue(typeof(TVertexBuffer), out IVertexBuffer? buffer))
         {
-            batch = new TBatchType();
-            batch.Initialize(this, 1000, 1000);
-            defaultBatches[typeof(TBatchType)] = batch;
+            buffer = TVertexBuffer.Create(this, 1000);
+            buffer.Initialize();
+            defaultBuffers[typeof(TVertexBuffer)] = buffer;
         }
 
-        currentVertexBatch?.FlushBatch();
-        currentVertexBatch = batch;
-        usedBatches.Add(batch);
+        buffer.Draw();
+        currentVertexBuffer = buffer;
+        usedBuffers.Add(buffer);
     }
 
     private readonly Stack<Drawable> deferredDrawables = new();
@@ -178,12 +178,11 @@ public class OpenGlRenderer : IDisposable
 
         DrawDepth.Reset();
 
-        foreach (var batch in usedBatches)
-            batch.ResetBatch();
+        foreach (var batch in usedBuffers)
+            batch.Reset();
 
-        usedBatches.Clear();
-
-        currentVertexBatch = null;
+        usedBuffers.Clear();
+        currentVertexBuffer = null;
     }
 
     public void QueueDrawable(Drawable drawable)
@@ -203,10 +202,10 @@ public class OpenGlRenderer : IDisposable
         drawable.Draw(this);
     }
 
-    public void AddVertex<TVertexType>(TVertexType vertex)
-        where TVertexType : unmanaged, IEquatable<TVertexType>, IVertex
+    public void AddVertex<TVertex>(TVertex vertex)
+        where TVertex : unmanaged, IEquatable<TVertex>, IVertex
     {
-        ((IVertexBatch<TVertexType>)currentVertexBatch!).AddVertex(vertex);
+        ((IVertexBuffer<TVertex>)currentVertexBuffer!).AddVertex(ref vertex);
     }
 
     public void EndFrame()
@@ -215,14 +214,14 @@ public class OpenGlRenderer : IDisposable
 
         if (deferredDrawables.Count > 0)
         {
-            currentVertexBatch?.FlushBatch();
+            currentVertexBuffer?.Draw();
             Context.Enable(EnableCap.Blend);
             Context.DepthMask(false);
             while (deferredDrawables.Count > 0)
                 deferredDrawables.Pop().Draw(this);
-        }
 
-        currentVertexBatch?.FlushBatch();
+            currentVertexBuffer?.Draw();
+        }
     }
 
     // </render>

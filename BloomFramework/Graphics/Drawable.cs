@@ -369,6 +369,8 @@ public abstract class Drawable : IDisposable
         Dispose(true);
 
         Disposed = true;
+
+        GC.SuppressFinalize(this);
     }
 
     ~Drawable()

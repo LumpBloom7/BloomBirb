@@ -1,134 +1,132 @@
-using System.Runtime.CompilerServices;
-using BloomFramework.Graphics.Vertices;
 using Silk.NET.OpenGL;
+using BloomFramework.Graphics.Vertices;
+using System.Runtime.CompilerServices;
+using BloomFramework.Renderers.OpenGL.Buffers.ElementBuffers;
 
 namespace BloomFramework.Renderers.OpenGL.Buffers;
 
-public abstract unsafe class VertexBuffer<T> : IDisposable where T : unmanaged, IEquatable<T>, IVertex
+public class VertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
+    where TVertex : unmanaged, IVertex, IEquatable<TVertex>
+    where TElementBuffer : IElementBuffer
 {
-    private readonly T[] vertices;
+    private readonly TVertex[] data;
+    private readonly OpenGlRenderer renderer;
 
     private uint vboHandle;
-
     private uint vaoHandle;
 
-    private readonly int size;
+    private static readonly int vertex_size = Unsafe.SizeOf<TVertex>();
 
-    protected abstract PrimitiveType PrimitiveType { get; }
-    protected abstract int IndicesPerPrimitive { get; }
-    protected abstract int VerticesPerPrimitive { get; }
-
-    protected readonly OpenGlRenderer Renderer;
-
-    private static readonly int vertex_size = Unsafe.SizeOf<T>();
-
-    protected VertexBuffer(OpenGlRenderer renderer, int amountOfVertices = 10000)
+    public VertexBuffer(OpenGlRenderer renderer, int vertexCount)
     {
-        Renderer = renderer;
-        size = amountOfVertices;
-        vertices = new T[amountOfVertices];
+        data = new TVertex[vertexCount];
+        this.renderer = renderer;
     }
 
-    public void Initialize()
+    public static IVertexBuffer Create(OpenGlRenderer renderer, int vertexCount) => new VertexBuffer<TVertex, TElementBuffer>(renderer, vertexCount);
+
+    // I'd rather follow RAII here, this should be done in the constructor
+    public unsafe void Initialize()
     {
-        vaoHandle = Renderer.Context.GenVertexArray();
-        vboHandle = Renderer.Context.GenBuffer();
+        vboHandle = renderer.Context.GenBuffer();
+        vaoHandle = renderer.Context.GenVertexArray();
 
-        bind();
+        Bind();
 
-        Renderer.Context.BufferData((GLEnum)BufferTargetARB.ArrayBuffer, (nuint)(size * vertex_size), null, BufferUsageARB.DynamicDraw);
+        // Allocate the data GPU side
+        renderer.Context.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertex_size * data.Length), null, BufferUsageARB.DynamicDraw);
 
-        InitializeEbo();
+        // Set the VAO for this object
+        GlUtils.SetVao<TVertex>(renderer.Context);
 
-        GlUtils.SetVao<T>(Renderer.Context);
+        // Binds the index buffer to the VAO
+        TElementBuffer.Bind(renderer, data.Length);
     }
 
-    public bool IsFull => (batchBegin + Count) == size;
-
-    public int Count { get; private set; }
-
-    private int batchBegin;
-
-    private int changeBegin = int.MaxValue;
-    private int changeEnd = int.MinValue;
-
-    public void AddVertex(ref T vertex)
+    public void Bind()
     {
-        ArgumentNullException.ThrowIfNull(vertices);
+        renderer.BindVertexArray(vaoHandle);
 
-        int index = batchBegin + Count;
+        // This needs to be bound if we want to upload data
+        // But doesn't need to be bound if we are simply drawing it
+        renderer.BindBuffer(vboHandle);
+    }
 
-        if (!vertices[index].Equals(vertex))
+    private int beginIndex = int.MaxValue;
+    private int endIndex = int.MinValue;
+    private int currentIndex;
+
+    public void AddVertex(ref TVertex vertex)
+    {
+        // We don't want to resubmit equivalent data
+        if (data[currentIndex].Equals(vertex))
+            return;
+
+        data[currentIndex] = vertex;
+
+        beginIndex = Math.Min(beginIndex, currentIndex);
+        endIndex = Math.Max(endIndex, currentIndex + 1);
+        ++currentIndex;
+
+        // The buffer is full, force draw immediately
+        if (currentIndex == data.Length)
+            Draw();
+    }
+
+    public void Draw()
+    {
+        // Nothing to draw
+        if (currentIndex == 0)
+            return;
+
+        // This is wasteful, since we need not bind the buffer manually if we don't need to upload data
+        Bind();
+
+        // Upload updated data
+        if (beginIndex < endIndex)
         {
-            vertices[index] = vertex;
-
-            changeBegin = Math.Min(changeBegin, index);
-            changeEnd = Math.Max(changeEnd, index + 1);
+            int changedVerticesCount = endIndex - beginIndex;
+            renderer.Context.BufferSubData(BufferTargetARB.ArrayBuffer, vertex_size * beginIndex, new ReadOnlySpan<TVertex>(data, beginIndex, changedVerticesCount));
         }
 
-        ++Count;
+        unsafe
+        {
+            renderer.Context.DrawElements(PrimitiveType.Triangles, (uint)TElementBuffer.ToIndicesCount(currentIndex), DrawElementsType.UnsignedInt, (void*)null);
+        }
+
+        // Prepare for next use
+        Reset();
     }
 
     public void Reset()
     {
-        Count = 0;
-        batchBegin = 0;
+        beginIndex = int.MaxValue;
+        endIndex = int.MinValue;
+        currentIndex = 0;
     }
 
-    private void bufferData()
+
+    public bool IsDisposed { get; private set; }
+
+    private void dispose(bool isDisposing)
     {
-        Renderer.Context.BufferSubData(BufferTargetARB.ArrayBuffer, changeBegin * vertex_size, new ReadOnlySpan<T>(vertices, changeBegin, changeEnd - changeBegin));
-
-        changeBegin = int.MaxValue;
-        changeEnd = int.MinValue;
-    }
-
-    private void bind()
-    {
-        Renderer.BindVertexArray(vaoHandle);
-        Renderer.BindBuffer(vboHandle);
-    }
-
-    protected abstract void InitializeEbo();
-
-    public void DrawBuffer()
-    {
-        if (Count == 0)
+        if (IsDisposed)
             return;
 
-        bind();
+        renderer.Context.DeleteVertexArray(vaoHandle);
+        renderer.Context.DeleteBuffer(vboHandle);
 
-        if (changeBegin < int.MaxValue)
-            bufferData();
-
-        int indicesToDraw = Count / VerticesPerPrimitive * IndicesPerPrimitive;
-        int indicesOffset = batchBegin / VerticesPerPrimitive * IndicesPerPrimitive * sizeof(uint);
-        Renderer.Context.DrawElements(PrimitiveType, (uint)indicesToDraw, DrawElementsType.UnsignedInt, (void*)indicesOffset);
-
-        batchBegin += Count;
-        Count = 0;
-    }
-
-    private bool isDisposed;
-
-    protected void Dispose(bool disposing)
-    {
-        if (isDisposed)
-            return;
-
-        Renderer.Context.DeleteVertexArray(vaoHandle);
-        Renderer.Context.DeleteBuffer(vboHandle);
-        isDisposed = true;
+        IsDisposed = true;
     }
 
     public void Dispose()
     {
-        Dispose(true);
+        dispose(true);
         GC.SuppressFinalize(this);
     }
 
     ~VertexBuffer()
     {
-        Dispose(false);
+        dispose(false);
     }
 }

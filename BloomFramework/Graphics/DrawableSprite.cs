@@ -2,7 +2,8 @@ using System.Diagnostics;
 using System.Numerics;
 using BloomFramework.Graphics.Vertices;
 using BloomFramework.Renderers.OpenGL;
-using BloomFramework.Renderers.OpenGL.Batches;
+using BloomFramework.Renderers.OpenGL.Buffers;
+using BloomFramework.Renderers.OpenGL.Buffers.ElementBuffers;
 using BloomFramework.Renderers.OpenGL.Textures;
 
 namespace BloomFramework.Graphics;
@@ -33,7 +34,7 @@ public class DrawableSprite : Drawable
         Debug.Assert(Texture is not null);
 
         base.Draw(renderer);
-        renderer.UseBatch<QuadBatch<DepthWrappingVertex<TexturedVertex2D>>>();
+        renderer.UseBuffer<TripleBuffer<DepthWrappingVertex<TexturedVertex2D>, QuadElementBuffer>>();
 
         shader.Bind();
         Texture.Bind();
