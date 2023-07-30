@@ -59,13 +59,13 @@ public class VertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
     public void AddVertex(ref TVertex vertex)
     {
         // We don't want to resubmit equivalent data
-        if (data[currentIndex].Equals(vertex))
-            return;
+        if (!data[currentIndex].Equals(vertex))
+        {
+            data[currentIndex] = vertex;
 
-        data[currentIndex] = vertex;
-
-        beginIndex = Math.Min(beginIndex, currentIndex);
-        endIndex = Math.Max(endIndex, currentIndex + 1);
+            beginIndex = Math.Min(beginIndex, currentIndex);
+            endIndex = Math.Max(endIndex, currentIndex + 1);
+        }
         ++currentIndex;
 
         // The buffer is full, force draw immediately
