@@ -52,20 +52,11 @@ public class VertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
         renderer.BindBuffer(vboHandle);
     }
 
-    private int beginIndex = int.MaxValue;
-    private int endIndex = int.MinValue;
     private int currentIndex;
 
     public void AddVertex(ref TVertex vertex)
     {
-        // We don't want to resubmit equivalent data
-        if (!data[currentIndex].Equals(vertex))
-        {
-            data[currentIndex] = vertex;
-
-            beginIndex = Math.Min(beginIndex, currentIndex);
-            endIndex = Math.Max(endIndex, currentIndex + 1);
-        }
+        data[currentIndex] = vertex;
         ++currentIndex;
 
         // The buffer is full, force draw immediately
@@ -73,21 +64,17 @@ public class VertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
             Draw();
     }
 
-    public void Draw()
+    public unsafe void Draw()
     {
         // Nothing to draw
         if (currentIndex == 0)
             return;
 
-        // This is wasteful, since we need not bind the buffer manually if we don't need to upload data
         Bind();
 
-        // Upload updated data
-        if (beginIndex < endIndex)
-        {
-            int changedVerticesCount = endIndex - beginIndex;
-            renderer.Context.BufferSubData(BufferTargetARB.ArrayBuffer, vertex_size * beginIndex, new ReadOnlySpan<TVertex>(data, beginIndex, changedVerticesCount));
-        }
+        // This allows the underlying buffer to be swapped out, without an implicit sync
+        renderer.Context.InvalidateBufferData(vboHandle);
+        renderer.Context.BufferSubData(BufferTargetARB.ArrayBuffer, 0, new ReadOnlySpan<TVertex>(data, 0, currentIndex));
 
         unsafe
         {
@@ -100,8 +87,6 @@ public class VertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
 
     public void Reset()
     {
-        beginIndex = int.MaxValue;
-        endIndex = int.MinValue;
         currentIndex = 0;
     }
 

@@ -34,7 +34,7 @@ public class DrawableSprite : Drawable
         Debug.Assert(Texture is not null);
 
         base.Draw(renderer);
-        renderer.UseBuffer<TripleBuffer<DepthWrappingVertex<TexturedVertex2D>, QuadElementBuffer>>();
+        renderer.UseBuffer<VertexBuffer<DepthWrappingVertex<TexturedVertex2D>, QuadElementBuffer>>();
 
         shader.Bind();
         Texture.Bind();
