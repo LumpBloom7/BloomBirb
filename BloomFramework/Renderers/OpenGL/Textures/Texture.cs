@@ -32,21 +32,19 @@ public class Texture : ITexture, IDisposable
         (Width, Height) = (width, height);
 
         // Expectation, GL is ready at this point
-        initialize();
-
-        invalidated = true;
-    }
-
-    private unsafe void initialize()
-    {
         TextureHandle = Renderer.Context.GenTexture();
 
         Bind();
 
-        Renderer.Context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, (uint)Width, (uint)Height, 0,
-            PixelFormat.Rgba, PixelType.UnsignedByte, null);
+        unsafe
+        {
+            Renderer.Context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, (uint)Width, (uint)Height, 0,
+                PixelFormat.Rgba, PixelType.UnsignedByte, null);
+        }
 
         setTextureParameters();
+
+        invalidated = true;
     }
 
     public void Bind(TextureUnit textureUnit = TextureUnit.Texture0)

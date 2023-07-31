@@ -17,10 +17,10 @@ public class TextureAtlas : Texture
         : base(renderer, width, height, parameters)
     {
         // Prepare a white dot for use in blank textures
-        initialize();
+        createWhiteDot();
     }
 
-    private unsafe void initialize()
+    private unsafe void createWhiteDot()
     {
         int width = 1 + paddingAmount;
         Span<Rgba32> whitePixels = stackalloc Rgba32[width * width];
