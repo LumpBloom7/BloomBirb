@@ -27,11 +27,7 @@ public class VertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
 
         Bind();
 
-        unsafe
-        {
-            // Allocate the data GPU side
-            renderer.Context.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertex_size * data.Length), null, BufferUsageARB.DynamicDraw);
-        }
+        allocateBuffer();
 
         // Set the VAO for this object
         GlUtils.SetVao<TVertex>(renderer.Context);
@@ -41,6 +37,9 @@ public class VertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
     }
 
     public static IVertexBuffer Create(OpenGlRenderer renderer, int vertexCount) => new VertexBuffer<TVertex, TElementBuffer>(renderer, vertexCount);
+
+    // Allocate or respecify the underlying buffer
+    private unsafe void allocateBuffer() => renderer.Context.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertex_size * data.Length), null, BufferUsageARB.DynamicDraw);
 
     public void Bind()
     {
@@ -63,7 +62,7 @@ public class VertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
             Draw();
     }
 
-    public unsafe void Draw()
+    public void Draw()
     {
         // Nothing to draw
         if (currentIndex == 0)
@@ -72,7 +71,8 @@ public class VertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
         Bind();
 
         // This allows the underlying buffer to be swapped out, without an implicit sync
-        renderer.Context.InvalidateBufferData(vboHandle);
+        allocateBuffer();
+
         renderer.Context.BufferSubData(BufferTargetARB.ArrayBuffer, 0, new ReadOnlySpan<TVertex>(data, 0, currentIndex));
 
         unsafe
@@ -84,10 +84,7 @@ public class VertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
         Reset();
     }
 
-    public void Reset()
-    {
-        currentIndex = 0;
-    }
+    public void Reset() => currentIndex = 0;
 
 
     public bool IsDisposed { get; private set; }
