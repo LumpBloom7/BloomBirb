@@ -12,7 +12,7 @@ public class DrawableSprite : Drawable
 {
     public override bool IsTranslucent => (Texture?.HasTransparencies ?? false) || base.IsTranslucent;
 
-    public ITextureUsage? Texture { get; set; } = null;
+    public ITexture? Texture { get; set; } = null;
     private Shader shader { get; set; }
 
     public DrawableSprite(Shader shader)
@@ -39,9 +39,9 @@ public class DrawableSprite : Drawable
         shader.Bind();
         Texture.Bind();
 
-        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.TopLeft, DrawColour, new Vector2(0, 1), Texture), DrawDepth));
-        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.BottomLeft, DrawColour, new Vector2(0, 0), Texture), DrawDepth));
-        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.BottomRight, DrawColour, new Vector2(1, 0), Texture), DrawDepth));
-        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.TopRight, DrawColour, new Vector2(1, 1), Texture), DrawDepth));
+        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.TopLeft, DrawColour, Texture.ToRegionUV(new Vector2(0, 1))), DrawDepth));
+        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.BottomLeft, DrawColour, Texture.ToRegionUV(new Vector2(0, 0))), DrawDepth));
+        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.BottomRight, DrawColour, Texture.ToRegionUV(new Vector2(1, 0))), DrawDepth));
+        renderer.AddVertex(new DepthWrappingVertex<TexturedVertex2D>(new(DrawQuad.TopRight, DrawColour, Texture.ToRegionUV(new Vector2(1, 1))), DrawDepth));
     }
 }

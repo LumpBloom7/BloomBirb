@@ -87,7 +87,7 @@ public class Font
         }
     }
 
-    public ITextureUsage GetCharacterTexture(char character)
+    public ITexture GetCharacterTexture(char character)
     {
         if (!Characters.TryGetValue(character, out var charInfo))
             charInfo = Characters['?'];
@@ -95,7 +95,7 @@ public class Font
         ushort page = charInfo.PageNumber;
 
         var texture = textures.Get(PageNames[page]);
-        return new TextureUsage(texture.BackingTexture,
+        return new TextureRegion(texture,
             new Rectangle<int>(charInfo.XPosition, charInfo.YPosition, charInfo.Width, charInfo.Height),
             true);
     }

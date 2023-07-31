@@ -1,6 +1,5 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
-using BloomFramework.Renderers.OpenGL.Textures;
 
 namespace BloomFramework.Graphics.Vertices;
 
@@ -12,12 +11,10 @@ public readonly record struct TexturedVertex2D : IVertex
     [VertexMember(VertexAttributeType.Float, 2)]
     public readonly Vector2 TexturePosition;
 
-    public TexturedVertex2D(Vector2 position, Vector4 colour, Vector2 uvPos, ITextureUsage texture)
+    public TexturedVertex2D(Vector2 position, Vector4 colour, Vector2 uvPos)
     {
         PositionAndColour = new PositionAndColourVertex(position, colour);
 
-        var uvNorm = texture.RegionSize * uvPos + texture.RegionOrigin;
-
-        TexturePosition = uvNorm;
+        TexturePosition = uvPos;
     }
 }

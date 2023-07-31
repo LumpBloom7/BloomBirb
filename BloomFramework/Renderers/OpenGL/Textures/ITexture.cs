@@ -1,3 +1,4 @@
+using System.Numerics;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 
@@ -9,5 +10,9 @@ public interface ITexture
 
     public Vector2D<int> TextureSize { get; }
 
+    bool HasTransparencies { get; }
+
     void Bind(TextureUnit textureUnit = TextureUnit.Texture0);
+
+    virtual Vector2 ToRegionUV(Vector2 uv) => uv;
 }

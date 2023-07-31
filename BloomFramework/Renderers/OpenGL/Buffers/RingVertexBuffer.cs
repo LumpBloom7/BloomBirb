@@ -84,6 +84,8 @@ public unsafe class RingVertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TV
                 {
                     Console.WriteLine($"Long running sync point @ : {currentIndex}");
                 }
+
+                fencePoint.Fence.Dispose();
             }
         }
 

@@ -8,9 +8,12 @@ namespace BloomFramework.Renderers.OpenGL.Textures;
 
 public class TextureAtlas : Texture
 {
+    public TextureRegion WhitePixelRegion;
+
     public TextureAtlas(OpenGlRenderer renderer, int width, int height)
         : this(renderer, width, height, new TextureParameters())
     {
+
     }
 
     public TextureAtlas(OpenGlRenderer renderer, int width, int height, TextureParameters parameters)
@@ -18,6 +21,8 @@ public class TextureAtlas : Texture
     {
         // Prepare a white dot for use in blank textures
         createWhiteDot();
+
+        WhitePixelRegion = new TextureRegion(this, new Rectangle<int>(0, 0, 0, 0), false);
     }
 
     private unsafe void createWhiteDot()
@@ -34,16 +39,16 @@ public class TextureAtlas : Texture
         cursorX = nextRowY = 1 + paddingAmount * 2;
     }
 
-    public bool TryAddSubtexture(Image<Rgba32> image, [NotNullWhen(true)] out ITextureUsage? textureUsage)
+    public bool TryAddSubtexture(Image<Rgba32> image, [NotNullWhen(true)] out ITexture? textureRegion)
     {
         var target = findFittingPosition(image.Width, image.Height);
         if (target is not { } offset)
         {
-            textureUsage = null;
+            textureRegion = null;
             return false;
         }
 
-        textureUsage = UploadData(image, offset, paddingAmount);
+        textureRegion = UploadData(image, offset, paddingAmount);
         return true;
     }
 

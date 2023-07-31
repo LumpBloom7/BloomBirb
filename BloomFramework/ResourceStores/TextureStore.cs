@@ -19,7 +19,7 @@ public class TextureStore : IDisposable
     private readonly List<TextureAtlas> atlases = new();
     private readonly List<Texture> textures = new();
 
-    private readonly Dictionary<string, ITextureUsage> textureCache = new();
+    private readonly Dictionary<string, ITexture> textureCache = new();
 
     private readonly IResourceStore resources;
 
@@ -43,7 +43,7 @@ public class TextureStore : IDisposable
         textureParameters = parameters;
     }
 
-    public ITextureUsage Get(string filename)
+    public ITexture Get(string filename)
     {
         foreach (string fallbackExt in lookup_extensions)
         {
@@ -55,7 +55,7 @@ public class TextureStore : IDisposable
             if (stream is null)
                 continue;
 
-            ITextureUsage newTexture;
+            ITexture newTexture;
 
             using (var image = Image.Load<Rgba32>(stream))
             {
@@ -73,7 +73,7 @@ public class TextureStore : IDisposable
         return renderer.BlankTexture;
     }
 
-    private ITextureUsage addLargeTexture(Image<Rgba32> image)
+    private ITexture addLargeTexture(Image<Rgba32> image)
     {
         var texture = new Texture(renderer, image.Width, image.Height, textureParameters);
         var usage = texture.UploadData(image);
@@ -82,11 +82,11 @@ public class TextureStore : IDisposable
         return usage;
     }
 
-    private ITextureUsage addRegularTexture(Image<Rgba32> image)
+    private ITexture addRegularTexture(Image<Rgba32> image)
     {
         foreach (var textureAtlas in atlases)
         {
-            if (textureAtlas.TryAddSubtexture(image, out ITextureUsage? textureUsage))
+            if (textureAtlas.TryAddSubtexture(image, out ITexture? textureUsage))
                 return textureUsage;
         }
 
@@ -95,7 +95,7 @@ public class TextureStore : IDisposable
 
         atlases.Add(newAtlas);
 
-        newAtlas.TryAddSubtexture(image, out ITextureUsage? textureUsage2);
+        newAtlas.TryAddSubtexture(image, out ITexture? textureUsage2);
 
         Debug.Assert(textureUsage2 is not null);
 

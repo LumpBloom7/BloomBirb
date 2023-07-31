@@ -6,12 +6,12 @@ namespace BlackLotus.Components;
 
 public class AnimatedSprite : DrawableSprite
 {
-    private readonly TextureUsage[] sprites;
+    private readonly ITexture[] sprites;
     private readonly float frameDelta;
 
     private int index;
 
-    public AnimatedSprite(Shader shader, TextureUsage[] frames, float fps) : base(shader)
+    public AnimatedSprite(Shader shader, ITexture[] frames, float fps) : base(shader)
     {
         sprites = frames;
         frameDelta = 1 / fps;

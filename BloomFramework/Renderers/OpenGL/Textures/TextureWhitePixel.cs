@@ -1,53 +1,58 @@
 using System.Numerics;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace BloomFramework.Renderers.OpenGL.Textures;
 
-public class TextureWhitePixel : ITextureUsage
+public sealed class TextureWhitePixel : ITexture, IDisposable
 {
-    // Intentionally null due to the dynamic nature
-    public ITexture BackingTexture => null!;
-    public bool HasTransparencies => false;
-    public Vector2 RegionOrigin { get; } = Vector2.Zero;
-    public Vector2 RegionSize { get; private set; }
-
-    private Vector2D<int> backingTextureSize = new (1, 1);
-
-    private readonly OpenGlRenderer renderer;
+    private Texture fallbackPixel;
+    private OpenGlRenderer renderer;
 
     public TextureWhitePixel(OpenGlRenderer renderer)
     {
         this.renderer = renderer;
+
+        fallbackPixel = new Texture(renderer, 1, 1);
+        renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, new Rgba32(1f, 1f, 1f));
     }
 
-    private Texture? fallbackTexture;
+    private ITexture currentTarget = null!;
+
+    public uint TextureHandle => throw new NotImplementedException();
+
+    public Vector2D<int> TextureSize => throw new NotImplementedException();
+
+    public bool HasTransparencies => false;
 
     public void Bind(TextureUnit textureUnit = TextureUnit.Texture0)
     {
-        var currentlyBoundTexture = renderer.GetBoundTexture(textureUnit);
-
-        if (currentlyBoundTexture is not TextureAtlas)
+        if (renderer.GetBoundTexture(textureUnit) is not TextureAtlas atlas)
         {
-            currentlyBoundTexture = fallbackTexture ??= createFallbackTexture();
-            currentlyBoundTexture.Bind(textureUnit);
+            currentTarget = fallbackPixel;
+            fallbackPixel.Bind();
+            return;
         }
 
-        if (backingTextureSize.Equals(currentlyBoundTexture.TextureSize))
-            return;
-
-        backingTextureSize = currentlyBoundTexture.TextureSize;
-        RegionSize = new Vector2(1f / backingTextureSize.X, 1f / backingTextureSize.Y);
+        currentTarget = atlas.WhitePixelRegion;
     }
 
-    private Texture createFallbackTexture()
-    {
-        var texture = new Texture(renderer, 1, 1);
-        renderer.Context.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, 1, 1, PixelFormat.Rgba,
-            PixelType.UnsignedByte, new Rgba32(1f, 1f, 1f));
+    public Vector2 ToRegionUV(Vector2 uv) => currentTarget.ToRegionUV(uv);
 
-        return texture;
+    private bool disposed;
+
+    public void Dispose()
+    {
+        if (disposed)
+            return;
+
+        fallbackPixel.Dispose();
+        disposed = true;
+        GC.SuppressFinalize(this);
+    }
+
+    ~TextureWhitePixel(){
+        Dispose();
     }
 }

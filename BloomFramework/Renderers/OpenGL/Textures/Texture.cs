@@ -15,6 +15,8 @@ public class Texture : ITexture, IDisposable
 
     public Vector2D<int> TextureSize => new(Width, Height);
 
+    public bool HasTransparencies => true;
+
     protected readonly TextureParameters TextureParameters;
 
     private bool invalidated = false;
@@ -36,10 +38,10 @@ public class Texture : ITexture, IDisposable
 
         Bind();
 
+        int mips = Math.Min(parameters.MaxMipLevel, ((int)MathF.Log2(Math.Max(width, height))) + 1);
         unsafe
         {
-            Renderer.Context.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, (uint)Width, (uint)Height, 0,
-                PixelFormat.Rgba, PixelType.UnsignedByte, null);
+            Renderer.Context.TexStorage2D(TextureTarget.Texture2D, (uint)mips, SizedInternalFormat.Rgba8, (uint)Width, (uint)Height);
         }
 
         setTextureParameters();
@@ -76,10 +78,9 @@ public class Texture : ITexture, IDisposable
             TextureParameters.MaxMipLevel);
     }
 
-    public ITextureUsage UploadData(Image<Rgba32> image, int padding = 0) =>
-        UploadData(image, new Vector2D<int>(), padding);
+    public ITexture UploadData(Image<Rgba32> image, int padding = 0) => UploadData(image, new Vector2D<int>(), padding);
 
-    public unsafe ITextureUsage UploadData(Image<Rgba32> image, Vector2D<int> targetOffset, int padding = 0)
+    public unsafe ITexture UploadData(Image<Rgba32> image, Vector2D<int> targetOffset, int padding = 0)
     {
         int targetWidth = Math.Min(image.Width, Width - targetOffset.X);
         int targetHeight = Math.Min(image.Height, Height - targetOffset.Y);
@@ -112,11 +113,10 @@ public class Texture : ITexture, IDisposable
             }
         });
 
-        return new TextureUsage(this, new Rectangle<int>(targetOffset, targetWidth, targetHeight),
-            hasTransparencies);
+        return new TextureRegion(this, new Rectangle<int>(targetOffset, targetWidth, targetHeight), hasTransparencies);
     }
 
-    private void generateMipmaps() => Renderer.Context.GenerateTextureMipmap(TextureHandle);
+    private void generateMipmaps() => Renderer.Context.GenerateMipmap(TextureTarget.Texture2D);
 
     private static void padPixelRow(Span<Rgba32> original, Span<Rgba32> outputSpan, int leftPadding)
     {
@@ -141,10 +141,9 @@ public class Texture : ITexture, IDisposable
     {
         Renderer.Context.DeleteTexture(TextureHandle);
         TextureHandle = 0;
+
+        GC.SuppressFinalize(this);
     }
 
-    ~Texture()
-    {
-        Dispose();
-    }
+    ~Texture() => Dispose();
 }
