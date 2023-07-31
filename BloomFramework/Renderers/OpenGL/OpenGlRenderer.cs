@@ -19,15 +19,10 @@ public class OpenGlRenderer : IDisposable
     private static readonly Dictionary<TextureUnit, ITexture> texture_units = new();
     private static uint boundProgram;
 
-    private bool isInitialized;
-
     public TextureWhitePixel BlankTexture { get; private set; } = null!;
 
-    public void Initialize(IWindow window)
+    public OpenGlRenderer(IWindow window)
     {
-        if (isInitialized)
-            return;
-
         Context = GL.GetApi(window);
 
         enableDebugMessageCallback();
@@ -44,8 +39,6 @@ public class OpenGlRenderer : IDisposable
         Console.WriteLine();
 
         BlankTexture = new TextureWhitePixel(this);
-
-        isInitialized = true;
     }
 
     [Conditional("DEBUG")]
@@ -57,20 +50,12 @@ public class OpenGlRenderer : IDisposable
         Context.Enable(EnableCap.DebugOutputSynchronous);
     }
 
-    private void ensureInitialized()
-    {
-        if (!isInitialized)
-            throw new InvalidOperationException("OpenGLRenderer is not initialized");
-    }
-
     private void clear(ClearBufferMask bufferMask) => Context.Clear((uint)bufferMask);
 
     public Shader CreateShader(params uint[] shaderParts) => new(this, shaderParts);
 
     public uint CreateShaderPart(ShaderType type, string source)
     {
-        ensureInitialized();
-
         uint handle = Context.CreateShader(type);
 
         Context.ShaderSource(handle, source);

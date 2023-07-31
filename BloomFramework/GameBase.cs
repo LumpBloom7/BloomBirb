@@ -18,8 +18,9 @@ public class GameBase : Container
     public GameBase()
     {
         window = Window.Create(CreateWindowOptions());
+        window.Initialize();
 
-        Renderer = new OpenGlRenderer();
+        Renderer = new OpenGlRenderer(window);
 
         window.Load += LoadInternal;
         window.Update += UpdateInternal;
@@ -37,7 +38,6 @@ public class GameBase : Container
     {
         Input = new InputManager(window);
 
-        Renderer.Initialize(window);
         Renderer.Context?.Enable(EnableCap.DepthTest);
         Renderer.Context?.DepthFunc(DepthFunction.Lequal);
         Renderer.Context?.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
@@ -51,14 +51,14 @@ public class GameBase : Container
 
     protected virtual WindowOptions CreateWindowOptions()
     {
-       return WindowOptions.Default with
-       {
-           Size = new Vector2D<int>(1024, 768),
-           Title = "Test",
-           VSync = true,
-           PreferredDepthBufferBits = 16,
-           API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.ForwardCompatible, new APIVersion(4,0))
-       };
+        return WindowOptions.Default with
+        {
+            Size = new Vector2D<int>(1024, 768),
+            Title = "Test",
+            VSync = true,
+            PreferredDepthBufferBits = 16,
+            API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.ForwardCompatible, new APIVersion(4, 0))
+        };
     }
 
     private void render()
