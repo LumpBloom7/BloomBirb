@@ -2,12 +2,12 @@
 
 #include "shared.h"
 
-layout(location = 0) in vec2 v_pos;
-layout(location = 1) in vec4 v_col;
-layout(location = 2) in vec2 v_uv;
-layout(location = 3) in float v_depth;
+layout(location = 0) in highp vec2 v_pos;
+layout(location = 1) in lowp vec4 v_col;
+layout(location = 2) in highp vec2 v_uv;
+layout(location = 3) in mediump float v_depth;
 
-out FragData 
+out FragData
 {
     vec2 f_uv;
     vec4 f_col;
