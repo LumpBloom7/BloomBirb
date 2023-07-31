@@ -128,6 +128,11 @@ public class OpenGlRenderer : IDisposable
 
     private GLFence? lastFence;
 
+    /// <summary>
+    /// Creates an OpenGL synchronisation object within a wrapper class that provides convenience methods for polling/waiting for a signal.
+    /// <br/>
+    /// This is really only needed if you're working in a context where explicit synchronisation is required.
+    /// </summary>
     public GLFence CreateFence() => lastFence = new GLFence(this);
 
     public void WaitForFences()
@@ -135,9 +140,7 @@ public class OpenGlRenderer : IDisposable
         if (lastFence is null)
             return;
 
-        while(!lastFence.IsSignalled)
-        {
-        }
+        lastFence.WaitUntilSignalled();
     }
 
     // <Render>
