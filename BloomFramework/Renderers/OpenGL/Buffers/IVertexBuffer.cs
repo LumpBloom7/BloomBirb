@@ -4,8 +4,6 @@ public interface IVertexBuffer : IDisposable
 {
     virtual static IVertexBuffer Create(OpenGlRenderer renderer, int numberOfVertices) => null!;
 
-    void Initialize();
-
     void Bind();
 
     /// <summary>

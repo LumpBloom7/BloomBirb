@@ -28,15 +28,24 @@ public unsafe class RingVertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TV
     {
         this.renderer = renderer;
         maxVertices = verticesNumber;
-    }
 
-    public static IVertexBuffer Create(OpenGlRenderer renderer, int verticesNumber) => new RingVertexBuffer<TVertex, TElementBuffer>(renderer, verticesNumber);
-
-    private static readonly int vertex_size = Unsafe.SizeOf<TVertex>();
-
-    public unsafe void Initialize()
-    {
         vaoHandle = renderer.Context.GenVertexArray();
+        vboHandle = renderer.Context.GenBuffer();
+
+        Bind();
+
+        // Allocate the data GPU side
+        renderer.Context.BufferStorage(BufferStorageTarget.ArrayBuffer, (nuint)(vertex_size * maxVertices), null,
+                                        BufferStorageMask.MapWriteBit | BufferStorageMask.MapPersistentBit | BufferStorageMask.MapCoherentBit);
+
+        data = (TVertex*)renderer.Context.MapBufferRange(BufferTargetARB.ArrayBuffer, 0, (nuint)(vertex_size * maxVertices),
+                                                            MapBufferAccessMask.WriteBit | MapBufferAccessMask.PersistentBit | MapBufferAccessMask.CoherentBit);
+
+        // Set the VAO for this object
+        GlUtils.SetVao<TVertex>(renderer.Context);
+
+        // Binds the index buffer to the VAO
+        TElementBuffer.Bind(renderer, maxVertices);vaoHandle = renderer.Context.GenVertexArray();
         vboHandle = renderer.Context.GenBuffer();
 
         Bind();
@@ -54,6 +63,10 @@ public unsafe class RingVertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TV
         // Binds the index buffer to the VAO
         TElementBuffer.Bind(renderer, maxVertices);
     }
+
+    public static IVertexBuffer Create(OpenGlRenderer renderer, int verticesNumber) => new RingVertexBuffer<TVertex, TElementBuffer>(renderer, verticesNumber);
+
+    private static readonly int vertex_size = Unsafe.SizeOf<TVertex>();
 
     private int startIndex;
     private int currentIndex;
@@ -103,7 +116,7 @@ public unsafe class RingVertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TV
 
     public void Reset()
     {
-        var fence = renderer.CreateFence();
+        GLFence fence = renderer.CreateFence();
 
         fences.Enqueue(new(startIndex, fence));
 

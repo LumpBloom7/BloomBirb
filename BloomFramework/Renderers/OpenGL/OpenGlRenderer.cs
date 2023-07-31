@@ -174,7 +174,6 @@ public class OpenGlRenderer : IDisposable
         if (!defaultBuffers.TryGetValue(typeof(TVertexBuffer), out IVertexBuffer? buffer))
         {
             buffer = TVertexBuffer.Create(this, 10000);
-            buffer.Initialize();
             defaultBuffers[typeof(TVertexBuffer)] = buffer;
         }
 

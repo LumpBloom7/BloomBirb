@@ -21,20 +21,17 @@ public class VertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
     {
         data = new TVertex[vertexCount];
         this.renderer = renderer;
-    }
 
-    public static IVertexBuffer Create(OpenGlRenderer renderer, int vertexCount) => new VertexBuffer<TVertex, TElementBuffer>(renderer, vertexCount);
-
-    // I'd rather follow RAII here, this should be done in the constructor
-    public unsafe void Initialize()
-    {
         vboHandle = renderer.Context.GenBuffer();
         vaoHandle = renderer.Context.GenVertexArray();
 
         Bind();
 
-        // Allocate the data GPU side
-        renderer.Context.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertex_size * data.Length), null, BufferUsageARB.DynamicDraw);
+        unsafe
+        {
+            // Allocate the data GPU side
+            renderer.Context.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertex_size * data.Length), null, BufferUsageARB.DynamicDraw);
+        }
 
         // Set the VAO for this object
         GlUtils.SetVao<TVertex>(renderer.Context);
@@ -42,6 +39,8 @@ public class VertexBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
         // Binds the index buffer to the VAO
         TElementBuffer.Bind(renderer, data.Length);
     }
+
+    public static IVertexBuffer Create(OpenGlRenderer renderer, int vertexCount) => new VertexBuffer<TVertex, TElementBuffer>(renderer, vertexCount);
 
     public void Bind()
     {

@@ -21,12 +21,6 @@ public class TripleBuffer<TVertex, TElementBuffer> : IVertexBuffer<TVertex>
 
     public static IVertexBuffer Create(OpenGlRenderer renderer, int vertexCount) => new TripleBuffer<TVertex, TElementBuffer>(renderer, vertexCount);
 
-    public void Initialize()
-    {
-        foreach (var buffer in buffers)
-            buffer.Initialize();
-    }
-
     private int currentBufferIndex = 0;
     private int count = 0;
 
