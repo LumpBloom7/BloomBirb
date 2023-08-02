@@ -8,7 +8,7 @@ namespace BloomFramework.Renderers.OpenGL.Textures;
 
 public class TextureAtlas : Texture
 {
-    public TextureRegion WhitePixelRegion;
+    public readonly TextureRegion WhitePixelRegion;
 
     public TextureAtlas(OpenGlRenderer renderer, int width, int height)
         : this(renderer, width, height, new TextureParameters())
@@ -52,7 +52,7 @@ public class TextureAtlas : Texture
         return true;
     }
 
-    private int paddingAmount => 1 << TextureParameters.MaxMipLevel;
+    private int paddingAmount => 1 << MipmapLevels;
 
     private int cursorX, cursorY;
     private int nextRowY;

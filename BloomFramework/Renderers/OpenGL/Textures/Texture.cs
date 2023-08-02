@@ -20,6 +20,7 @@ public class Texture : ITexture, IDisposable
     protected readonly TextureParameters TextureParameters;
 
     private bool invalidated = false;
+    protected int MipmapLevels;
 
     public Texture(OpenGlRenderer renderer, int width, int height)
         : this(renderer, width, height, new TextureParameters())
@@ -38,10 +39,10 @@ public class Texture : ITexture, IDisposable
 
         Bind();
 
-        int mips = Math.Min(parameters.MaxMipLevel, ((int)MathF.Log2(Math.Max(width, height))) + 1);
+        MipmapLevels = Math.Min(parameters.MaxMipLevel, ((int)MathF.Log2(Math.Max(width, height))) + 1);
         unsafe
         {
-            Renderer.Context.TexStorage2D(TextureTarget.Texture2D, (uint)mips, SizedInternalFormat.Rgba8, (uint)Width, (uint)Height);
+            Renderer.Context.TexStorage2D(TextureTarget.Texture2D, (uint)MipmapLevels, SizedInternalFormat.Rgba8, (uint)Width, (uint)Height);
         }
 
         setTextureParameters();
