@@ -1,5 +1,4 @@
 using System.Numerics;
-using BloomFramework.Extensions;
 using BloomFramework.Graphics;
 using BloomFramework.Input.Handlers;
 using BloomFramework.Renderers.OpenGL;
@@ -19,7 +18,7 @@ public class TestDino : DrawableSprite, IKeyboardHandler, IMouseHandler
         hurt,
     }
 
-    private record AnimationSet(ITextureUsage[] Frames, int Fps, bool Looping)
+    private record AnimationSet(ITexture[] Frames, int Fps, bool Looping)
     {
         public readonly double Frametime = 1f / Fps;
     };
@@ -164,7 +163,7 @@ public class TestDino : DrawableSprite, IKeyboardHandler, IMouseHandler
 
     private static AnimationSet loadAnimSet(TextureStore textures, string prefix, int frameCount, int fps, bool looping = true)
     {
-        ITextureUsage[] frames = new ITextureUsage[frameCount];
+        ITexture[] frames = new ITexture[frameCount];
 
         for (int i = 0; i < frameCount; ++i)
         {
