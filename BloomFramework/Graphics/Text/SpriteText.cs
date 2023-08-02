@@ -83,8 +83,5 @@ public class SpriteText : CompositeDrawable<DrawableSprite>
             cursorPos += charInfo.XAdvance + kerningAmount;
             cursorPosList[i] = cursorPos;
         }
-
-
-
     }
 }

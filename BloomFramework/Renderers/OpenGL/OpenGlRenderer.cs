@@ -135,13 +135,7 @@ public class OpenGlRenderer : IDisposable
     /// </summary>
     public GLFence CreateFence() => lastFence = new GLFence(this);
 
-    public void WaitForFences()
-    {
-        if (lastFence is null)
-            return;
-
-        lastFence.WaitUntilSignalled();
-    }
+    public void WaitForFences() => lastFence?.WaitUntilSignalled();
 
     // <Render>
 
