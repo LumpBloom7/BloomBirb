@@ -22,7 +22,7 @@ public sealed class TextureWhitePixel : ITexture, IDisposable
 
     public uint TextureHandle => throw new NotImplementedException();
 
-    public Vector2D<int> TextureSize => throw new NotImplementedException();
+    public Vector2D<int> TextureSize => Vector2D<int>.One;
 
     public bool HasTransparencies => false;
 
@@ -38,7 +38,7 @@ public sealed class TextureWhitePixel : ITexture, IDisposable
         currentTarget = atlas.WhitePixelRegion;
     }
 
-    public Vector2 ToRegionUV(Vector2 uv) => currentTarget.ToRegionUV(uv);
+    public Vector2 ToRegionUV(Vector2 uv) => currentTarget?.ToRegionUV(uv) ?? uv;
 
     private bool disposed;
 

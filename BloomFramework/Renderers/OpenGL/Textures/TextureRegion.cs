@@ -21,10 +21,13 @@ public class TextureRegion : ITexture
         this.region = region;
         HasTransparencies = hasTransparencies;
 
-        var normalisationFactor = Vector2.One / new Vector2(backingTexture.TextureSize.X, backingTexture.TextureSize.Y);
+        var backingOffset = backingTexture.ToRegionUV(Vector2.Zero);
+        var backingUVSize = backingTexture.ToRegionUV(Vector2.One) - backingOffset;
+
+        var normalisationFactor = backingUVSize / new Vector2(backingTexture.TextureSize.X, backingTexture.TextureSize.Y);
 
         uvRange = new Vector2(region.Size.X, region.Size.Y) * normalisationFactor;
-        offset = new Vector2(region.Origin.X, region.Origin.Y) * normalisationFactor;
+        offset = backingOffset + new Vector2(region.Origin.X, region.Origin.Y) * normalisationFactor;
     }
 
     public uint TextureHandle => backingTexture.TextureHandle;
